@@ -9,6 +9,13 @@ structure to follow.
 
 ## Unreleased
 
+### Added
+
+- `recom-developer` covers the recurring ask that a category recom must not show while a product
+  filter or a non-default sorting is active. It surveys the theme's own filter and sort signals and
+  offers the two ways to build it — a conditional placement selector, or a guard in the design's
+  script — then asks which one you want before implementing.
+
 ## 1.7.0 — 2026-09-14
 
 ### Added
