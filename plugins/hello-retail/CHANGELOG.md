@@ -9,6 +9,13 @@ structure to follow.
 
 ## Unreleased
 
+### Changed
+
+- `hello-retail-knowledge` now covers Magento swatches on **Hyvä (Alpine)**, not just Luma/Knockout:
+  detection for both frontends, which theme functions to rely on and which to reimplement from the
+  feed, and the four runtime traps that make Hyvä swatches render nothing at all. Asking "how do
+  swatches work on Magento" now gets the answer for the frontend the shop actually runs.
+
 ## 1.7.0 — 2026-09-14
 
 ### Added
