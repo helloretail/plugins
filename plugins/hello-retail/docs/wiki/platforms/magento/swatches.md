@@ -1,4 +1,6 @@
-# Magento — Swatches
+# Magento 2 — Swatches
+
+**Applies to:** Magento 2 — both frontends, split by section below. Magento 1 is legacy and is not covered here — see [../ecommerce-platforms.md](../ecommerce-platforms.md).
 
 Magento configurable products show colour/size swatches. **Two frontends, two completely different
 implementations** — establish which one the shop runs before copying anything from this page:
