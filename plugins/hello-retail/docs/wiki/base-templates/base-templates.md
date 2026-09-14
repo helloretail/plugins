@@ -86,7 +86,7 @@ The team uses **the same base files for every customer regardless of platform**.
 
 ## Tile styling gotchas
 
-Hard-won from real onboardings. See [client-scripts/](../client-scripts/) for worked examples.
+Hard-won from real onboardings. The reusable pieces live in the [cheat sheets](../cheat-sheets/README.md) and the [platform pages](../platforms/platforms.md).
 
 - **HR centers tile text.** The base rule `.hr-overlay-search { text-align: center }` cascades into every tile; native category tiles are usually left-aligned. Adding the customer's scoping ancestor to `.hr-products-container` (rule 6) normally pulls in the theme's own `text-align` and fixes it. Only if the theme has no such rule, add a minimal `text-align:left` override in `CUSTOM_STYLING_BLOCK`.
 - **Prefer ancestor-scoping over authored CSS.** Restoring the theme's own scoped rules (rule 6) is more faithful and lower-maintenance than re-writing them in `CUSTOM_STYLING_BLOCK`. Reach for the styling block only for gaps the theme genuinely can't cover.

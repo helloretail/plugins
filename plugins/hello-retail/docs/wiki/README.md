@@ -24,7 +24,6 @@ This is the Hello Retail knowledge base bundled with the `hello-retail` plugin. 
 | [onboarding/](./onboarding/onboarding.md) | The background for an onboarding — lifecycle, implementation methods, data requirements, SPA tracking, review & testing. The step-by-step procedures are the plugin's skills, listed there. |
 | [support-knowledge/](./support-knowledge/support-knowledge.md) | Curated index of support articles by topic. |
 | [glossary/](./glossary/glossary.md) | Terms, acronyms and platform jargon (D&TS, JS, PI, RM, etc.). |
-| [client-scripts/](./client-scripts/README.md) | Anonymised one-off scripts and HTML from onboardings, each with a README on platform, use case and reuse notes. |
 
 ---
 

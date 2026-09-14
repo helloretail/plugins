@@ -57,6 +57,8 @@ If a snippet is **truly generic** (no platform-specific selectors), put it in `g
 
 If a snippet is **mostly generic but with one platform tweak**, put the generic version in `general.md` and add a "Platform notes" subsection that points to the platform file with the override.
 
+A **whole script or HTML file** from an onboarding belongs here too: a section in the matching feature × platform file, code inline, anonymised (placeholders only, no customer or staff names). There is no separate scripts library.
+
 ## Adding a new platform
 
 If a new platform shows up (e.g. WooCommerce, PrestaShop, Centra), create `cheat-sheets/<product>/<platform>.md` with the same structure as the existing files and add it to that folder's README.

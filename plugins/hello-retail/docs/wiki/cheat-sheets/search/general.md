@@ -878,7 +878,7 @@ Every line it prints is a property to set back to the native value (scoped to `.
 - [ ] CSS-only — no markup/class/attribute changes — so the theme's (often delegated) JS bindings keep working.
 - [ ] Feature controls that need IDs (ATC, wishlist, Quick View) use an ID the **feed actually exposes** — verify, don't assume `productNumber` is the platform's numeric id.
 
-> Platform specifics: [lightspeed.md](./lightspeed.md) (grid-ancestor collapse, divider pseudos, SKU-vs-numeric-id), [shopify.md](./shopify.md). Real builds: [client-scripts](../../client-scripts/README.md).
+> Platform specifics: [lightspeed.md](./lightspeed.md) (grid-ancestor collapse, divider pseudos, SKU-vs-numeric-id), [shopify.md](./shopify.md).
 
 ---
 

@@ -21,8 +21,8 @@ structure to follow.
   pricing questions point at the pricing page on helloretail.com, and pages describe how each feature works.
 - `hello-retail-knowledge` names roles instead of people, and its cheat-sheet notes no longer cite ticket
   numbers or anonymised shop codes as sources.
-- `customer-handoff` client-script entries are named by platform and use case rather than by client, and
-  the entry template no longer has client or author fields.
+- `customer-handoff` proposes a cheat sheet, a platform page or a skill reference as the home for a
+  reusable learning; the separate client-scripts library is gone.
 - `hello-retail-knowledge` keeps one add-to-cart recipe per platform under `platforms/`; the duplicate
   cheat-sheet copies are merged into them and the folder is gone. Where the two copies disagreed the page
   now says which is right: Magento reads `form_key` theme-agnostically and fires `contentUpdated`
@@ -45,6 +45,8 @@ structure to follow.
 
 ### Removed
 
+- The empty `client-scripts` wiki library. A reusable one-off script from an onboarding goes straight into
+  the matching cheat sheet or platform page, anonymised.
 - The `tools/generate-tile` wiki folder. No skill read it and it described files that do not exist;
   `tile-extractor` and `search-developer` carry its rules.
 
