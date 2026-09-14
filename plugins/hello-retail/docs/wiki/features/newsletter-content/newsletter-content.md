@@ -17,7 +17,7 @@ For Newsletter, D&TS builds **only the product-tile design** — not a full emai
 
 So the deliverable is the tile design alone — there is no base/email shell to build (that's the customer's ESP template). This is the key difference from [Triggered Emails](../triggered-emails/triggered-emails.md), where D&TS builds the whole email-friendly template (base shell + product-tile content block) that Hello Retail sends.
 
-See the [email-safe rules](../../base-templates/newsletters/references/email-safe-rules.md) and [HR feed fields for newsletter tiles](../../base-templates/newsletters/references/hr-feed-fields.md).
+The tile is built from [base-templates/newsletters/newsletter-tile-default.liquid](../../base-templates/newsletters/newsletter-tile-default.liquid); the rendering rules and the feed fields a tile can use are in the `newsletter-developer` skill, and QA is `newsletter-qa`.
 
 ## Headline metrics
 

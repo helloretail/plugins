@@ -31,7 +31,7 @@ This is the non-platform integration list — third-party tools that the Hello R
 
 ## Email ESPs
 
-See [../platforms/newsletter-platforms.md](../platforms/newsletter-platforms.md) for the full ESP integration matrix.
+See [../platforms/newsletter-platforms.md](../platforms/newsletter-platforms.md) for the full ESP integration matrix. Klaviyo — the primary ESP partner and the only ESP for Product Agents — has its own page: [klaviyo.md](./klaviyo.md).
 
 ## Custom / developer integrations
 

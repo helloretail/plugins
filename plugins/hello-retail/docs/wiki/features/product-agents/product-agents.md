@@ -3,7 +3,7 @@ source: public-docs
 verified: never
 ---
 
-# Product Agents *(new — Winter 2026 release)*
+# Product Agents
 
 ## What it is
 
@@ -49,6 +49,8 @@ Six agents run around the clock. Each addresses a specific revenue moment.
 
 Advanced use cases are exposed via webhooks.
 
+See also [integrations/klaviyo.md](../../integrations/klaviyo.md) for the three layers at which Hello Retail connects to Klaviyo.
+
 ## Tone of voice
 
 Customers can pick a preset tone or create their own. Agents adhere to it in subject + body generation.
@@ -79,7 +81,7 @@ Listed on the Product Agents page: Clarify, Bluemint, Dtails, Segmento.
 ## D&TS notes
 
 - **Product Agents requires Klaviyo.** Don't pitch to customers on other ESPs. (Yet — webhook-based custom integrations may be possible.)
-- The product is **brand new** (Winter 2026 release) — expect questions on stability, rate limits, frequency cap behavior. Start with the FAQ on the product page.
+- Expect questions on stability, rate limits and frequency-cap behaviour; start with the FAQ on the product page.
 - Onboarding flow is simpler than a normal Hello Retail launch — most plumbing is via Klaviyo's API. Plan a few hours, not weeks.
 - **Read the Available Agents article** before customer kickoff so you can recommend which agents to enable first based on the customer's catalog and behavior data.
 

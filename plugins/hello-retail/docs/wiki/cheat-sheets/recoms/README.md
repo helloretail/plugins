@@ -12,8 +12,6 @@ Product Recommendations snippets. Drop new ones into the file that matches the p
 - [magento.md](./magento.md) — Magento-specific (`.catalog-category-view`, hide-when-filtered)
 - [dandomain.md](./dandomain.md) — DanDomain Classic / Hostedshop (`.webshop-showbasket`, `#Content_Productlist`)
 - [layout-troubleshooting.md](./layout-troubleshooting.md) — recurring **layout bugs + CSS fixes** (mobile full-bleed spacing, arrows off-screen, `100vh` wrapper height, grid-injection breakout)
-- `woocommerce.md` — *(not yet created)*
-- `shopware.md` — *(not yet created — meanwhile see [../add-to-cart/shopware.md](../add-to-cart/shopware.md) for cart binding)*
 
 For add-to-cart wiring across all platforms see **[../add-to-cart/](../add-to-cart)**.
 
@@ -31,8 +29,7 @@ For add-to-cart wiring across all platforms see **[../add-to-cart/](../add-to-ca
 
 - **Base template:** [../../base-templates/recoms/](../../base-templates/recoms/) — canonical `recom.liquid` + `recom.css` (slider variant) with the `{{ TILE_BODY }}` / `{{ CUSTOM_STYLING_BLOCK }}` slots
 - **Skill:** the `recom-developer` skill (`${CLAUDE_PLUGIN_ROOT}/skills/recom-developer/`) — generates a customer recom tile from a category-page URL + feed rows
-- [../../products/product-recommendations.md](../../features/product-recommendations/product-recommendations.md)
-- Wiki: [features/product-recommendations.md](../../features/product-recommendations/product-recommendations.md)
+- Feature: [product-recommendations](../../features/product-recommendations/product-recommendations.md)
 
 ---
 

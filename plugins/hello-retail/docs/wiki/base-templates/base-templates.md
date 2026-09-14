@@ -37,12 +37,8 @@ base-templates/
 
 Hello Retail has two email-related surfaces, and D&TS builds a **different thing** for each:
 
-- **Triggered Emails** — D&TS builds a full **email-friendly template**: a **base template** (`triggered-emails/base.liquid`, the outer email shell) plus a **product-tile template** (the per-trigger `content.liquid` product grid that fills `blocks.content`). The output is the HTML/Liquid Hello Retail sends as the email body.
+- **Triggered Emails** — D&TS builds a full **email-friendly template**: a **base design** (`triggered-emails/base-design.liquid`, the outer email shell) plus a **per-trigger content design** (`triggered-emails/abandoned-cart.liquid`, `price-drop.liquid`, `back-in-stock.liquid`, `post-conversion.liquid` — the product grid that fills `blocks.content`). The output is the HTML/Liquid Hello Retail sends as the email body.
 - **Newsletter (Newsletter Content)** — D&TS builds **only the product-tile design** (`newsletters/newsletter-tile-default.liquid`). Hello Retail renders that tile **server-side into an image**, and the customer drops that product-tile image into their own newsletter/ESP email. There is no email shell to build — just the tile.
-
-Future additions:
-- Search: `full-search/`, `instant-search/` — other Search layouts; each gets its own folder.
-- Recoms: `grid/`, `mobile/` — other recom layouts if a design needs to diverge from the responsive slider.
 
 Each product area documents its own slot model and conventions in its folder README:
 - Search: [search/README.md](./search/README.md)

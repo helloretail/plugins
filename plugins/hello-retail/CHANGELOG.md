@@ -15,6 +15,22 @@ structure to follow.
   customer-identifiable data.
 - `hello-retail-knowledge` pages now open with `source` (public-docs / field / index) and `verified`
   (a date, or never), so the provenance of an answer is visible at the top of the page it cites.
+- `hello-retail-knowledge` starts its lookup at the wiki README's Quick Index and says when the page it
+  cites is `verified: never`; the separate index page it used to open was a five-line stub and is gone.
+
+### Fixed
+
+- `hello-retail-knowledge` wiki indexes now point at every page that exists — DanDomain, BigCommerce,
+  Viskan and Wikinggruppen add-to-cart, the Viskan feed notes, the Klaviyo integration page, the
+  Triggered Email base templates — and no longer list pages that were never written.
+- `hello-retail-knowledge` onboarding pages point at the plugin's skills instead of promising internal
+  onboarding code "in the next pass", and Product Agents is no longer described as new or dated to a
+  release season.
+
+### Removed
+
+- The `tools/generate-tile` wiki folder. No skill read it and it described files that do not exist;
+  `tile-extractor` and `search-developer` carry its rules.
 
 ## 1.7.0 — 2026-09-14
 

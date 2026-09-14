@@ -50,7 +50,7 @@ Hello Retail can automatically sync unsubscribe / opt-out state from these ESPs:
 
 ## Product Agents
 
-**Klaviyo only** (as of Winter 2026 release). Connects via Klaviyo's API; triggers a Klaviyo flow with agent-generated content passed as event properties. Webhooks available for advanced use cases.
+**Klaviyo only.** Connects via Klaviyo's API; triggers a Klaviyo flow with agent-generated content passed as event properties. Webhooks available for advanced use cases.
 
 See [Setting up Klaviyo for Product Agents](https://support.helloretail.com/product-agents/setting-up-klaviyo/).
 

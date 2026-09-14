@@ -114,15 +114,9 @@ Other QA checks:
 - Schedule first **EBR (Executive Business Review)** with the CSM (typically 30/60/90 days post-launch).
 - Customer's CSM picks up ongoing strategy, opportunities for new features, and EBR cadence.
 
-## D&TS placeholder
+## Where the step-by-step procedures live
 
-> *To be expanded with internal scripts, templates, and runbooks once the onboarding code is shared.*
-
-Likely additions to this file:
-
-- Default config templates per platform.
-- Internal pre-flight checklist (DNS, SPF, JS, feed URL, conversion script).
-- Common gotchas not covered in the public KB.
+The plugin's skills are the runbooks for each stage; [onboarding.md](./onboarding.md) maps them to the lifecycle above.
 
 ## Sources
 

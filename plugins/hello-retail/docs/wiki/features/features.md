@@ -7,7 +7,7 @@ verified: never
 
 The Hello Retail platform has **9 customer-facing modules** plus 1 underlying AI foundation.
 
-Each feature lives in its own subfolder. The folder-note (`<feature>/<feature>.md`) is the canonical product reference; platform-specific notes (Shopify quirks, Magento install bits, etc.) go alongside it as sibling files — e.g. `search/shopify.md`, `search/magento.md`.
+Each feature lives in its own subfolder; `<feature>/<feature>.md` is the canonical product reference. Platform-specific notes live under [platforms/](../platforms/platforms.md) and reusable snippets under [cheat-sheets/](../cheat-sheets/README.md).
 
 | # | Feature | Surface | One-liner |
 | - | --- | --- | --- |
@@ -17,7 +17,7 @@ Each feature lives in its own subfolder. The folder-note (`<feature>/<feature>.m
 | 4 | [Newsletter Content](./newsletter-content/newsletter-content.md) | Email | Personalized product blocks inside newsletters |
 | 5 | [Triggered Emails](./triggered-emails/triggered-emails.md) | Email | Behavior-based automated emails (abandoned cart etc.) |
 | 6 | [Retail Media](./retail-media/retail-media.md) | Onsite / Email | Sponsored products + banner placements |
-| 7 | [Product Agents](./product-agents/product-agents.md) *(new)* | Email (Klaviyo) | Agentic 1:1 email automation |
+| 7 | [Product Agents](./product-agents/product-agents.md) | Email (Klaviyo) | Agentic 1:1 email automation |
 | 8 | [Audience](./audience/audience.md) *(free)* | Marketing | Customer segmentation + Facebook export |
 | 9 | [Insights](./insights/insights.md) *(free)* | Reporting | Trends and key findings about the store |
 | — | [Product Intelligence](./product-intelligence/product-intelligence.md) | Foundation | Proprietary AI that turns products into vectors |

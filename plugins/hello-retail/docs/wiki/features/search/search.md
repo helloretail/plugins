@@ -23,7 +23,7 @@ AI-powered, personalized site search for ecommerce. Combines semantic understand
 | Typo tolerance | Built-in misspelling correction and AI Synonyms (auto-fixes zero-result searches). |
 | Personalization | Per-visitor ranking based on brand, category, size, style affinities and **price-affinity** (budget zones). |
 | Initial Content | Curated suggestions shown the moment the search bar is clicked — before any typing. |
-| Mobile-first | Responsive overlay/list/full/grid layouts. Mobile = 70%+ of site visits, 65%+ of orders by Q3 2024 (per marketing site). |
+| Mobile-first | Responsive overlay / list / full / grid layouts. |
 | Retail Media | Sponsored listings can appear inside search results when contextually relevant. |
 | Analytics | Top queries, zero-results, CTR, revenue attribution, filter/sort usage. |
 

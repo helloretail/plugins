@@ -8,9 +8,9 @@ Klaviyo is an email + SMS marketing platform widely used by ecommerce brands. Fo
 
 Hello Retail integrates with Klaviyo at three layers:
 
-1. **Newsletter Content** — Hello Retail renders personalized product blocks into Klaviyo templates. See [products/newsletter-content.md](../features/newsletter-content/newsletter-content.md).
+1. **Newsletter Content** — Hello Retail renders personalized product blocks into Klaviyo templates. See [features/newsletter-content](../features/newsletter-content/newsletter-content.md).
 2. **Triggered Emails permission sync** — Klaviyo unsubscribes auto-sync to Hello Retail so we don't email opt-outs.
-3. **Product Agents** — Agentic flow that triggers a Klaviyo flow per recipient, passing agent-generated subject/headline/body/products as event properties. Customer continues to use their existing Klaviyo templates. See [products/product-agents.md](../features/product-agents/product-agents.md).
+3. **Product Agents** — Agentic flow that triggers a Klaviyo flow per recipient, passing agent-generated subject/headline/body/products as event properties. Customer continues to use their existing Klaviyo templates. See [features/product-agents](../features/product-agents/product-agents.md).
 
 Hello Retail-affiliated Klaviyo specialist agencies (per the Product Agents marketing page): **Clarify, Bluemint, Dtails, Segmento**.
 

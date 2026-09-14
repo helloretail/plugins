@@ -30,7 +30,8 @@
  *   person        a name next to a role title (Head of …, CEO, co-founder)
  *   internal-ref  ticket numbers and links from internal tools (Front, ClickUp, Notion)
  *   phrase        wording that rots or misleads: "(new)", "Winter 2026 release",
- *                 marketing "Headline metrics", "not yet captured", TODO / TBD
+ *                 "not yet captured", TODO / TBD
+ *   marketing     marketing claims and framing: "Headline metrics", "per marketing"
  *   stale         verified date older than STALE_DAYS
  *
  * Usage: node scripts/wiki-lint.mjs [--strict]     --strict: warnings fail the run too
@@ -54,11 +55,12 @@ const LEVELS = {
   h1: "error",
   "skill-path": "error",
   identifiable: "error",
-  "broken-link": "warn",
-  orphan: "warn",
+  "broken-link": "error",
+  orphan: "error",
+  phrase: "error",
+  marketing: "warn",
   person: "warn",
   "internal-ref": "warn",
-  phrase: "warn",
   stale: "warn",
 };
 
@@ -117,14 +119,17 @@ const PHRASES = [
   [/\b(?:Winter|Spring|Summer|Autumn|Fall) 20\d\d\b/g, "season-dated claim — rots within a quarter"],
   [/\bQ[1-4] 20\d\d\b/g, "quarter-dated claim"],
   [/\brecently (?:launched|released|added|introduced)\b/gi, "time-relative wording"],
-  [/\bper marketing\b/gi, "marketing framing — the wiki says how things work, not how they are sold"],
-  [/^#+\s*Headline metrics\b/gi, "marketing claims in a reference page — drop, or move to a page labelled as marketing"],
   [/\bnot yet (?:captured|created|written|added|documented)\b/gi, "placeholder promise — an index lists what exists"],
   [/\bto be (?:filled|written|added|expanded|documented)\b/gi, "placeholder promise"],
   [/\bwill be (?:expanded|added|documented|filled)\b/gi, "placeholder promise"],
   [/\bnext (?:pass|iteration|step) will\b/gi, "placeholder promise"],
   [/\bcoming soon\b/gi, "placeholder promise"],
   [/\b(?:TODO|TBD|FIXME|WIP)\b/g, "work marker — finish it or drop it"],
+];
+
+const MARKETING = [
+  [/^#+\s*Headline metrics\b/gi, "marketing claims in a reference page — drop, or move to a page labelled as marketing"],
+  [/\bper marketing\b/gi, "marketing framing — the wiki says how things work, not how they are sold"],
 ];
 
 // ---------------------------------------------------------------------------
@@ -327,6 +332,9 @@ function lintWiki(pluginDir) {
     // phrases
     for (const [re, why] of PHRASES) {
       eachMatch(prose, re, (m, ln) => report("phrase", where, ln, `"${m[0].trim()}" — ${why}`));
+    }
+    for (const [re, why] of MARKETING) {
+      eachMatch(prose, re, (m, ln) => report("marketing", where, ln, `"${m[0].trim()}" — ${why}`));
     }
   }
 

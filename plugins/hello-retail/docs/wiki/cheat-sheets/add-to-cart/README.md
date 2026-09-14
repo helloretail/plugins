@@ -15,9 +15,9 @@ This is the **single most platform-dependent** part of an HR install. Each platf
 - [shopware.md](./shopware.md) — Shopware (`PluginManager.initializePlugins` on `form.buy-widget`)
 - [starweb.md](./starweb.md) — Starweb (`quickShop.init()`)
 - [../../platforms/viskan-streamline/add-to-cart.md](../../platforms/viskan-streamline/add-to-cart.md) — Viskan / Streamline (`window.viskan.cart.add()`)
-- `woocommerce.md` — *(not yet captured)*
-- `dandomain.md` — *(not yet captured)*
-- `prestashop.md` — *(not yet captured)*
+- [../../platforms/dandomain/add-to-cart.md](../../platforms/dandomain/add-to-cart.md) — DanDomain / Lightspeed (plain form POST, no JS)
+- [../../platforms/bigcommerce/add-to-cart.md](../../platforms/bigcommerce/add-to-cart.md) — BigCommerce Stencil (Cornerstone and derivatives)
+- [../../platforms/wikinggruppen/README.md#add-to-cart](../../platforms/wikinggruppen/README.md#add-to-cart) — Wikinggruppen (AJAX endpoint + `initializationCode`)
 
 ## Quick reference: which selector / API does each platform use?
 
@@ -76,7 +76,7 @@ $(document).on("submit", "#hello-retail-{{ key }} .hr-form", onSubmit);
 ## Related
 
 - Platforms: [../../platforms/](../../platforms)
-- Products: [../../products/search.md](../../features/search/search.md) · [../../products/product-recommendations.md](../../features/product-recommendations/product-recommendations.md)
+- Features: [search](../../features/search/search.md) · [product-recommendations](../../features/product-recommendations/product-recommendations.md)
 
 ---
 

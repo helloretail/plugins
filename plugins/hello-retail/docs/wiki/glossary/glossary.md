@@ -17,7 +17,7 @@ Terms, acronyms and product-specific jargon used in Hello Retail.
 | **RM** | Retail Media. |
 | **NLC** | Newsletter Content (informal). |
 | **TE** | Triggered Emails (informal). |
-| **PA** | Product Agents (Winter 2026 release). |
+| **PA** | Product Agents. |
 | **EBR** | Executive Business Review — periodic CSM-led review with the customer. |
 | **CSM** | Customer Success Manager. |
 | **KAM** | Key Account Manager. |

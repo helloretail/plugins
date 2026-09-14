@@ -32,8 +32,8 @@ Each trigger has its own setup article and design article.
 
 For Triggered Emails, D&TS builds a full **email-friendly template** in two parts:
 
-- **Base template** — the outer email shell (`base-templates/triggered-emails/base.liquid`): doctype, head `<style>`, header logo, content slot, footer, unsubscribe. This is the "Base Design" every trigger renders inside.
-- **Product-tile template** — the per-trigger content block (e.g. `abandoned-cart/content.liquid`): the product grid / tile + CTA that fills `blocks.content`.
+- **Base template** — the outer email shell (`base-templates/triggered-emails/base-design.liquid`): doctype, head `<style>`, header logo, content slot, footer, unsubscribe. This is the "Base Design" every trigger renders inside.
+- **Product-tile template** — the per-trigger content block (e.g. `base-templates/triggered-emails/abandoned-cart.liquid`): the product grid / tile + CTA that fills `blocks.content`.
 
 The output is the HTML/Liquid Hello Retail sends as the actual email body. This is the key difference from [Newsletter](../newsletter-content/newsletter-content.md), where D&TS builds only a product tile that Hello Retail renders to an **image** for the customer to drop into their own email. See the [Triggered Emails base template](../../base-templates/triggered-emails/README.md).
 

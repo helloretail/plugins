@@ -63,13 +63,12 @@ If a snippet is **mostly generic but with one platform tweak**, put the generic 
 
 ## Adding a new platform
 
-If a new platform shows up (e.g. WooCommerce, PrestaShop, Centra), just create `cheat-sheets/<product>/<platform>.md` with the same structure as the existing files. No registry to update.
+If a new platform shows up (e.g. WooCommerce, PrestaShop, Centra), create `cheat-sheets/<product>/<platform>.md` with the same structure as the existing files and add it to that folder's README.
 
 ## Related
 
-- Products: [../products/search.md](../features/search/search.md) · [../products/product-recommendations.md](../features/product-recommendations/product-recommendations.md)
-- Platforms: [../platforms/](../platforms)
-- Full search KB: [features/search.md](../features/search/search.md)
+- Features: [search](../features/search/search.md) · [product-recommendations](../features/product-recommendations/product-recommendations.md) · [pages](../features/pages/pages.md)
+- Platforms: [../platforms/](../platforms/platforms.md)
 
 ---
 
