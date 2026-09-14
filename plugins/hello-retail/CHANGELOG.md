@@ -15,6 +15,18 @@ structure to follow.
   filter or a non-default sorting is active. It surveys the theme's own filter and sort signals and
   offers the two ways to build it — a conditional placement selector, or a guard in the design's
   script — then asks which one you want before implementing.
+### Changed
+
+- `tile-extractor`, `newsletter-qa` and `customer-handoff` have shorter trigger text; each was over
+  the length a skill description may be, which put the tail at risk of being cut — including the
+  clauses that send you to the right sibling skill instead. The phrases you say to start them are
+  unchanged; internal procedure detail came out in their place.
+
+### Fixed
+
+- `customer-analytics-report` is triggerable again. Its trigger text failed to load, so asking for
+  "an analytics report for [domain]" or "a report in Danish" did not start the skill; you had to
+  invoke it by name.
 
 ## 1.7.0 — 2026-09-14
 
