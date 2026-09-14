@@ -9,6 +9,12 @@ structure to follow.
 
 ## Unreleased
 
+### Fixed
+
+- `customer-analytics-report` is triggerable again. Its trigger text failed to load, so asking for
+  "an analytics report for [domain]" or "a report in Danish" did not start the skill; you had to
+  invoke it by name.
+
 ## 1.7.0 — 2026-09-14
 
 ### Added
