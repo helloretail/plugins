@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Search — WooCommerce
 WooCommerce-specific Search snippets. WooCommerce shops sometimes ship a "demo store" notice bar at the top of the page that can be dismissed — when it collapses/expands, fixed headers shift, and HR's overlay needs to follow.
 

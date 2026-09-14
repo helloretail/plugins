@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Recoms — Shopify
 Shopify-specific Recommendations snippets. These rely on Shopify conventions like the `.money` class for cart totals and USD formatting.
 

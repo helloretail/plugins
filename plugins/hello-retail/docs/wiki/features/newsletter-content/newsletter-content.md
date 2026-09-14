@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Newsletter Content
 
 ## What it is

@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Shopware
 Shopware is a major DE/EU ecommerce platform (Shopware 6 is current). Hello Retail supports it via the [Shopware Installation Guide](https://support.helloretail.com/platforms-and-newsletter-providers/shopware-installation-guide/).
 

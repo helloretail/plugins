@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # What Hello Retail Does
 
 ## One-liner

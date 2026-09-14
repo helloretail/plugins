@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Magento — Rating / reviews
 
 Magento's built-in rating is **not** a third-party library — it's a CSS-width bar: a `.rating-result`

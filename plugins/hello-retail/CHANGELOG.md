@@ -9,6 +9,13 @@ structure to follow.
 
 ## Unreleased
 
+### Changed
+
+- `hello-retail-knowledge` no longer names reference customers or case-study shops; the wiki keeps no
+  customer-identifiable data.
+- `hello-retail-knowledge` pages now open with `source` (public-docs / field / index) and `verified`
+  (a date, or never), so the provenance of an answer is visible at the top of the page it cites.
+
 ## 1.7.0 — 2026-09-14
 
 ### Added

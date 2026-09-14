@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Add-to-Cart — Starweb
 Starweb exposes a global `quickShop` module that handles add-to-cart. After HR renders a product card, just init it.
 

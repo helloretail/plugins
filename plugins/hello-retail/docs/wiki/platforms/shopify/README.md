@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Shopify
 **Shopify** is the global SaaS ecommerce platform — the most common new install for Hello Retail.
 

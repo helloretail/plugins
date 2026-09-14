@@ -1,3 +1,7 @@
+---
+source: index
+---
+
 # Pages Cheat Sheet
 Cheat sheet for [Hello Retail Pages](../../features/pages/pages.md) — dynamic, personalized category and brand pages. Drop new snippets into the file that matches the platform scope; see [../README.md](../README.md) for the convention.
 

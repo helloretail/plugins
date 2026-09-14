@@ -1,3 +1,7 @@
+---
+source: index
+---
+
 # General
 
 Shared code and snippets that aren't tied to a single feature — Liquid filters and helpers, common JS patterns, cross-cutting utilities D&TS reuses across customer onboardings.

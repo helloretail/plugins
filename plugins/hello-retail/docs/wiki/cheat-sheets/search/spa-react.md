@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Search — SPA / React storefronts (client-side routing)
 
 Custom React (or Vue/Next/etc.) storefronts navigate with `history.pushState` instead of full page loads. Our init code runs **once**, but the page lives on "forever" — so every flag, node reference, and listener it sets up must survive route changes. **Tell-tale signal:** clicking nav links changes the URL without a document reload; `window.next`, `__NUXT__`, or a root `<div id="root">/<div id="app">` that owns the whole body.

@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Recoms — Magento
 Magento-specific Recommendations snippets. These rely on Magento's body class conventions (`.catalog-category-view`, `.catalog-product-view`) and Magento's product-list markup.
 

@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Support Knowledge — Curated Index
 
 Hello Retail's support documentation site ([support.helloretail.com](https://support.helloretail.com/)) is organized into 11 top-level categories. This file is a curated index from a D&TS perspective — the articles you'll actually open most often, grouped sensibly.

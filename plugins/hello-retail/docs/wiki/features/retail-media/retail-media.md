@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Retail Media
 
 ## What it is

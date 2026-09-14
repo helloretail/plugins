@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Glossary
 
 Terms, acronyms and product-specific jargon used in Hello Retail.
@@ -67,7 +72,6 @@ Terms, acronyms and product-specific jargon used in Hello Retail.
 | **Shopify, Magento (1 & 2), WooCommerce, PrestaShop, BigCommerce, Salesforce Commerce Cloud, Miva** | Global ecommerce platforms. |
 | **Clarify, Bluemint, Dtails, Segmento** | Klaviyo specialist agencies partnered with HR on Product Agents. |
 | **G2** | Review platform where HR collects customer reviews. |
-| **Beslag Online, Hjem.dk, DPJ Workspace, avXperten, Smoke It, Pixizoo, Legeakademiet, BioPack, Luxplus, Makeupmekka, Munk Store, Mustigroup, PenStore** | Reference customers visible on the marketing site. |
 
 ## Sources
 

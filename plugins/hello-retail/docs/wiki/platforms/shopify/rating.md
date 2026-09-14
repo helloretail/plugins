@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Shopify — Rating / reviews
 
 Shopify shops most commonly show star ratings via the **Loox** review app. The tile skill emits the

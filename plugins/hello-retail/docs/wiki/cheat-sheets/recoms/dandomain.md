@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Recoms — DanDomain (Classic / Hostedshop)
 DanDomain Classic / Hostedshop / SmartWeb snippets. These rely on platform-specific selectors like `.webshop-showbasket` and `#Content_Productlist`.
 

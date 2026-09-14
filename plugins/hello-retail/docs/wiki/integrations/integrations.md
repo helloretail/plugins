@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Integrations
 
 This is the non-platform integration list — third-party tools that the Hello Retail platform plugs into beyond just being a host webshop or sending email.

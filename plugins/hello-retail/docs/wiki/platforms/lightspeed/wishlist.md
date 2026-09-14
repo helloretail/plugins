@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Lightspeed — Wishlist
 
 There is **no reusable binding snippet** for Lightspeed wishlist — it works off the storefront's own

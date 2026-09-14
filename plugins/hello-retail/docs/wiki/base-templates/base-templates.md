@@ -1,3 +1,7 @@
+---
+source: index
+---
+
 # Base Templates
 
 > The **canonical starting files** D&TS works from when onboarding a new Hello Retail customer. One set of files for every platform. Edit in place when team conventions change — new customers inherit your edits.

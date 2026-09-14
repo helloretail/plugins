@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Search — General (platform-agnostic)
 Platform-agnostic Hello Retail Search snippets. These use HR's own `.hr-*` / `.aw-*` classes and template engine — they work on any platform once HR JS is installed.
 

@@ -1,3 +1,7 @@
+---
+source: index
+---
+
 # D&TS Onboarding
 
 > **Status:** Initial skeleton — built from the public KB only. The next pass will layer in our **internal onboarding code** and the playbooks we use day-to-day.

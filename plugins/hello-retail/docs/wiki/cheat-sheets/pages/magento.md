@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Pages — Magento
 Magento-specific Pages snippets. For platform-agnostic Pages snippets see [general.md](./general.md).
 

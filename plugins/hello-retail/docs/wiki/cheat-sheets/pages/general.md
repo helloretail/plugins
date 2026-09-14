@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Pages — General (platform-agnostic)
 Platform-agnostic Pages snippets. Drop these into the customer's design or the browser console for previewing.
 

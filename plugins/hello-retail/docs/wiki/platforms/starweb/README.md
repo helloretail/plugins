@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Starweb
 Starweb is a Nordic ecommerce platform. Hello Retail supports it via the [Starweb Installation Guide](https://support.helloretail.com/platforms-and-newsletter-providers/starweb-installation-guide/).
 

@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Implementation Methods
 
 Hello Retail offers two implementation methods. The choice usually drives 50% of the onboarding effort, so pick deliberately at kickoff.

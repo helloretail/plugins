@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Ecommerce Platforms
 
 This is the full list of ecommerce platforms with first-party installation guides. **30 articles** total in the Setup of Platforms category as of May 2026.

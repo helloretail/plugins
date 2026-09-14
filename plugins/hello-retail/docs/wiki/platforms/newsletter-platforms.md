@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Newsletter / ESP Platforms
 
 Hello Retail integrates with the customer's existing email service provider to deliver **Newsletter Content** (recommendation blocks in marketing emails) and **Triggered Emails** (event-based automated flows). For the new **Product Agents** product, only Klaviyo is supported.

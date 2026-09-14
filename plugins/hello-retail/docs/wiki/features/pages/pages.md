@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Pages
 
 ## What it is
@@ -12,7 +17,7 @@ Dynamic, personalized category and brand pages. Replaces the static, manually-so
 
 ## Why customers buy it
 
-The pitch (paraphrased from a published DPJ Workspace quote on the marketing site): a 300-category, 6,000-SKU store used to **manually** sort the position of each product in each category — an impossible operation. Pages takes that over while still giving merchandisers control.
+The pitch (paraphrased from a customer quote on the marketing site): a 300-category, 6,000-SKU store used to **manually** sort the position of each product in each category — an impossible operation. Pages takes that over while still giving merchandisers control.
 
 ## Capabilities
 

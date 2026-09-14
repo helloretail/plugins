@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Shopify — Wishlist (Wishlist King app)
 
 **Detection:** `<wishlist-button-collection>` custom element wrapping a `<wk-button>` / `<wk-icon>` structure on the native tile; app script loaded page-wide (already present on the storefront, no import needed).

@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Add-to-Cart Integration
 How to wire HR's `.aw-buy-form` (and equivalents) into each ecommerce platform's cart system. **Cross-cutting** — these snippets apply to both Search overlay results and Recommendation widgets, because both render products with the same `.aw-buy-form` structure.
 

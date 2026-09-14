@@ -1,3 +1,7 @@
+---
+source: index
+---
+
 # <Client> — <Use case>
 
 - **Client:** <name + webshop URL>

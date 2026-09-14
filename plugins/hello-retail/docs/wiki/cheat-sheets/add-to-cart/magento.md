@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Add-to-Cart — Magento
 How to wire HR's `.aw-buy-form` into Magento's cart system. Magento is the trickiest of the bunch — three things happen:
 

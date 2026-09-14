@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Add-to-Cart — Shopware
 How to bind HR's add-to-cart on Shopware shops. Shopware uses its own `PluginManager` — you can't just submit the form; you have to re-init the plugin on every HR-rendered form so Shopware's listeners attach.
 

@@ -1,3 +1,7 @@
+---
+source: index
+---
+
 # Client Scripts
 
 > A library of one-off scripts and HTML we've built for specific customers. Each entry captures **who the client was**, **the use case**, **how it worked**, and the actual files — so we can find and reuse them later.

@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Customer Onboarding Flow
 
 > Drawn from the public KB ("First Steps as a Hello Retail User", "Getting Started with Hello Retail") plus the Implementation & Support page. This is the **public-facing flow**; internal D&TS additions (templates, checklists, code) will be layered in next.

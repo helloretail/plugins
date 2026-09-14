@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Product Intelligence (PI)
 
 ## What it is

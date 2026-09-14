@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Wikinggruppen (WGO)
 
 Wikinggruppen is a Nordic ecommerce platform used by Swedish/Nordic merchants. It is not in Hello Retail's officially supported platform list — treat it as a custom integration using the [General Guide](https://support.helloretail.com/platforms-and-newsletter-providers/general-guide-for-hello-retail-integration-with-third-party-platforms/).

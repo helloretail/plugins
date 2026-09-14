@@ -1,3 +1,7 @@
+---
+source: index
+---
+
 # Cheat Sheets
 Code snippets D&TS uses repeatedly during implementation. Organized **by product** then **by platform**. Use these as starting points — copy, then adapt to the customer.
 

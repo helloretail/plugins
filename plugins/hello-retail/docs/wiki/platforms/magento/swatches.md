@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Magento — Swatches
 
 Magento configurable products show colour/size swatches. This file holds the **tile swatch markup**;

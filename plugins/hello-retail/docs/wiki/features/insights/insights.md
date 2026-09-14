@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Insights *(free)*
 
 ## What it is

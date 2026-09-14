@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Data Requirements
 
 Hello Retail needs three things from the customer to deliver high-quality personalization:

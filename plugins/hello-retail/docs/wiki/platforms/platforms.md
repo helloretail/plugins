@@ -1,3 +1,7 @@
+---
+source: index
+---
+
 # Platforms
 
 Hello Retail integrates with two categories of platform:

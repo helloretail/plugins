@@ -1,3 +1,7 @@
+---
+source: index
+---
+
 # Wiki Index
 
 Audience-grouped map of everything in this wiki.

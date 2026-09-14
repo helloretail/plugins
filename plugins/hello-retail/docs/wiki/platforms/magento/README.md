@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Magento 2
 **Magento 2** (now Adobe Commerce) is the most "batteries-included" install in the Hello Retail suite — the dedicated Magento extension automatically handles:
 

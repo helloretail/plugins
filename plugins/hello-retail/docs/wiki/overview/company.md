@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Company
 
 ## Snapshot
@@ -23,12 +28,6 @@
 AI-powered personalization for ecommerce — recommendations, search, pages, retail media, and email — sitting on top of the proprietary **Product Intelligence** engine. Hello Retail describes it as a "personalization platform" rather than a single-feature tool.
 
 The company began as a recommendations / search vendor in 2013 and in early 2023 launched **Product Intelligence**, the AI backbone that now powers every product on the platform.
-
-## Reference customers (visible on marketing site)
-
-BioPack, Luxplus, Makeupmekka, Munk Store, Mustigroup (Musti), PenStore, DPJ Workspace, Smoke It, Legeakademiet, Pixizoo, avXperten, Hjem.dk, Beslag Online.
-
-These show up frequently in case studies on the marketing site — useful as proof points in EBRs and pitches.
 
 ## Why this matters for D&TS
 

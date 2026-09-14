@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Recoms — General (platform-agnostic)
 Platform-agnostic Hello Retail Recommendations snippets — work anywhere HR JS is installed.
 

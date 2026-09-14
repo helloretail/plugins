@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Klaviyo
 Klaviyo is an email + SMS marketing platform widely used by ecommerce brands. For Hello Retail, Klaviyo is the **primary ESP partner** and the **only supported ESP** for the new Product Agents product.
 

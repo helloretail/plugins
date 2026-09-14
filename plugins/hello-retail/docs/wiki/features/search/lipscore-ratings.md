@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Lipscore Ratings in HR Search
 
 > **Audience:** D&TS, when a customer uses **Lipscore** for product reviews and wants the star rating to appear on Hello Retail Search result tiles (and Initial Content tiles).

@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # WooCommerce
 WooCommerce is the WordPress ecommerce plugin — very common in EU SMB. Hello Retail supports it via the [WooCommerce Installation Guide](https://support.helloretail.com/platforms-and-newsletter-providers/woocommerce-installation-guide/).
 

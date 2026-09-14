@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Triggered Emails
 
 ## What it is

@@ -1,3 +1,7 @@
+---
+source: index
+---
+
 # Search Cheat Sheet
 Search snippets. Drop new ones into the file that matches the platform scope; see [../README.md](../README.md) for the convention.
 

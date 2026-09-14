@@ -1,10 +1,15 @@
+---
+source: public-docs
+verified: never
+---
+
 # Product Agents *(new — Winter 2026 release)*
 
 ## What it is
 
 Agentic 1:1 email marketing. AI agents that **autonomously decide what emails to send, when, and to whom** — choosing the right products and send time for each individual customer in real time. Runs inside the customer's **Klaviyo** setup; no Klaviyo migration required.
 
-Positioning: "Maximize revenue from existing customers." Up to **6× more revenue per email** vs standard Klaviyo upsell flows. Cited case study: **Beslag Online — 6.5× revenue per email, 17× ROI in 7 days.**
+Positioning: "Maximize revenue from existing customers." Up to **6× more revenue per email** vs standard Klaviyo upsell flows.
 
 ## How it's different from traditional email automation
 

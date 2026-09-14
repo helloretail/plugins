@@ -1,3 +1,8 @@
+---
+source: public-docs
+verified: never
+---
+
 # Features
 
 The Hello Retail platform has **9 customer-facing modules** plus 1 underlying AI foundation.

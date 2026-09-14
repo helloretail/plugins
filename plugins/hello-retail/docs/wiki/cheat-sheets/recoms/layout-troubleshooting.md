@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Recoms — Layout Troubleshooting (mobile / full-bleed / grid)
 
 Recurring layout bugs in HR Recommendation sliders and their verified CSS fixes. Everything is scoped to `#hello-retail-{{ key }}` and goes in the design's **Custom Styling (CSS)** block (never the HTML/Liquid slot — see the last gotcha).

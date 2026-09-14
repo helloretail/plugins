@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Shopware — Add to cart
 
 Platform-specific ATC binding for Hello Retail tiles on Shopware. Shopware's buy widget is a

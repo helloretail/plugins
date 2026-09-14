@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # DanDomain — Search-trigger conflict (`#search-modal`)
 
 **Search overlay only.** DanDomain attaches a click handler to the site's search input that opens

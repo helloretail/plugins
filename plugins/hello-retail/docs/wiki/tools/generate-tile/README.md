@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # generate-tile — prompt + rules
 
 > **Status:** v0. Scope: HR Search overlay-desktop layout, Magento + Shopify, Liquid + CSS only (no JS). Operator-facing layer behind the `search-developer` skill (`${CLAUDE_PLUGIN_ROOT}/skills/search-developer/`).

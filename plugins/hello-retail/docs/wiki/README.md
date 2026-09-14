@@ -1,3 +1,7 @@
+---
+source: index
+---
+
 # Hello Retail — Knowledge Base
 
 > **Audience:** anyone implementing, configuring or supporting Hello Retail — Hello Retail's own delivery team, agencies, and customers' developers who need a single source of truth for what Hello Retail does, how it works, and how a customer is onboarded.
@@ -66,6 +70,29 @@ For where each team plugs in during the customer lifecycle see [onboarding/onboa
 - For a customer-onboarding walkthrough, see [onboarding/onboarding.md](./onboarding/onboarding.md) — this will be expanded with the actual onboarding code we use internally.
 
 ---
+
+## Contributing to this wiki
+
+Every page opens with a frontmatter block that says where its content came from and when someone last checked the whole page against that source:
+
+```yaml
+---
+source: field          # public-docs | field | index
+verified: 2026-09-14   # YYYY-MM-DD, or never — index pages omit it
+---
+```
+
+| `source` | Means | Verify against |
+| --- | --- | --- |
+| `public-docs` | Paraphrased from helloretail.com, support.helloretail.com or developer.helloretail.com. | Those sites. |
+| `field` | Written by D&TS from real onboardings. | The base templates, or a live store. |
+| `index` | Navigation only. | Nothing — the lint checks its links. |
+
+Set `verified` to today's date only after checking the **whole page**, not after editing a line.
+
+`npm run lint:wiki` (part of `npm run check`, and run by CI) fails on a missing or malformed block, broken links, orphan pages, and anything customer-identifiable: website UUIDs, e-mail addresses, shop domains outside the vendor allowlist, images. It warns about wording that rots — "new" markers, season-dated releases, marketing metrics, placeholder promises — and about names next to role titles.
+
+Placeholders only: `example-shop.com`, `store-IT`, `<website-uuid>`. No customer names or domains, no staff names, no screenshots, no ticket numbers from internal tools.
 
 ## Sources
 

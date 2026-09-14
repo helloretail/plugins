@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Search — Shopify
 Shopify-specific Search snippets. These rely on Shopify URL patterns (`/pages/search-results`), Shopify theme conventions (Section IDs, `.money` class), or Shopify Liquid.
 

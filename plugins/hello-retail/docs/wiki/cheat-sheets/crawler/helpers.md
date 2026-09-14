@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Crawler — Helpers
 Common patterns for HR's crawler config. The crawler DSL extends jQuery-style selectors with chainable HR helpers like `.fns()`, `.asHierarchy()`, `.matches()`.
 

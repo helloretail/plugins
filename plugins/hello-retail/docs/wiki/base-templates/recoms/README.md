@@ -1,3 +1,8 @@
+---
+source: field
+verified: never
+---
+
 # Base Templates — Recommendations
 
 Canonical starting files for a Hello Retail **Recommendations** design. One set per layout variant. Edit in place when team conventions change — new onboardings inherit your edits.
