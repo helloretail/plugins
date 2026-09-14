@@ -78,7 +78,7 @@ document.querySelectorAll("#slider-{{ key }} .swiper-slide").forEach((product) =
 
 ### _Quick View — re-init Shopify theme web components_
 
-Some modern Shopify themes use `<quick-view-button>` web components that need `connectedCallback()` to fire after HR injects products. See [../add-to-cart/shopify.md](../add-to-cart/shopify.md) → "Quick View functionality" for the snippet.
+Some modern Shopify themes use `<quick-view-button>` web components that need `connectedCallback()` to fire after HR injects products. See [../../platforms/shopify/add-to-cart.md](../../platforms/shopify/add-to-cart.md) → "Quick View functionality" for the snippet.
 
 ---
 

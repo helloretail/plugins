@@ -27,7 +27,7 @@ This is the non-platform integration list — third-party tools that the Hello R
 
 | Tool | What it does | Setup |
 | --- | --- | --- |
-| **Lipscore** | Star ratings on product tiles. In HR Search, wire the `lipscore-rating-small` widget into the tile Liquid and re-init in `afterPage` / `afterRender`. | [Lipscore in HR Search](../features/search/lipscore-ratings.md) |
+| **Lipscore** | Star ratings on product tiles. In HR Search, wire the `lipscore-rating-small` widget into the tile Liquid and re-init with `lipscore.initWidgets()` after each `fix_links` call. | [Lipscore in HR Search](../features/search/lipscore-ratings.md) |
 
 ## Email ESPs
 

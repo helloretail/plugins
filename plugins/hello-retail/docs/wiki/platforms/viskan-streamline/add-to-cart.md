@@ -132,6 +132,13 @@ siblings in that order**.
 </button>
 ```
 
+`hr-hidden` is defined only in the **mobile-overlay** base CSS. For the desktop overlay, the embedded
+variant and Recoms, add the rule to the design's CSS yourself:
+
+```css
+.hr-hidden { display: none !important; }
+```
+
 HR click tracking sits on the buy button only — the stepper buttons mutate an already-tracked cart
 and must **not** carry `trackClick`. See the `tile-extractor` skill, "Never forget
 HR cart tracking on the add-to-cart button".
@@ -264,7 +271,7 @@ See `${CLAUDE_PLUGIN_ROOT}/skills/recom-developer/references/add-to-cart-js.md`.
 **Related:**
 - Platform install nuance — [Viskan / Streamline overview](./README.md)
 - Feeds — [feeds.md](./feeds.md)
-- Cross-platform binding rules — [../../cheat-sheets/add-to-cart/README.md](../../cheat-sheets/add-to-cart/README.md)
+- Cross-platform binding rules — [../add-to-cart.md](../add-to-cart.md)
 
 **Source:** cart API section copy-pasted from Viskan's own documentation.
 

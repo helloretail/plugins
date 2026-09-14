@@ -15,7 +15,7 @@ Lipscore renders stars + vote counts client-side. To get them on HR Search tiles
 There are two pieces:
 
 1. **Widget markup** inside the tile Liquid.
-2. **Init call** in the Search JS, in a post-render hook (`afterPage` / `afterRender`).
+2. **Init call** in the Search JS, right after each `fix_links` call — in the `initial_render` callback and in `load_more_results` (section 3).
 
 ## 1. Widget — which one to use
 

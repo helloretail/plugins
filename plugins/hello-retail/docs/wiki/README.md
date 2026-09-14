@@ -16,9 +16,9 @@ This is the Hello Retail knowledge base bundled with the `hello-retail` plugin. 
 | --- | --- |
 | [overview/](./overview/what-helloretail-does.md) | What Hello Retail is and does, plus the [company facts](./overview/company.md) — founded, HQ, public sites. |
 | [features/](./features/features.md) | One MD per product/feature — Search, Recommendations, Pages, Retail Media, Product Agents, etc. |
-| [platforms/](./platforms/platforms.md) | Every supported ecommerce platform and every supported newsletter / ESP platform. |
+| [platforms/](./platforms/platforms.md) | Every supported ecommerce and newsletter platform, and the per-platform code: add-to-cart, ratings, swatches, wishlists. |
 | [integrations/](./integrations/integrations.md) | Third-party integrations beyond platforms (Klaviyo, Facebook, Sleeknote, Google Analytics, etc.). |
-| [cheat-sheets/](./cheat-sheets/README.md) | Reusable code snippets D&TS pastes per customer, split by feature × platform (search, recoms, pages, add-to-cart, crawler). |
+| [cheat-sheets/](./cheat-sheets/README.md) | Reusable code snippets D&TS pastes per customer, split by feature × platform (search, recoms, pages, crawler). |
 | [base-templates/](./base-templates/base-templates.md) | The canonical Search, Recommendations, Newsletter and Triggered Email template files every customer build starts from, and the rules for editing them. |
 | [translations/](./translations/README.md) | Canonical UI strings for Search, Recommendations and Pages, per language, in `translations.json`. |
 | [onboarding/](./onboarding/onboarding.md) | The background for an onboarding — lifecycle, implementation methods, data requirements, SPA tracking, review & testing. The step-by-step procedures are the plugin's skills, listed there. |

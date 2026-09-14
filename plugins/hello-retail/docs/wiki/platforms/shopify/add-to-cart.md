@@ -211,6 +211,23 @@ the `.js-quick-add` dialog trigger. Delegated, so it survives re-renders on its 
 
 ---
 
+## Quick View re-init (recom slider)
+
+Some web-component themes render a `<quick-view-button>` inside `[data-button-quick-view]`. HR injects the tiles after page load, so the component's `connectedCallback` never runs for them — call it yourself once the slider is built. Scope to the box (the base template's id is `#hello-retail-{{ key }}`) and run it from Swiper's `afterInit` so clones are covered too:
+
+```javascript
+function initQuickViewButtons() {
+    document.querySelectorAll("#hello-retail-{{ key }} [data-button-quick-view]").forEach(function (btn) {
+        btn.removeAttribute("data-initialized");
+        var el = btn.querySelector("quick-view-button");
+        if (el && typeof el.connectedCallback === "function") el.connectedCallback();
+    });
+}
+initQuickViewButtons();   // from afterInit
+```
+
+---
+
 ## Notes
 
 - **Confirm the drawer event** against the customer's theme — `upcart:cart:change` (UpCart),
@@ -220,8 +237,14 @@ the `.js-quick-add` dialog trigger. Delegated, so it survives re-renders on its 
 - Shopify B2B / draft orders may need the Storefront API instead of `/cart/add.js`.
 
 **Related:**
-- Field-captured variants (Quick View, `swatch-renderer`) —
-  [../../cheat-sheets/add-to-cart/shopify.md](../../cheat-sheets/add-to-cart/shopify.md)
+- Cross-platform binding rules — [../add-to-cart.md](../add-to-cart.md)
 - Rating (Loox) — [./rating.md](./rating.md) · Platform install nuance — [Shopify overview](./README.md)
 
 **Source:** consolidated from the Search, Recom, and tile-extractor skill references, 2026-07-01.
+
+---
+
+## Timeline
+- 2026-05-21: Shopify add-to-cart and Quick View patterns documented from Shopify (Dawn) storefronts.
+- 2026-07-01: Approach A / B page consolidated from the Search, Recom and tile-extractor skill references.
+- 2026-09-14: Merged the cheat-sheet copy into this page. The Quick View re-init now targets `#hello-retail-{{ key }}`, the base template's box id, instead of the legacy `#aw-box-{{ key }}`.

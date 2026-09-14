@@ -13,13 +13,13 @@ Product Recommendations snippets. Drop new ones into the file that matches the p
 - [dandomain.md](./dandomain.md) — DanDomain Classic / Hostedshop (`.webshop-showbasket`, `#Content_Productlist`)
 - [layout-troubleshooting.md](./layout-troubleshooting.md) — recurring **layout bugs + CSS fixes** (mobile full-bleed spacing, arrows off-screen, `100vh` wrapper height, grid-injection breakout)
 
-For add-to-cart wiring across all platforms see **[../add-to-cart/](../add-to-cart)**.
+For add-to-cart wiring see the platform pages, starting at **[../../platforms/add-to-cart.md](../../platforms/add-to-cart.md)**.
 
 ## When to use which
 
 | Selector / pattern in the snippet | File |
 | --- | --- |
-| Generic HR Liquid (`{% for product.extraDataList... %}`), `.aw-*`, `#aw-box-{{ key }}` | **general.md** |
+| Generic HR Liquid (`{% for product.extraDataList... %}`), `.aw-*`, `#hello-retail-{{ key }}` | **general.md** |
 | `.money`, `.cart-total-wrapper`, Shopify Section IDs | **shopify.md** |
 | `.catalog-category-view`, `.product-info-main`, Magento XML | **magento.md** |
 | `.webshop-showbasket`, `#Content_Productlist`, DanDomain templates | **dandomain.md** |

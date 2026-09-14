@@ -10,6 +10,8 @@ For Shopify (`.money`), Magento (`.catalog-category-view`), and DanDomain (`.web
 
 ---
 
+> **Box id.** The base template's recom box is `#hello-retail-{{ key }}`; older designs used `#aw-box-{{ key }}` — check the design before pasting a selector.
+
 ### _ForLoop for sizes in stock_
 
 Liquid template that iterates `extraDataList.sizes` and shows only the sizes with non-zero stock.
@@ -34,10 +36,10 @@ document.querySelectorAll(".af_filter_content ul li input[type='checkbox']").for
     item.addEventListener("click",function(e){
         setTimeout(function(){
             if(window.location.href.includes("?")){
-                document.querySelector("#aw-box-{{ key }}").style.display='none';
+                document.querySelector("#hello-retail-{{ key }}").style.display='none';
             }
             else {
-                document.querySelector("#aw-box-{{ key }}").style.display='block';
+                document.querySelector("#hello-retail-{{ key }}").style.display='block';
             }
         }, 500)
     })
@@ -105,7 +107,7 @@ If the URL has a `?p=...` parameter (e.g. pagination), hide the recommendation.
 var searchParams = new URLSearchParams(window.location.search);
 console.log(typeof searchParams.get('p'));
 if (searchParams.get('p') !== null){
-    document.querySelector("#aw-box-{{ key }}").style.display="none"
+    document.querySelector("#hello-retail-{{ key }}").style.display="none"
 }
 ```
 
@@ -178,7 +180,7 @@ If the recom box renders narrower than the parent product list, force it to matc
 > - `.products.wrapper` (Magento)
 
 ```javascript
-document.querySelector('#aw-box-{{ key }}').style.width = document.querySelector("#Content_Productlist").offsetWidth + "px";
+document.querySelector('#hello-retail-{{ key }}').style.width = document.querySelector("#Content_Productlist").offsetWidth + "px";
 ```
 
 ---

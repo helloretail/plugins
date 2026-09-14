@@ -23,6 +23,12 @@ structure to follow.
   numbers or anonymised shop codes as sources.
 - `customer-handoff` client-script entries are named by platform and use case rather than by client, and
   the entry template no longer has client or author fields.
+- `hello-retail-knowledge` keeps one add-to-cart recipe per platform under `platforms/`; the duplicate
+  cheat-sheet copies are merged into them and the folder is gone. Where the two copies disagreed the page
+  now says which is right: Magento reads `form_key` theme-agnostically and fires `contentUpdated`
+  immediately, configurable products add from the tile only when it carries the swatch selection, Shopware
+  re-binds after every render behind a per-form guard, and the Shopify Quick View re-init targets
+  `#hello-retail-{{ key }}`. `search-developer`, `recom-developer` and `tile-extractor` point at the merged pages.
 
 ### Fixed
 
@@ -32,6 +38,10 @@ structure to follow.
 - `hello-retail-knowledge` onboarding pages point at the plugin's skills instead of promising internal
   onboarding code "in the next pass", and Product Agents is no longer described as new or dated to a
   release season.
+- `hello-retail-knowledge` names the real re-init point for Lipscore ratings (after each `fix_links` call)
+  instead of hooks that do not exist, ships the `.hr-hidden` rule the Viskan add-to-cart page relies on, and
+  binds BigCommerce add-to-cart from `fix_links` and `afterInit` like every other platform. Recom snippets
+  target the base template's `#hello-retail-{{ key }}` box id instead of the legacy `#aw-box-{{ key }}`.
 
 ### Removed
 
