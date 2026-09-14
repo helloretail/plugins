@@ -9,12 +9,6 @@ verified: never
 
 Behavior-based automated emails. Sometimes called "TE" internally. Send the right message based on what the shopper has done (or not done) — abandoned cart, browsed but didn't buy, post-purchase, price drops on viewed products, back-in-stock on watched items.
 
-## Headline metrics
-
-- Up to **30%** of ecommerce visitors respond positively to triggered emails
-- **6×** better conversion than just browsing
-- Email accounts for up to **25%** of all revenue
-
 ## Trigger types
 
 The supported triggers (see "Trigger Types" article and the surrounding KB section):

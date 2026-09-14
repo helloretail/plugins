@@ -34,7 +34,7 @@ typeof window.jQuery    // 'object'   on Luma, 'undefined' on Hyvä
 
 On Hyvä, Steps 1 and 3 do not apply. Populate `uenc` + `form_key` (Step 2) and let the form submit as a normal POST — that is core Magento and is enough to make add-to-cart work. Use the theme-agnostic `form_key` lookup below in every case; there is no reason to prefer the `#maincontent` version.
 
-**Seen on:** store-SE-5 (Hyvä) — the `#maincontent` selector returned `null` there and add-to-cart silently posted without a CSRF token.
+**Seen on:** a Hyvä storefront — the `#maincontent` selector returned `null` there and add-to-cart silently posted without a CSRF token.
 
 ---
 

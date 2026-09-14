@@ -9,12 +9,6 @@ verified: never
 
 AI-powered, personalized site search for ecommerce. Combines semantic understanding, real-time personalization, and merchandiser controls in a single product — no custom dev required.
 
-## Headline metrics (per marketing)
-
-- **76%** better conversion with personalized results
-- **55%** reduced bounce rate
-- **100%** flexibility & control (merchandisers manage everything)
-
 ## What's under the hood
 
 | Capability | Description |

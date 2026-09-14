@@ -46,8 +46,8 @@ The shared engine is **Product Intelligence** — that's why customers see consi
 
 - **Search + Recommendations** is the most common entry bundle.
 - **Pages** is usually layered next, especially for catalogs >500 SKUs.
-- **Newsletter Content + Triggered Emails** are the email entry points; **Product Agents** is the new premium email layer that requires Klaviyo.
-- **Retail Media** is a monetization upsell — generally pitched once the store has **500k+ monthly views** so suppliers see worthwhile inventory.
+- **Newsletter Content + Triggered Emails** are the email entry points; **Product Agents** is the premium email layer and requires Klaviyo.
+- **Retail Media** is a monetization add-on; it only pays off for high-traffic stores with supplier inventory to sell.
 - **Audience and Insights** are **free** with any paid plan — always turn them on during onboarding.
 
 ## Developer documentation

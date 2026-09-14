@@ -17,6 +17,12 @@ structure to follow.
   (a date, or never), so the provenance of an answer is visible at the top of the page it cites.
 - `hello-retail-knowledge` starts its lookup at the wiki README's Quick Index and says when the page it
   cites is `verified: never`; the separate index page it used to open was a five-line stub and is gone.
+- `hello-retail-knowledge` feature and overview pages no longer quote marketing statistics or price lists;
+  pricing questions point at the pricing page on helloretail.com, and pages describe how each feature works.
+- `hello-retail-knowledge` names roles instead of people, and its cheat-sheet notes no longer cite ticket
+  numbers or anonymised shop codes as sources.
+- `customer-handoff` client-script entries are named by platform and use case rather than by client, and
+  the entry template no longer has client or author fields.
 
 ### Fixed
 

@@ -31,7 +31,8 @@
  *   internal-ref  ticket numbers and links from internal tools (Front, ClickUp, Notion)
  *   phrase        wording that rots or misleads: "(new)", "Winter 2026 release",
  *                 "not yet captured", TODO / TBD
- *   marketing     marketing claims and framing: "Headline metrics", "per marketing"
+ *   marketing     marketing claims and framing: "Headline metrics", "per marketing",
+ *                 bold percentage statistics, prices
  *   stale         verified date older than STALE_DAYS
  *
  * Usage: node scripts/wiki-lint.mjs [--strict]     --strict: warnings fail the run too
@@ -58,9 +59,9 @@ const LEVELS = {
   "broken-link": "error",
   orphan: "error",
   phrase: "error",
-  marketing: "warn",
-  person: "warn",
-  "internal-ref": "warn",
+  marketing: "error",
+  person: "error",
+  "internal-ref": "error",
   stale: "warn",
 };
 
@@ -130,6 +131,8 @@ const PHRASES = [
 const MARKETING = [
   [/^#+\s*Headline metrics\b/gi, "marketing claims in a reference page — drop, or move to a page labelled as marketing"],
   [/\bper marketing\b/gi, "marketing framing — the wiki says how things work, not how they are sold"],
+  [/\*\*\+?\d+(?:[.,]\d+)?\s?(?:%|×)[^*\n]{0,40}\*\*/g, "bold statistic — marketing numbers do not belong in a reference page"],
+  [/(?:€|\bEUR\b|\bDKK\b)\s?\d[\d.,]*\s?(?:\/|per\b)|\/mo(?:nth)?\b|\bper month\b/g, "price quoted as a rate — pricing rots; point at the pricing page on helloretail.com"],
 ];
 
 // ---------------------------------------------------------------------------

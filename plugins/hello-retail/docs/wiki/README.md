@@ -24,7 +24,7 @@ This is the Hello Retail knowledge base bundled with the `hello-retail` plugin. 
 | [onboarding/](./onboarding/onboarding.md) | The background for an onboarding — lifecycle, implementation methods, data requirements, SPA tracking, review & testing. The step-by-step procedures are the plugin's skills, listed there. |
 | [support-knowledge/](./support-knowledge/support-knowledge.md) | Curated index of support articles by topic. |
 | [glossary/](./glossary/glossary.md) | Terms, acronyms and platform jargon (D&TS, JS, PI, RM, etc.). |
-| [client-scripts/](./client-scripts/README.md) | Real one-off scripts/HTML built for specific customers, each with a README on client + use case. |
+| [client-scripts/](./client-scripts/README.md) | Anonymised one-off scripts and HTML from onboardings, each with a README on platform, use case and reuse notes. |
 
 ---
 
@@ -53,10 +53,8 @@ All of these sit on top of the **Product Intelligence** AI engine and the Hello 
 D&TS (Delivery & Technical Services) is the umbrella for the three customer-facing post-sales teams:
 
 - **Implementation** — get the store live (the Implementation team).
-- **Success** — drive long-term value, EBRs, optimization (Lasse Ingemann Lind, Anthony Derda Rizzuto, Stephanie Liekola Isla, Yaser Osman, and others).
+- **Success** — drive long-term value, EBRs, optimization (the CSMs).
 - **Support** — fast technical answers and bug triage.
-
-Head of D&TS: **Brian Petersen**.
 
 For where each team plugs in during the customer lifecycle see [onboarding/onboarding.md](./onboarding/onboarding.md).
 
@@ -90,7 +88,7 @@ verified: 2026-09-14   # YYYY-MM-DD, or never — index pages omit it
 
 Set `verified` to today's date only after checking the **whole page**, not after editing a line.
 
-`npm run lint:wiki` (part of `npm run check`, and run by CI) fails on a missing or malformed block, broken links, orphan pages, wording that rots ("new" markers, season-dated releases, promises about pages that do not exist), and anything customer-identifiable: website UUIDs, e-mail addresses, shop domains outside the vendor allowlist, images. It warns about marketing metrics and about names next to role titles.
+`npm run lint:wiki` (part of `npm run check`, and run by CI) fails on a missing or malformed block, broken links, orphan pages, wording that rots ("new" markers, season-dated releases, promises about pages that do not exist), marketing metrics, names next to role titles, ticket numbers from internal tools, and anything customer-identifiable: website UUIDs, e-mail addresses, shop domains outside the vendor allowlist, images.
 
 Placeholders only: `example-shop.com`, `store-IT`, `<website-uuid>`. No customer names or domains, no staff names, no screenshots, no ticket numbers from internal tools.
 

@@ -16,12 +16,6 @@ Often abbreviated as **RM** internally.
 1. **Sponsored Products** — paid product placements that appear contextually inside organic results.
 2. **Banners** — image-based campaigns placed in high-traffic areas (homepage, category headers, etc.). See the "Banners" support article.
 
-## Headline metrics
-
-- **+15%** revenue from shoppers who click banners vs. non-clickers.
-- **+50%** revenue from shoppers who click sponsored products vs. non-clickers.
-- Customers with **500k+ monthly views** can monetize at meaningful scale.
-
 ## Where RM lives
 
 | Surface | Notes |

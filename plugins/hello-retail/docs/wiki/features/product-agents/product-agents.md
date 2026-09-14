@@ -9,8 +9,6 @@ verified: never
 
 Agentic 1:1 email marketing. AI agents that **autonomously decide what emails to send, when, and to whom** — choosing the right products and send time for each individual customer in real time. Runs inside the customer's **Klaviyo** setup; no Klaviyo migration required.
 
-Positioning: "Maximize revenue from existing customers." Up to **6× more revenue per email** vs standard Klaviyo upsell flows.
-
 ## How it's different from traditional email automation
 
 Traditional automation:
@@ -61,14 +59,7 @@ Shows scheduled, sent, and skipped messages. Preview tab lets you inspect any se
 
 ## Pricing model
 
-Credit-based:
-
-- **€200/month** for up to 10,000 credits (yearly billing).
-- Monthly billing adds **+20%**.
-- Scales up to **200,000 credits**.
-- **1 credit = 1 message handed off** to the email channel (skipped + test messages don't count).
-- **Overage:** €50 per 1,000 emails.
-- **Auto-Overage** keeps agents running when credits run out — credits purchased automatically up to a customer-set cap.
+Credit-based: one credit is one message handed off to the email channel; skipped and test messages are free, and an auto-overage option keeps agents running when credits run out. Current prices, tiers and overage terms are on the [pricing page](https://helloretail.com/en/pricing/) — quote from there, not from here.
 
 ## Setup time
 

@@ -9,12 +9,6 @@ verified: never
 
 AI-driven product recommendation widgets that appear across the customer journey — frontpage, category page, product page, cart, checkout, 404 page, upsell modals, and inside emails.
 
-## Headline metrics
-
-- **55%** reduce bounce rate
-- **76%** better conversion
-- **100%** flexibility + control
-
 ## How customers add recommendations
 
 Customers control **where** recommendations appear by inserting a `<div>` element into their HTML at the desired placement. Hello Retail's JS renders into that div. For details, see ["How to Add Product Recommendations to your Webshop"](https://support.helloretail.com/general-setup/how-to-add-product-recommendations-to-your-webshop/).

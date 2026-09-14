@@ -2,12 +2,10 @@
 source: index
 ---
 
-# <Client> — <Use case>
+# <Platform> — <Use case>
 
-- **Client:** <name + webshop URL>
 - **Platform:** <Shopify / Magento 2 / Shopware / WooCommerce / Starweb / other>
 - **Date:** <YYYY-MM> (when we built it)
-- **Author / owner:** <who made it>
 - **Status:** <live / archived / one-off>
 - **Files:** <list the files in this folder>
 

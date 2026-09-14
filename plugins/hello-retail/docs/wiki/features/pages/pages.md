@@ -9,12 +9,6 @@ verified: never
 
 Dynamic, personalized category and brand pages. Replaces the static, manually-sorted category page with one that adapts per-visitor based on behavior, affinity and predicted intent, while giving merchandisers explicit override controls.
 
-## Headline metrics
-
-- Up to **55%** lower bounce rate on category pages
-- Personalized product discovery for each customer
-- Advanced features: boostings and fixed products
-
 ## Why customers buy it
 
 The pitch (paraphrased from a customer quote on the marketing site): a 300-category, 6,000-SKU store used to **manually** sort the position of each product in each category — an impossible operation. Pages takes that over while still giving merchandisers control.

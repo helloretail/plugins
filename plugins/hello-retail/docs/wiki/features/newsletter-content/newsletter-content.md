@@ -19,12 +19,6 @@ So the deliverable is the tile design alone — there is no base/email shell to 
 
 The tile is built from [base-templates/newsletters/newsletter-tile-default.liquid](../../base-templates/newsletters/newsletter-tile-default.liquid); the rendering rules and the feed fields a tile can use are in the `newsletter-developer` skill, and QA is `newsletter-qa`.
 
-## Headline metrics
-
-- **300%** click-through rate uplift with tailored content
-- **6×** better conversion than standard email marketing
-- **14%** increased revenue
-
 ## Campaign types
 
 Newsletter Content supports several campaign archetypes:
