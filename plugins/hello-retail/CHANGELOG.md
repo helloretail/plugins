@@ -9,6 +9,13 @@ structure to follow.
 
 ## Unreleased
 
+### Added
+
+- `recom-developer` covers the recurring ask that a category recom must not show while a product
+  filter or a non-default sorting is active. It surveys the theme's own filter and sort signals and
+  offers the two ways to build it — a conditional placement selector, or a guard in the design's
+  script — then asks which one you want before implementing.
+
 ### Changed
 
 - `hello-retail-knowledge` no longer names reference customers or case-study shops; the wiki keeps no
@@ -29,6 +36,18 @@ structure to follow.
   immediately, configurable products add from the tile only when it carries the swatch selection, Shopware
   re-binds after every render behind a per-form guard, and the Shopify Quick View re-init targets
   `#hello-retail-{{ key }}`. `search-developer`, `recom-developer` and `tile-extractor` point at the merged pages.
+- `hello-retail-knowledge` now covers Magento swatches on **Hyvä (Alpine)**, not just Luma/Knockout:
+  detection for both frontends, which theme functions to rely on and which to reimplement from the
+  feed, and the four runtime traps that make Hyvä swatches render nothing at all. Asking "how do
+  swatches work on Magento" now gets the answer for the frontend the shop actually runs.
+- The wiki now says which Magento version a page is about. Every Magento page is titled `Magento 2`
+  and opens with the frontends it applies to (Luma, Breeze, Hyvä, or all three), so an answer about
+  a Magento 1 shop no longer arrives dressed as a Magento 2 one. Magento 1 has its own short page
+  marking it legacy and pointing at the installation guide.
+- `tile-extractor`, `newsletter-qa` and `customer-handoff` have shorter trigger text; each was over
+  the length a skill description may be, which put the tail at risk of being cut — including the
+  clauses that send you to the right sibling skill instead. The phrases you say to start them are
+  unchanged; internal procedure detail came out in their place.
 
 ### Fixed
 
@@ -52,6 +71,9 @@ structure to follow.
   instead of hooks that do not exist, ships the `.hr-hidden` rule the Viskan add-to-cart page relies on, and
   binds BigCommerce add-to-cart from `fix_links` and `afterInit` like every other platform. Recom snippets
   target the base template's `#hello-retail-{{ key }}` box id instead of the legacy `#aw-box-{{ key }}`.
+- `customer-analytics-report` is triggerable again. Its trigger text failed to load, so asking for
+  "an analytics report for [domain]" or "a report in Danish" did not start the skill; you had to
+  invoke it by name.
 
 ### Removed
 
@@ -59,6 +81,7 @@ structure to follow.
   the matching cheat sheet or platform page, anonymised.
 - The `tools/generate-tile` wiki folder. No skill read it and it described files that do not exist;
   `tile-extractor` and `search-developer` carry its rules.
+
 
 ## 1.7.0 — 2026-09-14
 

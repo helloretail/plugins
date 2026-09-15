@@ -3,7 +3,9 @@ source: field
 verified: 2026-09-15
 ---
 
-# Magento — Add to cart
+# Magento 2 — Add to cart
+
+**Applies to:** Magento 2 — Luma / Breeze (jQuery) and Hyvä (Alpine). Step 0 tells the frontends apart and Step 2 covers both. Magento 1 is legacy and is not covered here — see [magento-1.md](./magento-1.md).
 
 Platform-specific add-to-cart (ATC) for Hello Retail tiles on Magento 2. Three things have to happen at runtime:
 
