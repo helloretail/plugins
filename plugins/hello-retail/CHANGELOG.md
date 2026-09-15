@@ -1,0 +1,337 @@
+# Changelog — hello-retail
+
+What changed in each released version of the plugin, written for the person who installs it.
+Update with `/plugin marketplace update helloretail`, then `/reload-plugins`.
+
+Entries are added under **Unreleased** in the PR that makes the change; the Release workflow
+renames that section to the version it publishes. See `CLAUDE.md` → "Release notes" for the
+structure to follow.
+
+## Unreleased
+
+### Added
+
+- `recom-developer` covers the recurring ask that a category recom must not show while a product
+  filter or a non-default sorting is active. It surveys the theme's own filter and sort signals and
+  offers the two ways to build it — a conditional placement selector, or a guard in the design's
+  script — then asks which one you want before implementing.
+
+### Changed
+
+- `hello-retail-knowledge` no longer names reference customers or case-study shops; the wiki keeps no
+  customer-identifiable data.
+- `hello-retail-knowledge` pages now open with `source` (public-docs / field / index) and `verified`
+  (a date, or never), so the provenance of an answer is visible at the top of the page it cites.
+- `hello-retail-knowledge` starts its lookup at the wiki README's Quick Index and says when the page it
+  cites is `verified: never`; the separate index page it used to open was a five-line stub and is gone.
+- `hello-retail-knowledge` feature and overview pages no longer quote marketing statistics or price lists;
+  pricing questions point at the pricing page on helloretail.com, and pages describe how each feature works.
+- `hello-retail-knowledge` names roles instead of people, and its cheat-sheet notes no longer cite ticket
+  numbers or anonymised shop codes as sources.
+- `customer-handoff` proposes a cheat sheet, a platform page or a skill reference as the home for a
+  reusable learning; the separate client-scripts library is gone.
+- `hello-retail-knowledge` keeps one add-to-cart recipe per platform under `platforms/`; the duplicate
+  cheat-sheet copies are merged into them and the folder is gone. Where the two copies disagreed the page
+  now says which is right: Magento reads `form_key` theme-agnostically and fires `contentUpdated`
+  immediately, configurable products add from the tile only when it carries the swatch selection, Shopware
+  re-binds after every render behind a per-form guard, and the Shopify Quick View re-init targets
+  `#hello-retail-{{ key }}`. `search-developer`, `recom-developer` and `tile-extractor` point at the merged pages.
+- `hello-retail-knowledge` now covers Magento swatches on **Hyvä (Alpine)**, not just Luma/Knockout:
+  detection for both frontends, which theme functions to rely on and which to reimplement from the
+  feed, and the four runtime traps that make Hyvä swatches render nothing at all. Asking "how do
+  swatches work on Magento" now gets the answer for the frontend the shop actually runs.
+- The wiki now says which Magento version a page is about. Every Magento page is titled `Magento 2`
+  and opens with the frontends it applies to (Luma, Breeze, Hyvä, or all three), so an answer about
+  a Magento 1 shop no longer arrives dressed as a Magento 2 one. Magento 1 has its own short page
+  marking it legacy and pointing at the installation guide.
+- `tile-extractor`, `newsletter-qa` and `customer-handoff` have shorter trigger text; each was over
+  the length a skill description may be, which put the tail at risk of being cut — including the
+  clauses that send you to the right sibling skill instead. The phrases you say to start them are
+  unchanged; internal procedure detail came out in their place.
+
+### Fixed
+
+- `hello-retail-knowledge` pages were checked against their sources for the first time and every page now carries
+  a `verified` date. Public-docs pages were compared claim by claim with helloretail.com, support.helloretail.com and
+  developer.helloretail.com: Product Agents lists seven agents and its webhook and generic-ESP developer channels;
+  recommendation filters and pinned products are described per box rather than account-wide; Retail Media, Newsletter
+  Content, Triggered Emails, Search, Audience, Insights and the platform tables no longer claim capabilities, campaign
+  types, regions or procedures the sources do not support; the dead `docs.helloretail.com` links point at the
+  Product Intelligence GraphQL API on developer.helloretail.com. Field pages were checked against the base templates:
+  snippets that named hooks, classes, ids or template variables the base does not have (`.aw-heading`,
+  `.aw-slider-{{ key }}`, a bare `#{{ key }}`, `current_content_item`, `ui_utility` on the mobile overlay) are
+  corrected, and variant-specific snippets say which variants they apply to.
+- `hello-retail-knowledge` wiki indexes now point at every page that exists — DanDomain, BigCommerce,
+  Viskan and Wikinggruppen add-to-cart, the Viskan feed notes, the Klaviyo integration page, the
+  Triggered Email base templates — and no longer list pages that were never written.
+- `hello-retail-knowledge` onboarding pages point at the plugin's skills instead of promising internal
+  onboarding code "in the next pass", and Product Agents is no longer described as new or dated to a
+  release season.
+- `hello-retail-knowledge` names the real re-init point for Lipscore ratings (after each `fix_links` call)
+  instead of hooks that do not exist, ships the `.hr-hidden` rule the Viskan add-to-cart page relies on, and
+  binds BigCommerce add-to-cart from `fix_links` and `afterInit` like every other platform. Recom snippets
+  target the base template's `#hello-retail-{{ key }}` box id instead of the legacy `#aw-box-{{ key }}`.
+- `customer-analytics-report` is triggerable again. Its trigger text failed to load, so asking for
+  "an analytics report for [domain]" or "a report in Danish" did not start the skill; you had to
+  invoke it by name.
+
+### Removed
+
+- The empty `client-scripts` wiki library. A reusable one-off script from an onboarding goes straight into
+  the matching cheat sheet or platform page, anonymised.
+- The `tools/generate-tile` wiki folder. No skill read it and it described files that do not exist;
+  `tile-extractor` and `search-developer` carry its rules.
+
+
+## 1.7.0 — 2026-09-14
+
+### Added
+
+- `customer-analytics-report` writes the report in whatever language the operator asks for —
+  "analytics for this website in Danish" gives a Danish PDF. Headings, KPI labels, table headers,
+  callouts and footer are translated by the model at report time, with the language's number,
+  currency and date conventions (`1.234.567`, `62,2 %`, `1.234.567 DKK`, `11. september 2026` for
+  Danish), and the insights and next steps are written in that language. English stays the
+  default; a string that is not translated falls back to English rather than a guess, and the
+  template stops the build if a translation loses a placeholder and warns when a label will not
+  fit its box.
+
+### Changed
+
+- `customer-analytics-report` formats English reports with English number conventions —
+  `1,234,567` and `DKK 1,234,567` instead of the European `1.234.567` it used before, and a
+  consistent decimal point (`1.66` per message, not `1,66`).
+
+### Fixed
+
+- `customer-analytics-report` passes the Pages revenue trend through unchanged: the connector
+  returns it in percent units, so a -10.6% period is no longer at risk of being reported as
+  "down 1057%".
+
+## 1.6.0 — 2026-09-11
+
+### Added
+
+- `customer-handoff` is a new skill: it writes one living hand-off document per website under the
+  gitignored `output/handoffs/` folder (company → website; local for now, laid out so the store can
+  move to a shared repository or a vector database later) and appends to it after every task. The document carries a machine-readable header and records the platform
+  and theme (mandatory, detected from the storefront), the ClickUp card with project owner,
+  developer, CSM and dates, a stage plan derived from the sold features (a Search-only customer
+  has three stages, a full-suite customer up to nine), an onboarding-performance section for
+  management — a per-stage ledger of working days and build / QA / fix rounds, a running snapshot,
+  and closing figures written only when the onboarding is closed — the configuration per feature
+  from the MCP, every unique case with root cause, solution and removal condition, decisions and
+  open items, and an anonymised learnings section the knowledge base can absorb later. Two modes:
+  record a stage, close the onboarding. It reads ClickUp and the dashboard, never writes to them,
+  and ships a script that regenerates the store's index from the document headers.
+
+### Changed
+
+- `search-developer`, `recom-developer`, `pages-developer`, `newsletter-developer`,
+  `triggered-email-developer`, `feed-setup`, `feed-migration` and the QA skills (`search-qa`,
+  `recom-qa`, `pages-qa`, `newsletter-qa`, `qa-checklists`) now end by running `customer-handoff`
+  for their stage, so every build, feed and QA task is recorded in the customer's hand-off
+  document and provenance lines, verdicts and fix plans stop living only in chat.
+
+### Fixed
+
+- `hello-retail-knowledge` now names the current Head of D&TS; the wiki previously listed
+  a predecessor.
+
+## 1.5.0 — 2026-09-10
+
+### Added
+
+- `customer-analytics-report` now includes a Recommendations section: site-wide impressions,
+  clicks, click-through rate, conversion rate, average order size and revenue for the LIVE boxes,
+  a top-boxes-by-revenue table showing each box's placement (product page, category page, front
+  page, cart), and callouts for the top-earning box and the most under-clicked high-traffic box.
+  Recommendation revenue also appears as a KPI in the executive summary. The section omits itself
+  when the customer has no LIVE boxes or Recommendations is not on the agreement; API-served
+  (UNMANAGED) recommendations are added as a footnote when a shop has them.
+
+### Changed
+
+- `customer-analytics-report` lets each no-result query carry its own suggested action and
+  priority in the table, decided from what the query actually is (a missing product, a service
+  question, a colour variant). Previously the action was assigned by rank, so a "returns" query
+  could be labelled "Add synonym or product category".
+
+### Fixed
+
+- `customer-analytics-report` reads the search volume change correctly: the connector returns it
+  in percent units already, so a +0.9% period is no longer reported as "up 86%".
+- `customer-analytics-report` names the MCP parameters and response fields the connector actually
+  uses (`startDate`/`endDate`, `channelId`, the nested `totals` and `metrics` objects), so a report
+  no longer stalls on a rejected call or a missing field. A feature that is not on the customer's
+  agreement fails the call instead of returning zeros; the skill now treats that as "section
+  absent" rather than an error.
+- `customer-analytics-report` shows the website's own currency on the executive-summary revenue
+  KPI instead of always "DKK".
+
+## 1.4.0 — 2026-09-10
+
+### Added
+
+- `customer-analytics-report` is a new skill: it generates a branded Hello Retail PDF analytics
+  report for a customer — Search performance, Pages performance and Product Agent (Klaviyo)
+  results — from live MCP data. Feature sections omit themselves when the customer has no data
+  for them, and the PDF is written to the gitignored `output/<customer>/` folder. The 1.3.0 notes
+  mentioned this skill early — 1.3.0 did not contain it; this is the release that adds it.
+- `customer-analytics-report` carries the Hello Retail branding guidelines — the cerise palette,
+  Playfair Display / Poppins typography, the official logo and the categorical chart-series rules
+  — as a reference the report template implements, so a report needs no styling decisions. Trends
+  read "up 12.4%" / "down 2.3%" in words: nothing in a report signals good or bad by colour.
+
+## 1.3.0 — 2026-09-10
+
+### Added
+
+- `customer-analytics-report` is a new skill: it generates a branded Hello Retail PDF analytics
+  report for a customer — Search performance, Pages performance and Product Agent (Klaviyo)
+  results — from live MCP data. Feature sections omit themselves when the customer has no data
+  for them, and the PDF is written to the gitignored `output/<customer>/` folder.
+- `tile-extractor` ships three new references — `survey-snippets.md` (extraction, variation and
+  label survey, the PARENT HOOKS harness, alignment and hover probes), `liquid-rules.md` (every
+  field-level template rule) and `magento.md` (Luma / Breeze / Hyvä tile patterns) — so the skill
+  body itself is now a 500-line flow instead of a 900-line manual.
+
+### Changed
+
+- `tile-extractor` now returns its result in a fixed response format (TILE_BODY, JS, CSS BLOCK,
+  PLATFORM, PARITY TABLE, VARIATIONS, LABEL VOCABULARY, PARENT HOOKS, ALIGNMENT, SHELL CSS NOTES,
+  MISSING DATA, OPEN QUESTIONS, ASSUMPTIONS) and can run as a background subagent: it no longer
+  stops to ask the operator but takes the safe default and lists the decision under OPEN QUESTIONS.
+- `tile-extractor` uses Playwright as the default browser and Claude in Chrome as the fallback,
+  like every other skill, and names the real tool prefixes. Consent popups are swept again in every
+  new Playwright session, since the default servers run isolated.
+- `tile-extractor` reports hover-only elements, unreachable theme rules, tile geometry and button
+  colours under SHELL CSS NOTES for the shell skill to style, instead of asking for overlay CSS it
+  is not allowed to write.
+- `tile-extractor` detects Shopware, Starweb, BigCommerce, Wikinggruppen, PrestaShop and Magento
+  Hyvä, routes each to its wiki page, and ships a one-shot detection snippet.
+- `tile-extractor` binds all image attributes to `imgUrl` and flags full-size feed images to the
+  operator instead of rewriting image URLs per platform.
+- `tile-extractor` drives the sale badge from `isOnSale` only, guards the discount calculation,
+  handles "from" prices, the `,-` zero-decimal form, sale-pair suffixes, hex colour swatches, and
+  the customer-specific price and availability fields (excl. VAT, Omnibus lowest price, unit
+  price, delivery text, B2B) with explicit fallbacks.
+- `tile-extractor` scans native markup for Liquid-conflicting template syntax (`{{ }}`, Alpine
+  `x-data`, Vue bindings) and keeps braces out of the template until an escape is verified.
+
+### Fixed
+
+- `tile-extractor` no longer contradicts itself on CSS output, the MutationObserver engine (now
+  standalone tiles only), the list of stripped attributes, or which wiki platform pages exist.
+- Four knowledge-base files no longer carry real merchant names or domains.
+
+## 1.2.3 — 2026-09-10
+
+### Fixed
+
+- `tile-extractor` now recommends the `rawHtml` filter for rendering description HTML. The
+  previously suggested `raw` filter does not exist in Hello Retail Liquid and was flagged as a
+  FAIL by the QA skills.
+
+## 1.2.2 — 2026-09-09
+
+### Changed
+
+- `search-developer` says where its verification screenshots go: the gitignored `QA/screenshots/`
+  folder, never the repo root. Captures that land elsewhere are moved there before being linked.
+
+## 1.2.1 — 2026-09-09
+
+### Changed
+
+- `tile-extractor` and `search-developer` build Viskan / Streamline tiles without the favourite
+  star and no longer try to wire one: Hello Retail does not support wishlist buttons on Viskan.
+
+### Fixed
+
+- `search-qa`, `recom-qa`, `pages-qa` and `qa-checklists` no longer report the sort dropdown's
+  options for not being in alphabetical order. Sort options follow the configured order; only the
+  option set and the labels are compared with the customer's own dropdown.
+- `search-qa`, `recom-qa` and `qa-checklists` no longer report a missing wishlist / favourite
+  button on Viskan / Streamline shops, where the control is unsupported by design.
+- `recom-qa` and `qa-checklists` no longer report `{{ product.price | price }} {{ product.currency | currencySymbol }}`
+  as the wrong price filter; it is equivalent to `| priceWithCurrency: product.currency`, and
+  `hello-retail-knowledge` no longer presents the one-shot filter as mandatory.
+
+## 1.2.0 — 2026-09-09
+
+### Added
+
+- `browser-login` — a skill that gets the Playwright browsers logged in to Hello Retail. It
+  diagnoses the machine, refreshes the saved login from the shared browser profile without
+  opening a window, or has you log in once in a window you can see; the window closes by itself
+  once the login is detected. On a new machine it also installs Node.js and Playwright under
+  `~/.hr-*` with no admin rights. Windows has a PowerShell twin.
+- Ten parallel browser workers, `playwright-01` … `playwright-10`, each with its own
+  `QA/screenshots/NN/` folder, for fanning subagents out over several customers at once.
+
+### Changed
+
+- The `playwright` server now runs an isolated session seeded from one saved login
+  (`~/.hr-auth.json`) instead of a shared persistent profile. Every Claude Code session gets
+  its own logged-in browser, so QA runs no longer collide on a profile lock, and a login done
+  once serves every session. Run the `browser-login` setup once per machine; until then the
+  `playwright*` servers show as failed.
+- The Playwright servers launch from the Node and Playwright the setup installs, not from
+  `npx`, so they start without a network round-trip and independently of your `PATH`.
+
+### Fixed
+
+- Storefront QA no longer fails with "Browser is already in use" when a second Claude Code
+  session opens a browser — that lock was the shared profile, which also never kept the login.
+- The dashboard guard now blocks `my.helloretail.com` Supervisor and dashboard navigation on
+  the plugin's own Playwright servers; it previously matched only servers registered by hand.
+
+## 1.1.1 — 2026-09-09
+
+### Fixed
+
+- `search-developer`, `tile-extractor`, `pages-developer` and `newsletter-qa` now reach the
+  cross-skill rules they point at — parent-hook application, the CSS-in-JS tile block and the
+  triggered-email render rules. Those pointers previously resolved to a file that does not
+  exist, so a build could skip the rules without saying so.
+
+## 1.1.0 — 2026-09-09
+
+### Changed
+
+- `feed-migration` now reads the bundled wiki for platform feed nuance, so a migration onto a
+  Viskan, Magento or Wikinggruppen feed starts from the right parameters, pagination offset and
+  field names. On Magento it also tells you when a field that looks absent from the new feed is
+  really an `extraAttributes` gap in the feed URL, instead of sending you to the customer to ask
+  for an attribute they already have.
+
+## 1.0.2 — 2026-09-08
+
+### Added
+
+- The plugin now ships a `CHANGELOG.md`, so you can see what changed in each version you
+  install. The GitHub Release for each version carries the same notes.
+
+## 1.0.1 — 2026-09-08
+
+### Changed
+
+- Customer storefronts, company IDs and card IDs across the `search-developer` references,
+  `search-qa` and `tile-extractor` are now anonymous handles (`store-IT`, `example-shop.com`)
+  instead of real names. The recipes and selectors are unchanged — only the examples read
+  differently.
+
+## 1.0.0 — 2026-09-08
+
+### Added
+
+- First release. Fourteen skills covering the Hello Retail build-and-QA workflow:
+  - **Build** — `search-developer`, `recom-developer`, `pages-developer`,
+    `newsletter-developer`, `triggered-email-developer`, `tile-extractor`. All of them write
+    designs as REVIEW drafts; publishing to LIVE stays a dashboard step.
+  - **QA** — `search-qa`, `recom-qa`, `pages-qa`, `newsletter-qa`, `qa-checklists`.
+  - **Feeds** — `feed-setup`, `feed-migration`.
+  - **Knowledge** — `hello-retail-knowledge`, answering from the bundled wiki.
+- The `hello-retail` MCP server and a Playwright browser config, so the skills can read and
+  write designs and open a customer's storefront without extra setup.
