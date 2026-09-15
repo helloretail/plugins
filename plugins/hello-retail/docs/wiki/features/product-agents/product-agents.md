@@ -1,6 +1,6 @@
 ---
 source: public-docs
-verified: never
+verified: 2026-09-15
 ---
 
 # Product Agents
@@ -24,15 +24,16 @@ Product Agents:
 - May delay or skip messages if not relevant
 - One Product Agent email per recipient per day (hard cap); custom frequency caps available
 
-## The six agents
+## The seven agents
 
-Six agents run around the clock. Each addresses a specific revenue moment.
+Seven agents run around the clock. Each addresses a specific revenue moment.
 
 | Agent | What it does |
 | --- | --- |
 | **Price Drop – Viewed Product** | Alerts users when something they viewed drops in price. |
 | **Price Drop – Alternative Product** | Surfaces on-sale alternatives the shopper hadn't considered. |
 | **Price Drop – Purchased Replenishment** | Prompts re-orders of refill products when they go on sale. |
+| **Price Drop – Complementary Product** | Alerts customers when an accessory or complementary product to something they already bought drops in price (e.g. a helmet after a bike). Added in the Summer Release 2026. |
 | **Replenishment Reminder** | Sends reminders based on **real product usage cycles**, not averages. |
 | **Recommended Addons** | Cross-sells complementary products tailored to past purchases. |
 | **Alternative Picks** | Follows up with relevant alternatives at the right moment. |
@@ -71,7 +72,7 @@ Listed on the Product Agents page: Clarify, Bluemint, Dtails, Segmento.
 
 ## D&TS notes
 
-- **Product Agents requires Klaviyo.** Don't pitch to customers on other ESPs. (Yet — webhook-based custom integrations may be possible.)
+- **Klaviyo is the only productised integration** — self-serve onboarding, template cloning and the dashboard flow all assume it. Two developer channels also exist: a **webhook** (Hello Retail POSTs the generated subject, preview text, headline, body, CTA and product lists to the customer's HTTPS endpoint; no retries — the customer's system renders, sends and enforces consent) and a generic **ESP integration** (the ESP must expose a Send Message API and a Permission Check API). Both are documented under developer.helloretail.com/guides/product_agents/. Treat them as a development project on the customer's side, not a checkbox, and check with the Product Agents team before pitching a non-Klaviyo customer.
 - Expect questions on stability, rate limits and frequency-cap behaviour; start with the FAQ on the product page.
 - Onboarding flow is simpler than a normal Hello Retail launch — most plumbing is via Klaviyo's API. Plan a few hours, not weeks.
 - **Read the Available Agents article** before customer kickoff so you can recommend which agents to enable first based on the customer's catalog and behavior data.
@@ -83,7 +84,11 @@ Listed on the Product Agents page: Clarify, Bluemint, Dtails, Segmento.
 - [Customising Your Email Templates](https://support.helloretail.com/product-agents/customising-email-templates/)
 - [Available Agents and Use Cases](https://support.helloretail.com/product-agents/agents-use-cases/)
 - [Message Scheduling and Prioritisation](https://support.helloretail.com/product-agents/message-scheduling/)
-- [Billing & Usage](https://support.helloretail.com/product-agents/billing-usage/)
+- [Billing, Credits & Usage](https://support.helloretail.com/product-agents/billing-usage/)
+- [Restyle Your Product Agent Emails with an AI Assistant](https://support.helloretail.com/product-agents/restyle-agent-emails-with-ai/)
+- [Product Filters for Product Agents](https://support.helloretail.com/product-agents/product-agent-filters/)
+- [Automatic Follow-ups](https://support.helloretail.com/product-agents/product-agents-followups/)
+- [Understanding your Product Agent Analytics](https://support.helloretail.com/product-agents/product-agent-analytics/)
 - [Upgrading Your Subscription](https://support.helloretail.com/product-agents/upgrading-your-subscription/)
 - [Price Drop Potential Dashboard](https://support.helloretail.com/product-agents/price-drop-potential-dashboard/)
 - Marketing landing: [Klaviyo integration page](https://helloretail.com/en/partners/product-agents-klaviyo/)

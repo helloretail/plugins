@@ -1,6 +1,6 @@
 ---
 source: field
-verified: never
+verified: 2026-09-15
 ---
 
 # Magento — Add to cart
@@ -186,7 +186,7 @@ Production add-to-cart used in the search overlay. Combines:
 - `getMatchingLabels` to filter visible swatches by available sizes
 
 ```javascript
-function add_to_cart() {
+function add_to_cart_with_swatches() {   // replaces Step 2's add_to_cart() when the tile carries swatches — never paste both
     try {
         // Theme-agnostic (see Step 0). NB: reading .value straight off the
         // querySelector result throws on Hyvä, where the match is null — which
@@ -464,7 +464,7 @@ The HR feed stores JSON with `"` replaced by `|` to avoid attribute quoting issu
 - `product.extraDataList.allSizes` — list of all size labels for this product (used by `getMatchingLabels` in Step 4 to hide out-of-stock swatches).
 - `product.extraData.itemNumber` — unique product identifier used to namespace the `data-role` selector.
 
-**JS side:** call `add_to_cart()` (Step 4) after every `fix_links(overlay, "ps")` call in `search.js`. The MutationObserver in `add_to_cart()` watches `hr-initial-search-product-stock-status-wrapper` for the swatch renderer to populate `.swatch-option` elements, then runs `getMatchingLabels` to hide sizes that are out of stock.
+**JS side:** call `add_to_cart_with_swatches()` (Step 4) after every `fix_links(overlay, "ps")` call in `search.js`, instead of Step 2's plain `add_to_cart()` — the two share the `uenc` / `form_key` work, so only one of them goes into a design. The MutationObserver in `add_to_cart_with_swatches()` watches `hr-initial-search-product-stock-status-wrapper` for the swatch renderer to populate `.swatch-option` elements, then runs `getMatchingLabels` to hide sizes that are out of stock.
 
 ---
 

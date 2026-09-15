@@ -1,6 +1,6 @@
 ---
 source: field
-verified: never
+verified: 2026-09-15
 ---
 
 # SPA page tracking — `hrq.push(["reload"])`

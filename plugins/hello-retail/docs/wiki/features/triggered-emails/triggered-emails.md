@@ -1,13 +1,13 @@
 ---
 source: public-docs
-verified: never
+verified: 2026-09-15
 ---
 
 # Triggered Emails
 
 ## What it is
 
-Behavior-based automated emails. Sometimes called "TE" internally. Send the right message based on what the shopper has done (or not done) — abandoned cart, browsed but didn't buy, post-purchase, price drops on viewed products, back-in-stock on watched items.
+Behavior-based automated emails. Sometimes called "TE" internally. Send the right message based on what the shopper has done (or not done) — abandoned cart, post-purchase, price drops on viewed products, back in stock on viewed items. The marketing site also advertises "browse abandonment" and "win-back"; the dashboard offers the four triggers below (win-back = post-conversion with a long delay).
 
 ## Trigger types
 
@@ -16,11 +16,11 @@ The supported triggers (see "Trigger Types" article and the surrounding KB secti
 | Trigger | When it fires |
 | --- | --- |
 | **Abandoned Cart** | Cart was filled, no checkout. |
-| **Price Drop** | A product the user has shown affinity for drops in price. |
-| **Back in Stock** | A product the user has watched comes back in stock. |
-| **Post-Conversion** | After a purchase — drive repeat orders and review collection. |
+| **Price Drop** | A product the shopper viewed (minimum view count and lookback window are settings) — or explicitly subscribed to via the SDK — drops by at least the configured percentage. |
+| **Back in Stock** | A product the shopper viewed while it was out of stock — or subscribed to via the SDK — is available again. |
+| **Post-Conversion** | After a purchase — up to three follow-ups at set delays with related-product recommendations (optionally suppressed if the customer orders again). With a 90–180-day delay it doubles as the reactivation / win-back flow. |
 
-Each trigger has its own setup article and design article.
+Each trigger has a design article; Abandoned Cart, Price Drop and Post-Conversion also have setup articles. Back in Stock has no separate setup article — enable it under Emails → Triggered Emails like the others (see Trigger Types).
 
 ## What D&TS builds (deliverable)
 
@@ -37,15 +37,15 @@ There's a **Base Design** for triggered emails, then per-trigger design override
 
 ## Permissions & domain setup
 
-Two pieces of plumbing are required before launch:
+Three pieces of plumbing are required before launch:
 
 - **Email permission sync** — Hello Retail must respect the customer's unsubscribe list. Auto-sync is supported for: Klaviyo, Mailchimp, ActiveCampaign, Omnisend, Drip, Rule, MarketingPlatform, BullSender, Ubivox, Campaign Monitor, Get A Newsletter, Brevo (formerly SendinBlue). Manual export is also supported (e.g., Mailchimp export).
-- **SPF record** — add the Hello Retail SPF record to the sending domain so emails authenticate. See "Adding a Hello Retail SPF record".
-- **Domain settings** — covered in "Domain settings for Triggered Emails".
+- **Sending domain (DNS)** — a dedicated subdomain (e.g. `triggers.example-shop.com`) with SPF (`include:_spf.helloretail.com`; only one SPF record per host), a DKIM TXT record with a key from Hello Retail support, a CNAME to `email.helloretailmail.com` and two Mailgun MX records; Hello Retail verifies the records before activation. Without this the from-address falls back to `noreply@helloretailmail.com`. See "Domain settings for Triggered Emails" and "Adding a Hello Retail SPF record".
+- **Unsubscribe link** in the base design (required); optionally point it at the ESP's own unsubscribe form (General Settings → third-party unsubscribe URL, `{{ email }}` supported) so opt-outs land in the source of truth.
 
 ## Tracking & analytics
 
-- Triggered Emails Analytics for opens, clicks, revenue.
+- Triggered Emails Analytics: emails sent, opens, clicks and conversions per trigger, plus a per-cart view for abandoned carts (status, cart value, contents, permission).
 - Google Analytics tracking via UTM (see "Tracking Triggered Emails in Google Analytics").
 - Template tags and variables let you dynamically inject content into emails.
 

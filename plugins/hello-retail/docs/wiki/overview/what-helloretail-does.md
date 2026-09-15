@@ -1,6 +1,6 @@
 ---
 source: public-docs
-verified: never
+verified: 2026-09-15
 ---
 
 # What Hello Retail Does
@@ -9,16 +9,13 @@ verified: never
 
 > Hello Retail is an AI-powered ecommerce personalization platform that helps merchants deliver relevant search results, recommendations, dynamic pages, retail media, and 1:1 email — all from a single platform with shared Product Intelligence.
 
-## The customer pitch (verbatim from helloretail.com)
+## The customer pitch (from helloretail.com)
 
-> "We help ecommerce teams run better stores. Join the thousands of businesses creating better shopping experiences with our products and proprietary AI."
+> "We help ecommerce teams run better stores."
 
-The platform is positioned as a **360° personalization platform**, organized into two surfaces:
+The public site positions Hello Retail as a complete ecommerce personalization platform with these modules: **Search**, **Product Recommendations**, **Pages** (category & brand pages), an **Email Marketing Suite** (Product Agents, Triggered Emails, Newsletter Content), **Retail Media** and **Audience** — all running on one AI engine, **Product Intelligence**.
 
-- **Product Discovery & Merchandising** — Search, Product Recommendations, Pages.
-- **Customer Activation & Monetization** — Retail Media, Product Agents, Triggered Emails, Newsletter Content, Audience.
-
-Underneath everything sits the **Product Intelligence** foundation — proprietary AI that converts products into vectors and learns cross-shop relationships across millions of products and orders.
+Underneath everything sits the **Product Intelligence** foundation — proprietary AI that converts products into vectors and learns product relationships across 250+ million products and buying patterns across stores.
 
 ## What problems we solve for customers
 

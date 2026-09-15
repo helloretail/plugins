@@ -1,6 +1,6 @@
 ---
 source: field
-verified: never
+verified: 2026-09-15
 ---
 
 # Shopify — Add to cart
@@ -208,6 +208,8 @@ the `.js-quick-add` dialog trigger. Delegated, so it survives re-renders on its 
   });
 })();
 ```
+
+> **Confirm the quick-add global on the live storefront before shipping this.** `window.QuickAddModal` stands in for whatever the theme actually exposes — often a `<quick-add-drawer>` element or a differently named global, sometimes nothing. An unconfirmed `else` branch turns every quick-add click into a page navigation. Check with `typeof window.<Global>` in the browser first; see `${CLAUDE_PLUGIN_ROOT}/skills/search-developer/references/tile-interactivity-js.md`.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 source: field
-verified: never
+verified: 2026-09-15
 ---
 
 # Recoms — Layout Troubleshooting (mobile / full-bleed / grid)
@@ -9,7 +9,7 @@ Recurring layout bugs in HR Recommendation sliders and their verified CSS fixes.
 
 These all came out of debugging one shop (DanDomain-style theme, multiple recom designs) on a live iPhone (430×932) + desktop, but the patterns are platform-agnostic: they bite whenever a recom box is dropped into a host theme whose containers/classes the HR slider inherits.
 
-> **Root theme:** the box base CSS is usually `#hello-retail-{{ key }} { width: 100%; max-width: 100vw }`. `100vw` is the usual culprit — it ignores the host container's gutters and the box's own left offset.
+> **Root theme:** the base CSS sets no width on `#hello-retail-{{ key }}`; a per-customer rule such as `#hello-retail-{{ key }} { width: 100%; max-width: 100vw }` is the usual source, and `100vw` is the usual culprit — it ignores the host container's gutters and the box's own left offset.
 
 ---
 
@@ -43,7 +43,7 @@ Keep it inside the mobile media query so the desktop layout (box constrained ins
 
 **Symptom.** After making a slider full-bleed, the arrows sit at / just off the left and right screen edges (the left one often clipped).
 
-**Cause.** Arrows are positioned in a **side gutter**, not over the tiles — typically `.swiper-button-prev { left: -45px }` / `.swiper-button-next { right: -45px }` (base) with a `@media (max-width: 1280px)` override around `-5px`. Those negative offsets need empty space beside the box. Full-bleed removes the gutter, so the arrows land off-screen.
+**Cause.** Arrows are positioned in a **side gutter**, not over the tiles — on the shop where this was captured `.swiper-button-prev { left: -45px }` / `.swiper-button-next { right: -45px }` (a per-customer override — the base ships `5px` on both sides) with a `@media (max-width: 1280px)` override around `-5px`. Those negative offsets need empty space beside the box. Full-bleed removes the gutter, so the arrows land off-screen.
 
 **Fix.** In the same mobile/tablet media query the theme already uses (mind the breakpoint — it was `1280px`, not `768px`, on that shop), flip the offsets to a small **positive** inset so they overlay just inside the slider, and set the opposite side to `auto`:
 

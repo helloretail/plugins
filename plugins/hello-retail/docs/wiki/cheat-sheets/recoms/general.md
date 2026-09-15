@@ -1,6 +1,6 @@
 ---
 source: field
-verified: never
+verified: 2026-09-15
 ---
 
 # Recoms — General (platform-agnostic)
@@ -92,7 +92,7 @@ _.util.swiper_slider("11.2.10", "#slider-{{ key }}", {
 Visual hint that the slider continues.
 
 ```css
-.aw-slider-{{ key }} .swiper-slide.swiper-slide-next + .swiper-slide + .swiper-slide {
+#slider-{{ key }} .swiper-slide.swiper-slide-next + .swiper-slide + .swiper-slide {
     opacity: .2;
 }
 ```
@@ -127,11 +127,11 @@ if (sessionStorage.getItem("buyButtonClicked")) {
             document.querySelector("#slider-{{ key }}").style.overflow = "visible";
             if (viewportWidth.matches) {
                 document.querySelector("#slider-{{ key }}").style.height = "660px";
-                document.querySelector("#{{ key }}").style.height = "715px";
+                document.querySelector("#hello-retail-{{ key }}").style.height = "715px";
             }
             else {
                 document.querySelector("#slider-{{ key }}").style.height = "680px";
-                document.querySelector("#{{ key }}").style.height = "820px";
+                document.querySelector("#hello-retail-{{ key }}").style.height = "820px";
             }
             sessionStorage.setItem("buyButtonClicked", "false");
         }, 1000);

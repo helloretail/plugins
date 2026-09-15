@@ -1,6 +1,6 @@
 ---
 source: public-docs
-verified: never
+verified: 2026-09-15
 ---
 
 # Company
@@ -26,7 +26,7 @@ verified: never
 
 AI-powered personalization for ecommerce — recommendations, search, pages, retail media, and email — sitting on top of the proprietary **Product Intelligence** engine. Hello Retail describes it as a "personalization platform" rather than a single-feature tool.
 
-The company began as a recommendations / search vendor in 2013 and in early 2023 launched **Product Intelligence**, the AI backbone that now powers every product on the platform.
+The company began as a recommendations / search vendor in 2013 and later launched **Product Intelligence**, the AI backbone that now powers every product on the platform.
 
 ## Why this matters for D&TS
 

@@ -1,11 +1,11 @@
 ---
 source: public-docs
-verified: never
+verified: 2026-09-15
 ---
 
 # Features
 
-The Hello Retail platform has **9 customer-facing modules** plus 1 underlying AI foundation.
+The public platform overview lists **8 customer-facing modules** plus the Product Intelligence AI foundation. This wiki adds **Insights** as a ninth entry: a dashboard feature that only the support knowledge base documents.
 
 Each feature lives in its own subfolder; `<feature>/<feature>.md` is the canonical product reference. Platform-specific notes live under [platforms/](../platforms/platforms.md) and reusable snippets under [cheat-sheets/](../cheat-sheets/README.md).
 
@@ -19,7 +19,7 @@ Each feature lives in its own subfolder; `<feature>/<feature>.md` is the canonic
 | 6 | [Retail Media](./retail-media/retail-media.md) | Onsite / Email | Sponsored products + banner placements |
 | 7 | [Product Agents](./product-agents/product-agents.md) | Email (Klaviyo) | Agentic 1:1 email automation |
 | 8 | [Audience](./audience/audience.md) *(free)* | Marketing | Customer segmentation + Facebook export |
-| 9 | [Insights](./insights/insights.md) *(free)* | Reporting | Trends and key findings about the store |
+| 9 | [Insights](./insights/insights.md) *(dashboard feature — not marketed as a module)* | Reporting | Weekly actionable and informational findings about the store |
 | — | [Product Intelligence](./product-intelligence/product-intelligence.md) | Foundation | Proprietary AI that turns products into vectors |
 
 ## How the modules relate
@@ -46,9 +46,9 @@ The shared engine is **Product Intelligence** — that's why customers see consi
 
 - **Search + Recommendations** is the most common entry bundle.
 - **Pages** is usually layered next, especially for catalogs >500 SKUs.
-- **Newsletter Content + Triggered Emails** are the email entry points; **Product Agents** is the premium email layer and requires Klaviyo.
+- **Newsletter Content + Triggered Emails** are the email entry points; **Product Agents** is the premium email layer; Klaviyo is the only productised integration, with webhook and generic ESP channels available as developer integrations (see product-agents.md).
 - **Retail Media** is a monetization add-on; it only pays off for high-traffic stores with supplier inventory to sell.
-- **Audience and Insights** are **free** with any paid plan — always turn them on during onboarding.
+- **Audience** is a free tool and **Insights** is part of the dashboard — neither is priced; turn both on during onboarding.
 
 ## Developer documentation
 

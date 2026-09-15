@@ -1,6 +1,6 @@
 ---
 source: field
-verified: never
+verified: 2026-09-15
 ---
 
 # Recoms — Shopify
@@ -17,7 +17,7 @@ Reads the cart total from a Shopify-style `.cart-total-wrapper .money` element, 
 > **Why this is Shopify:** the `.money` class is the canonical Shopify class for displaying formatted prices. Most Shopify themes wrap totals in `.money` so the snippet picks it up.
 
 ```javascript
-var heading = jQuery(".aw-heading"),
+var heading = jQuery("#hello-retail-{{ key }} h2"),   // the base headline <h2> carries no class
 basketAmount = parseFloat( jQuery(".cart-total-wrapper .money").text().trim().split("$").pop().trim().replace(",", "") );
 
 if( !isNaN(basketAmount) ) {
@@ -78,7 +78,7 @@ document.querySelectorAll("#slider-{{ key }} .swiper-slide").forEach((product) =
 
 ### _Quick View — re-init Shopify theme web components_
 
-Some modern Shopify themes use `<quick-view-button>` web components that need `connectedCallback()` to fire after HR injects products. See [../../platforms/shopify/add-to-cart.md](../../platforms/shopify/add-to-cart.md) → "Quick View functionality" for the snippet.
+Some modern Shopify themes use `<quick-view-button>` web components that need `connectedCallback()` to fire after HR injects products. See [../../platforms/shopify/add-to-cart.md](../../platforms/shopify/add-to-cart.md) → "Quick View re-init (recom slider)" for the snippet.
 
 ---
 

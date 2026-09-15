@@ -1,6 +1,6 @@
 ---
 source: field
-verified: never
+verified: 2026-09-15
 ---
 
 # Wikinggruppen (WGO)
@@ -110,7 +110,7 @@ document.addEventListener('click', function(e) {
 
 ## CSS padding reset
 
-The HR overlay resets `padding-inline-start: 0` on all descendants via:
+The desktop-overlay and desktop-embedded base CSS reset `padding-inline-start: 0` on all descendants (the mobile overlay does not) via:
 
 ```css
 .hr-overlay-search * { padding-inline-start: 0; }

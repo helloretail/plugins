@@ -26,7 +26,7 @@ base-templates/
 │       ├── recom.liquid              Base Liquid — same for every platform
 │       └── recom.css                 Base CSS — same for every platform
 ├── triggered-emails/                   ← Triggered Email template: base shell + per-trigger product-tile content (see triggered-emails/README.md)
-│   └── base.liquid                   Outer email shell — head, header, content slot, footer
+│   └── base-design.liquid            Outer email shell — head, header, content slot, footer
 └── newsletters/                        ← Newsletter product-tile design only, rendered server-side to an IMAGE (see references/)
     ├── newsletter-tile-default.liquid  Default email-safe product tile → HR renders it to an image
     ├── references/                     email-safe-rules.md · hr-feed-fields.md · inspection-and-verification.md

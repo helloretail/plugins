@@ -1,6 +1,6 @@
 ---
 source: field
-verified: never
+verified: 2026-09-15
 ---
 
 # Search — Shopify
@@ -18,7 +18,7 @@ Wire HR's instant search so a "show more results" link sends shoppers to Shopify
 
 1. Change `var input` in the instant grid JS to the right class selector on the customer's theme.
 2. Set the form action: `.attr("action", "/pages/search-results")`
-3. Add the following HTML block at the end of the results template:
+3. Declare the label in the template's inputs block first — `{# text show_more_results_text = "Show more results" #}` — then add the following HTML block at the end of the results template:
 
 ```xml
 <div class="aw-grid-search-results__submit-wrapper">

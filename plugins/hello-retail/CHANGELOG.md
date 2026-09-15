@@ -32,6 +32,16 @@ structure to follow.
 
 ### Fixed
 
+- `hello-retail-knowledge` pages were checked against their sources for the first time and every page now carries
+  a `verified` date. Public-docs pages were compared claim by claim with helloretail.com, support.helloretail.com and
+  developer.helloretail.com: Product Agents lists seven agents and its webhook and generic-ESP developer channels;
+  recommendation filters and pinned products are described per box rather than account-wide; Retail Media, Newsletter
+  Content, Triggered Emails, Search, Audience, Insights and the platform tables no longer claim capabilities, campaign
+  types, regions or procedures the sources do not support; the dead `docs.helloretail.com` links point at the
+  Product Intelligence GraphQL API on developer.helloretail.com. Field pages were checked against the base templates:
+  snippets that named hooks, classes, ids or template variables the base does not have (`.aw-heading`,
+  `.aw-slider-{{ key }}`, a bare `#{{ key }}`, `current_content_item`, `ui_utility` on the mobile overlay) are
+  corrected, and variant-specific snippets say which variants they apply to.
 - `hello-retail-knowledge` wiki indexes now point at every page that exists — DanDomain, BigCommerce,
   Viskan and Wikinggruppen add-to-cart, the Viskan feed notes, the Klaviyo integration page, the
   Triggered Email base templates — and no longer list pages that were never written.

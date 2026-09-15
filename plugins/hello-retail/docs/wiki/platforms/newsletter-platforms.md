@@ -1,6 +1,6 @@
 ---
 source: public-docs
-verified: never
+verified: 2026-09-15
 ---
 
 # Newsletter / ESP Platforms
@@ -15,13 +15,13 @@ Per the "Setup of Newsletter Content" category — **16 articles** total.
 | --- | --- |
 | ActiveCampaign | [How to Add Newsletter Content to ActiveCampaign](https://support.helloretail.com/platforms-and-newsletter-providers/how-to-add-newsletter-content-to-activecampaign/) |
 | Apsis One | [Apsis One — Newsletter Content](https://support.helloretail.com/platforms-and-newsletter-providers/apsis-one-newsletter-content/) |
-| Apsis (legacy) | [Apsis Auto Campaign Setup](https://support.helloretail.com/platforms-and-newsletter-providers/apsis-auto-campaign-setup/) |
+| Apsis (auto campaign module) | [Apsis Auto Campaign Setup](https://support.helloretail.com/platforms-and-newsletter-providers/apsis-auto-campaign-setup/) |
 | BullSender | [How to Add the Newsletter Content to BullSender](https://support.helloretail.com/platforms-and-newsletter-providers/how-to-add-the-newsletter-content-to-bullsender/) |
 | Drip | [How to Add Newsletter Content to Drip](https://support.helloretail.com/platforms-and-newsletter-providers/how-to-add-newsletter-content-to-drip/) |
 | HeyLoyalty | [How to Add Newsletter Content to HeyLoyalty](https://support.helloretail.com/platforms-and-newsletter-providers/how-to-add-newsletter-content-to-heyloyalty/) |
 | Klaviyo | [How to Add Newsletter Content to Klaviyo](https://support.helloretail.com/platforms-and-newsletter-providers/how-to-add-newsletter-content-to-klaviyo/) |
 | MailChimp | [How to Invite Hello Retail to MailChimp](https://support.helloretail.com/platforms-and-newsletter-providers/how-to-invite-hello-retail-to-mailchimp/) · [Video: Auto Campaigns for MailChimp](https://support.helloretail.com/platforms-and-newsletter-providers/video-guide-auto-campaigns-for-mailchimp/) |
-| MailerLite | [MailerLite Permission Guide](https://support.helloretail.com/platforms-and-newsletter-providers/mailerlite-permission-guide/) |
+| MailerLite | [MailerLite Permission Guide](https://support.helloretail.com/platforms-and-newsletter-providers/mailerlite-permission-guide/) — permission auto-sync for Triggered Emails only; there is no newsletter-content guide |
 | MailCamp | [Integrate Newsletter Content into MailCamp](https://support.helloretail.com/platforms-and-newsletter-providers/integrate-newsletter-content-into-mailcamp/) · [How to Get MailCamp API Credentials](https://support.helloretail.com/platforms-and-newsletter-providers/how-to-get-mailcamp-api-credentials/) |
 | MarketingPlatform | [Rolling Campaign on MarketingPlatform](https://support.helloretail.com/platforms-and-newsletter-providers/rolling-campaign-on-marketingplatform/) |
 | Omnisend | [How to Add Newsletter Content to Omnisend](https://support.helloretail.com/platforms-and-newsletter-providers/how-to-add-newsletter-content-to-omnisend/) |
@@ -50,7 +50,7 @@ Hello Retail can automatically sync unsubscribe / opt-out state from these ESPs:
 
 ## Product Agents
 
-**Klaviyo only.** Connects via Klaviyo's API; triggers a Klaviyo flow with agent-generated content passed as event properties. Webhooks available for advanced use cases.
+**Klaviyo only.** Connects via Klaviyo's API; triggers a Klaviyo flow with agent-generated content passed as event properties. Each agent gets its own auto-created Klaviyo flow; events carry a `messageType` property (e.g. `REPLENISHMENT_REMINDER`, `PRICE_DROP_VIEWED_PRODUCT`) for flow filtering. Webhook and generic-ESP channels exist as developer integrations — see [features/product-agents](../features/product-agents/product-agents.md).
 
 See [Setting up Klaviyo for Product Agents](https://support.helloretail.com/product-agents/setting-up-klaviyo/).
 
@@ -58,7 +58,7 @@ See [Setting up Klaviyo for Product Agents](https://support.helloretail.com/prod
 
 - For Klaviyo customers, the same connection can power **Newsletter Content + Triggered Emails permission sync + Product Agents** — well worth confirming up-front.
 - For **Mailchimp**, Hello Retail must be invited as a user — confirm this in the kickoff checklist.
-- For **MailerLite**, permission flow is the trickiest piece — read the dedicated guide.
+- For **MailerLite**, the only integration is permission auto-sync (API key) — there is no newsletter-content guide.
 - For ESPs where Hello Retail does not have an auto-sync integration, customers need to **manually export** unsubscribes periodically. Set this expectation early.
 
 ## Sources

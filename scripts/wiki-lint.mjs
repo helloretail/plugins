@@ -72,7 +72,7 @@ const SOURCES = ["public-docs", "field", "index"];
 // shops. Matched as suffixes, so subdomains pass. Any other host is reported as a
 // customer domain.
 const DOMAIN_ALLOWLIST = [
-  "helloretail.com",
+  "helloretail.com", "helloretailmail.com", // the second is Hello Retail's own sending domain for triggered emails
   // placeholders
   "example.com", "example-shop.com", "example.dk", "example-shop.dk", "siteurl.com", "your-shop.com",
   // ecommerce platforms and their CDNs
@@ -310,8 +310,9 @@ function lintWiki(pluginDir) {
       report("identifiable", where, ln, `UUID ${m[0]} — website / design identifiers are customer data; use a placeholder like <website-uuid>`);
     });
     eachMatch(lines, EMAIL_RE, (m, ln) => {
-      const host = m[0].split("@")[1];
+      const [local, host] = m[0].split("@");
       if (/^example(?:-shop)?\.(?:com|dk)$/.test(host)) return;
+      if (hostAllowed(host) && /^(?:no-?reply|support|info|hello|sales)$/i.test(local)) return; // role address on a known host
       report("identifiable", where, ln, `e-mail address ${m[0]} — use name@example.com`);
     });
     eachMatch(lines, DOMAIN_RE, (m, ln) => {
