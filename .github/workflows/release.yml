@@ -87,18 +87,19 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "chore(release): ${SUMMARY:-roll changelog} [skip ci]"
 
-          # A ruleset on main rejects this push unless the pusher may bypass it. GITHUB_TOKEN
-          # cannot; a RELEASE_TOKEN with bypass, or an Actions bypass actor on the ruleset, can.
-          # Without one the release stalls here every time: no bump, no tag, no release — so say
-          # which of the two is missing rather than leaving a bare GH013 in the log.
+          # A ruleset on main rejects this push unless the pusher is in its bypass list. This is
+          # not an authentication problem — the job always has a token — so the message says so
+          # plainly, because "add a token" sends people off building a PAT they do not need.
           if ! git push origin HEAD:main; then
-            echo "::error title=Release cannot push to main::\
-          The version bump and rolled changelog could not be pushed, so nothing was tagged or \
-          released. main is protected and this job pushed as \
-          ${RELEASE_TOKEN_SET:+RELEASE_TOKEN}${RELEASE_TOKEN_SET:-GITHUB_TOKEN}. Fix either one: \
-          add a fine-grained PAT or GitHub App token with contents:write as the RELEASE_TOKEN \
-          secret and allow it to bypass the ruleset, or add the repository's GitHub Actions as a \
-          bypass actor on the ruleset protecting main. Re-run this workflow afterwards."
+            echo "::error title=Release blocked by branch protection::\
+          Nothing was tagged or released: the version bump and rolled changelog could not be \
+          pushed to main. This is NOT a missing token — this job authenticated fine as \
+          ${RELEASE_TOKEN_SET:+RELEASE_TOKEN}${RELEASE_TOKEN_SET:-GITHUB_TOKEN}. A ruleset on \
+          main requires every change to arrive via a pull request, and this pusher is not in its \
+          bypass list. Fix: GitHub → Settings → Rules → the ruleset protecting main → add GitHub \
+          Actions to its bypass list. (A PAT or App token as RELEASE_TOKEN also works, but only \
+          once that token is itself added to the bypass list — the secret alone changes nothing.) \
+          Then re-run this workflow."
             exit 1
           fi
 
