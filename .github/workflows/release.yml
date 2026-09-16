@@ -87,19 +87,21 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "chore(release): ${SUMMARY:-roll changelog} [skip ci]"
 
-          # A ruleset on main rejects this push unless the pusher is in its bypass list. This is
-          # not an authentication problem — the job always has a token — so the message says so
-          # plainly, because "add a token" sends people off building a PAT they do not need.
+          # A ruleset on main rejects this push unless the *pusher* is covered by its bypass
+          # list. This is not an authentication failure — the job always has a token — and
+          # saying "add a token" sends people looking for the wrong thing.
           if ! git push origin HEAD:main; then
             echo "::error title=Release blocked by branch protection::\
           Nothing was tagged or released: the version bump and rolled changelog could not be \
-          pushed to main. This is NOT a missing token — this job authenticated fine as \
+          pushed to main. This is NOT a missing token — the job authenticated fine as \
           ${RELEASE_TOKEN_SET:+RELEASE_TOKEN}${RELEASE_TOKEN_SET:-GITHUB_TOKEN}. A ruleset on \
-          main requires every change to arrive via a pull request, and this pusher is not in its \
-          bypass list. Fix: GitHub → Settings → Rules → the ruleset protecting main → add GitHub \
-          Actions to its bypass list. (A PAT or App token as RELEASE_TOKEN also works, but only \
-          once that token is itself added to the bypass list — the secret alone changes nothing.) \
-          Then re-run this workflow."
+          main requires every change to arrive via a pull request, and whoever pushed is not \
+          covered by that ruleset's bypass list. The fix is to push as someone who is. If the \
+          bypass list contains a repository role, a fine-grained PAT or App token belonging to \
+          somebody holding that role, stored as the RELEASE_TOKEN secret, is the quickest route \
+          and needs no change to the ruleset. Otherwise an organization owner can add GitHub \
+          Actions itself to the bypass list — a repository admin cannot, the API rejects it. \
+          Check the list at GitHub → Settings → Rules. Then re-run this workflow."
             exit 1
           fi
 
