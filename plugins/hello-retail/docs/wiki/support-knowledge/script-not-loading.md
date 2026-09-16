@@ -31,8 +31,22 @@ install snippet belongs in `<head>`, in a template that renders on **all** pages
 </script>
 ```
 
-No match at all → the snippet is missing from this page. That is the finding; go to step 3 for the
-usual reasons before writing it up.
+No match at all → the snippet is missing from this page, **and the fix is the customer's to make**:
+the snippet lives in their own template, so unless we have been given access to the shop we can
+only ask for it. Read step 3 first — a snippet can be present in the template and still absent from
+what you are looking at — then reply asking them to add it:
+
+- Paste the snippet above and link
+  [Installing the JavaScript](https://support.helloretail.com/general-setup/installing-the-javascript/).
+- Say **where** it goes: the global `<head>` template that renders on every page, not the one page
+  they reported. A snippet added to a single template is the cause of the next ticket.
+- On a platform with a dedicated Hello Retail extension, app or plugin, ask them to check that it
+  is installed and enabled first — it normally places the snippet itself, and reinstalling is less
+  work for them than a theme edit.
+- Ask them to confirm when it is live, then re-run step 2 yourself to verify before closing.
+
+Park the ticket as waiting on the customer. Never close it as "cannot reproduce" — a missing
+snippet reproduces perfectly, on their shop.
 
 ## Step 2 — Does it actually load? (Network tab)
 
@@ -98,9 +112,10 @@ In rough order of how often it turns out to be the answer:
 
 Whatever the outcome, record the evidence so the next person does not repeat the walk: the exact
 URL tested, whether the snippet is in the source, the network row for `helloretail.js` with its
-status, `typeof window.hrq`, and whether consent was accepted. When the snippet is missing or
-blocked, the reply to the customer is the install guide plus the specific blocker found — not a
-generic "we cannot reproduce".
+status, `typeof window.hrq`, and whether consent was accepted. Then name the action and whose it
+is: **snippet missing → ask the customer to install it** (step 1); **snippet blocked → name the
+blocker** you found — the consent category, the optimizer, the extension — so they know what to
+change; **script loading fine → it is ours**, and the ticket moves on to the feature itself.
 
 ## Sources
 

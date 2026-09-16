@@ -219,6 +219,8 @@ HR panel.
       assets and the `core.helloretail.com` calls. A missing or blocked script is work on the
       customer's shop (consent category, ad blocker, a JS-deferring optimizer such as Rocket
       Loader, a theme update that dropped the snippet) and makes every check below it meaningless
-      — report it as one finding and stop. The full walk, including what to put in the ticket, is
+      — report it as one finding and stop. When the snippet is missing outright, the action is to
+      ask the customer to install it in the global `<head>`, then re-verify once they confirm.
+      The full walk, including what to put in the ticket, is
       `${CLAUDE_PLUGIN_ROOT}/docs/wiki/support-knowledge/script-not-loading.md` (bundled in this
       plugin).
