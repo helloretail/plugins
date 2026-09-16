@@ -1,7 +1,8 @@
 ### Added
 
-- `support-debugging` triages a Hello Retail support ticket before investigating it: it confirms
-  the website and the feature (both arrive unverified and are routinely wrong), checks the cause
-  against what the MCP can actually reach, and rules out the false positives that produce
-  "nothing was broken" tickets. It ends in a hand-back, a request for the missing customer id, or
-  a draft fix — never a guess.
+- `support-debugging` debugs a Hello Retail support ticket and answers it from evidence. It gates
+  the ticket first — confirming the website and the feature, which arrive unverified and are
+  routinely wrong — then reads the live configuration, reproduces the symptom on the storefront,
+  and proposes only the fix the evidence supports, cited to the config, the reproduction or the
+  knowledge base. Causes outside what the MCP can reach are handed back in the first line rather
+  than investigated around.

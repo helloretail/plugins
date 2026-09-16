@@ -1,28 +1,37 @@
 ---
 name: support-debugging
 description: >
-  Triage and debug a Hello Retail support ticket — run the four-check gate (confirm the domain
-  and the feature, check the MCP capability boundary, rule out the known false positives, widen
-  the scope), then read the live configuration and propose a fix. Use when someone pastes a
-  support spec ("Look into this Hello Retail support issue and debug it"), or says "debug this
-  ticket", "triage this support issue", "customer says search is broken", "the recom box is
-  gone on [domain]", "investigate this Front conversation", or hands over a ClickUp support
-  card. Trigger even when only the mail body is pasted with no customer id — the gate's job is
-  to ask for what is missing before investigating. Ends in one of three replies: hand back,
-  blocked on information, or a fix made as a draft. Does NOT run a pre-handoff QA walk
-  (search-qa / recom-qa / pages-qa) or build a design (the *-developer skills) — it decides
-  which of those the ticket actually needs.
+  Debug a Hello Retail support ticket and answer it from evidence — gate it first (confirm the
+  website and the feature, check what the MCP can actually reach, rule out the known false
+  positives, widen the scope), then read the live configuration, reproduce on the storefront via
+  Playwright (Claude in Chrome as the fallback), and propose the fix the evidence supports — cited
+  to the config, the reproduction, or the bundled knowledge base. Use when someone pastes a support
+  spec ("look into this Hello Retail support issue and debug it"), or says "debug this ticket",
+  "triage this support issue", "customer says search is broken", "the recom box is gone on
+  [domain]", or hands over a ClickUp support card. Trigger even when only the mail body is pasted
+  with no customer id. Ends in a draft fix, a hand-back, or a request for what's missing. Does NOT
+  run a pre-handoff QA walk (search-qa / recom-qa / pages-qa) or build a design (*-developer).
 ---
 
-# Support debugging — the triage gate
+# Support debugging
 
-Turns a pasted support ticket into one of three answers — **hand back**, **blocked on
-information**, or **a concrete fix made as a draft** — without burning a cycle investigating
-something the MCP cannot reach, a bug that was never a bug, or the wrong website.
+Turns a support ticket into a **grounded answer**: read the issue, decide from the MCP whether it
+is solvable at all, debug it against the customer's live configuration and their live storefront,
+then propose the fix that the evidence actually supports.
 
-**A pasted support spec is not a mandate to investigate.** Run the gate below first. All four
-checks take under a minute; skipping them is what turns a well-understood ticket into a wasted
-cycle.
+The value here is the grounding, not the reasoning. A model working from general e-commerce
+intuition produces confident, plausible, *wrong* approaches for Hello Retail — the right-sounding
+fix to the wrong layer, a dashboard step for something the MCP can change, a change to a config
+that was never the LIVE one. This skill exists to make every claim traceable to one of three
+sources: **the live configuration** read through the MCP, **a reproduction** in a real browser, or
+**a cited page** in the bundled knowledge base. If a proposed fix rests on none of those, it does
+not go in the reply — see *The grounding rule*.
+
+It ends in one of three answers: **a fix made as a draft**, **a hand-back** when the cause is
+outside what the MCP can reach, or **a request for what's missing**.
+
+**But a pasted support spec is not a mandate to investigate.** Run the gate first — all four checks
+take under a minute, and skipping them is what turns a well-understood ticket into a wasted cycle.
 
 ## What you need before starting
 
@@ -36,6 +45,32 @@ cycle.
 
 If the customer id is missing, ask for it and stop — reply template **B**. Never substitute a
 guess, a similarly-named customer, or an unverifiable value.
+
+## Browser backend — Playwright first, Claude in Chrome second
+
+Reproducing a symptom on the storefront goes through a real browser MCP. **Playwright is the
+default; Claude in Chrome is the fallback** when no `playwright*` server exposes tools. This is the
+team's standing decision and it is the same in every skill.
+
+| | Tools | Notes |
+|---|---|---|
+| **Playwright** (default) | `mcp__plugin_hello-retail_playwright__browser_*`, workers `…_playwright-NN__browser_*` | Shipped in the plugin's `.mcp.json`. Isolated session seeded from the saved Hello Retail login; `browser_resize` gives real mobile viewports. Tools missing or session logged out → the `browser-login` skill sets it up (`${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md`). **Never type credentials yourself** |
+| **Claude in Chrome** (fallback) | `mcp__claude-in-chrome__*` | Drives the operator's own Chrome; macOS only, needs the extension. `javascript_tool` blocks output containing URLs. Mobile: ask the operator to open the device Emulator — never resize their window |
+
+Common actions: navigate → `browser_navigate` / `navigate`; read the DOM → `browser_snapshot` /
+`get_page_text`; run a snippet → `browser_evaluate` / `javascript_tool`; click → `browser_click` /
+`computer`; mobile → `browser_resize` / operator's Emulator.
+
+**Never read the storefront with WebFetch, curl, or any HTTP client.** Hello Retail renders
+client-side, so a static fetch shows the page *without* the thing you are debugging and reads as
+"the box is missing" on a perfectly healthy shop.
+
+If **neither** browser is connected, do not fetch the page yourself. Either ask the operator to
+enable one, or continue on the MCP alone — and say plainly in the reply that the storefront half
+is unverified.
+
+**The dashboard is never a browser target.** my.helloretail.com goes through the MCP, always; the
+plugin's hook blocks it and the storefront is the only site these tools visit.
 
 ## The gate — four checks, in order
 
@@ -87,9 +122,74 @@ The recurring false positives. Each has produced real "nothing was actually brok
 Mails name one symptom; the fix often spans a sister domain, a second search config, or a second
 feature on the same shared design. Widen it, or ask — do not silently deliver the narrow version.
 
-**Only once all four are clear:** read the live configuration via the MCP, read the relevant
-`${CLAUDE_PLUGIN_ROOT}/docs/wiki/` pages for the feature and platform, reproduce on the live
-storefront in a browser if the symptom is visible there, then propose the fix.
+**Only once all four are clear**, debug — the loop below.
+
+## Debugging — the loop after the gate
+
+### Step 1 — Read the live configuration before forming any theory
+
+Follow the *Diagnostic order* table below for the feature in scope, in that order: **plumbing →
+payload → presentation**. Most failed tickets inverted it and started at the design.
+
+Two traps worth naming, because they invalidate everything downstream:
+
+- **Read `search_listConfigs` / `pages_listConfigs` first and establish which config is actually
+  LIVE.** Diagnosing a draft config, or the second of three, is the most common way to produce a
+  confident wrong answer. State the config key you are working from.
+- **Check `auditLog_getEntries` early on any regression.** "It worked last week" usually has an
+  entry naming the change and who made it. That is a root cause in one call.
+
+### Step 2 — Reproduce on the storefront, if the symptom is visible there
+
+Anything the shopper can see — a missing box, an unstyled overlay, a wrong price, a filter that
+does nothing — gets reproduced in a real browser before you theorise about it. Use the backend
+ladder in *Browser backend* above. Reproduce on **the exact URL the customer named**, in a clean
+session, and say in the reply which URL and which viewport.
+
+If you cannot reproduce it, that is a finding, not a failure — report it as one, with what you
+tried, and ask the customer for the missing condition (market, device, logged-in state, the
+search term they used).
+
+### Step 3 — Name the root cause, with its evidence attached
+
+Write the cause as one sentence, and next to it the thing that proves it: the tool call and the
+field it returned, the reproduction, or the wiki page. A cause you cannot attach evidence to is a
+hypothesis — label it as one, out loud, and say what would confirm it.
+
+Then check it against the *layer* the fix belongs to. Being right about the symptom and wrong
+about the layer is the failure mode this skill exists to prevent: a tile rendering wrong is a
+design problem only after the feed has been shown to carry the right value.
+
+### Step 4 — Propose the fix the evidence supports
+
+Read the relevant `${CLAUDE_PLUGIN_ROOT}/docs/wiki/` pages for the feature and platform *before*
+writing the fix — platform nuance (Shopify vs Magento vs custom) changes the answer, and the
+knowledge base is the point of this skill. Cite the page in the reply.
+
+Then show the change before making it: read the current value, show the diff, get approval, write
+it as a draft, and verify by reading it back. One write per approval.
+
+### Step 5 — Reply
+
+Pick the template in *Reply templates* that matches the outcome, and close with the three blocks
+in *Closing every reply*.
+
+## The grounding rule
+
+Every claim in the reply traces to one of three sources, and says which:
+
+| Source | Looks like in the reply |
+|---|---|
+| **The live configuration**, via the MCP | "`search_listConfigs` shows config `…` is the LIVE one; its `linkContent` has BRAND disabled" |
+| **A reproduction**, in a real browser | "On `/c/shoes` at 390×844 the box renders but is empty; the serve call returns 0 products" |
+| **The knowledge base**, cited by path | "Per `platforms/magento/…`, Hyvä themes need the swatch markup bound after render" |
+
+If a proposed fix rests on none of the three, it does not go in the reply. Say what you would need
+to check instead — an unverified fix that sounds right costs more than an honest "I need X", because
+someone will implement it.
+
+Never infer a Hello Retail behaviour from how e-commerce platforms generally work. When the
+knowledge base does not cover it, say so and name it as the gap.
 
 ## Which website — resolving the domain
 
@@ -214,6 +314,8 @@ Regardless of outcome, finish with three blocks:
 
 ## Hard rules
 
+- **Ground every claim.** The live config, a reproduction, or a cited wiki page — and say which.
+  No fix proposed from general e-commerce intuition. See *The grounding rule*.
 - **Draft only.** Never publish, activate, archive or delete. Publishing to LIVE is a person's
   step in the My Hello Retail dashboard, on every ticket, without exception.
 - **Show the change before making it.** Read the current value, show the diff, get approval, then
