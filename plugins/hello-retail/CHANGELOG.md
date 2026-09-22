@@ -10,6 +10,10 @@ fragments into the version it publishes.
 
 ## Unreleased
 
+## 1.12.1 — 2026-09-22
+
+Maintenance release — no user-visible changes.
+
 ## 1.12.0 — 2026-09-22
 
 ### Added
