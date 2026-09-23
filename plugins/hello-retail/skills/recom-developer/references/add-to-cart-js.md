@@ -29,12 +29,16 @@ The per-platform `add_to_cart()` bodies live under `${CLAUDE_PLUGIN_ROOT}/docs/w
 — each file has both the **Recom slider** block (use this) and the Search variant. What stays your
 call in the recom shell is *how* it binds (delegated vs `afterInit`), captured below.
 
-## Shopify — delegated `submit` → `/cart/add.js`
+## Shopify — the copied theme form, delegated `submit` → `/cart/add.js`
 
-Prefer a **delegated** submit (clone-safe, no `afterInit` needed) — code in
-`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md` → *Recom slider* block. Confirm the drawer event per
-theme — `upcart:cart:change` (UpCart), `theme:cart:change` (Dawn-style), `cart:refresh`
-(Sense/custom). If you'd rather bind in `afterInit` than delegate, guard each form with a `data-*` flag.
+The tile carries the theme's own `<product-form>` / `form.js-product-form` — never a Hello Retail
+`.hr-form` (retired 2026-09-23, tile-extractor Output Rule 15). Real click first: `<product-form>`
+upgrades itself when the slider inserts the tile (clones included), so on many Dawn-family themes
+nothing needs binding. If it does not add to cart, use the **delegated** IIFE in
+`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md` → *Binding the copied theme form* — delegation is
+clone-safe by nature; scope its selector to `#hello-retail-{{ key }} form.js-product-form`. Confirm the
+drawer event per theme — `upcart:cart:change` (UpCart), `theme:cart:change` (Dawn-style),
+`cart:refresh` (Sense/custom).
 
 ## Magento — `uenc` + `form_key` injection in `afterInit`
 
