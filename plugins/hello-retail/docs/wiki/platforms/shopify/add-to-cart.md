@@ -5,12 +5,11 @@ verified: 2026-09-15
 
 # Shopify — Add to cart
 
-Platform-specific ATC for Hello Retail tiles on Shopify. Two implementation styles exist — pick one:
-
-- **Approach A — HR `.hr-form`** (Search / Recom shells): the tile emits HR's own `.hr-form`, and a
-  small surface-specific binding POSTs to `/cart/add.js`.
-- **Approach B — theme `js-product-form` mirror** (standalone tile): the tile mirrors the theme's own
-  product-form markup, and one delegated IIFE handles AJAX add + cart-section refresh + quick-add.
+Platform-specific ATC for Hello Retail tiles on Shopify. **The tile copies the theme's own form** —
+`<product-form>` / `form.js-product-form`, exactly as the category page has it — and the surface binds
+it as below. No Hello Retail form inside the tile: the older "Approach A" (an HR `.hr-form` with a
+variant select) was retired on 2026-09-23 because it put Hello Retail markup in the tile that the
+theme's CSS never styled (tile-extractor Output Rule 15).
 
 **Detection:** storefront host / image URLs on `cdn.shopify.com` or `*.myshopify.com`; the tile's
 ATC `<form action>` is `/cart/add`; a `Shopify` global / `cdn.shopify.com` script in `<head>`.
@@ -18,78 +17,13 @@ ATC `<form action>` is `/cart/add`; a `Shopify` global / `cdn.shopify.com` scrip
 
 ---
 
-## Approach A — HR `.hr-form` + JS binding
+## Binding the copied theme form (formerly "Approach B")
 
-The tile emits an `.hr-form` with a variant `<select name="productVariant">` (or `<input name="id">`).
-Bind it per surface below. Both POST to Shopify's `/cart/add.js`. The `.hr-form`'s submit button must
-carry the HR cart tracking: `onclick="hrq.push(['trackClick','{{ product.trackingCode }}'])"`
-(tile-extractor Output Rule #11).
-
-### Search overlay — `fix_links`-bound
-
-Scope to `.hr-overlay-search`, guard each form so re-renders don't double-bind, and call
-`add_to_cart()` after **every** `fix_links` call-site (initial render + `load_more_results`).
-See the binding mechanics in `${CLAUDE_PLUGIN_ROOT}/skills/search-developer/references/tile-interactivity-js.md`.
-
-```js
-function add_to_cart() {
-    var forms = document.querySelectorAll(".hr-overlay-search .hr-form");
-    forms.forEach(function(form) {
-        if (form.dataset.hrBound) return;          // idempotent guard
-        form.dataset.hrBound = "true";
-        form.addEventListener("submit", function(e) {
-            e.preventDefault();
-            var select = form.querySelector('select[name="productVariant"]');
-            var idInput = form.querySelector('input[name="id"]');
-            var variantId = select ? select.value : (idInput ? idInput.value : null);
-            if (!variantId) { alert("Please select a product variant."); return; }
-            fetch("/cart/add.js", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ items: [{ id: parseInt(variantId), quantity: 1 }] })
-            })
-            .then(function(res) { return res.json(); })
-            .then(function() { document.dispatchEvent(new CustomEvent("upcart:cart:change")); })
-            .catch(function(err) { console.error("Add to cart failed:", err); });
-        });
-    });
-}
-```
-
-### Recom slider — delegated `submit` (clone-safe)
-
-The recom slider runs `loop: true`, so clones exist and per-element listeners bound at load miss
-them. Use a **delegated** submit scoped to the box (`#hello-retail-{{ key }}`) — clone-safe, no
-`afterInit` needed. See `${CLAUDE_PLUGIN_ROOT}/skills/recom-developer/references/add-to-cart-js.md`.
-
-```js
-$(document).on("submit", "#hello-retail-{{ key }} .hr-form", function (e) {
-    e.preventDefault();
-    var form = this;
-    var select = form.querySelector('select[name="productVariant"]');
-    var idInput = form.querySelector('input[name="id"]');
-    var variantId = select ? select.value : (idInput ? idInput.value : null);
-    if (!variantId) { alert("Please select a product variant."); return; }
-    fetch("/cart/add.js", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: [{ id: parseInt(variantId), quantity: 1 }] })
-    })
-    .then(function (res) { return res.json(); })
-    .then(function () { document.dispatchEvent(new CustomEvent("upcart:cart:change")); })
-    .catch(function (err) { console.error("Add to cart failed:", err); });
-});
-```
-
-If you'd rather bind in `afterInit` than delegate, guard each form with a `data-*` flag as in the
-Search block.
-
----
-
-## Approach B — theme `js-product-form` mirror
-
-The tile mirrors the theme's own product-form. Use when the extracted card keeps the theme markup
-(loading states, error line, quick-add dialog for variant products).
+The tile keeps the theme's own product-form markup — loading states, error line, quick-add dialog for
+variant products — with the variant id and product id bound to the feed. `<product-form>` and the other
+custom elements upgrade themselves when Hello Retail inserts the tile, so **test with a real click
+before adding any of the JS below** (search-developer → tile-interactivity Step 0); on many Dawn-family
+themes nothing more is needed.
 
 ### Form markup — simple product
 
@@ -123,8 +57,7 @@ The tile mirrors the theme's own product-form. Use when the extracted card keeps
             type="button"
             aria-haspopup="dialog"
             data-product-url="{{ product.url }}"
-            data-product-default-variant="false"
-            onclick="hrq.push(['trackClick','{{ product.trackingCode }}'])">
+            data-product-default-variant="false">
       Vælg variant
     </button>
   </div>
@@ -234,8 +167,11 @@ initQuickViewButtons();   // from afterInit
 
 - **Confirm the drawer event** against the customer's theme — `upcart:cart:change` (UpCart),
   `theme:cart:change` (Dawn-style), `cart:refresh` (Sense / custom). Wrong event = the item adds but
-  the drawer never refreshes. (Approach B uses `cart:updated` + section refresh instead.)
-- No-variant products: replace the `productVariant` select with the default variant ID directly.
+  the drawer never refreshes. The IIFE above uses `cart:updated` + a section refresh.
+- The variant CTA ("Vælg variant") navigates or opens the quick-add dialog; it never carries
+  `trackClick` — tracking is for add-to-cart actions only (tile-extractor Output Rule 11).
+- No-variant products: the theme form's hidden `id` input carries the default variant id
+  (`product.variantProductNumbers | first`).
 - Shopify B2B / draft orders may need the Storefront API instead of `/cart/add.js`.
 
 **Related:**
@@ -250,3 +186,4 @@ initQuickViewButtons();   // from afterInit
 - 2026-05-21: Shopify add-to-cart and Quick View patterns documented from Shopify (Dawn) storefronts.
 - 2026-07-01: Approach A / B page consolidated from the Search, Recom and tile-extractor skill references.
 - 2026-09-14: Merged the cheat-sheet copy into this page. The Quick View re-init now targets `#hello-retail-{{ key }}`, the base template's box id, instead of the legacy `#aw-box-{{ key }}`.
+- 2026-09-23: Approach A (Hello Retail's own `.hr-form` inside the tile) retired — the tile copies the theme's form. The variant-CTA example no longer carries `trackClick`; tracking is for add-to-cart only.
