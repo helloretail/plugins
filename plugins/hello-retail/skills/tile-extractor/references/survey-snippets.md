@@ -256,12 +256,14 @@ additions the rules require, so that nothing is ever added to the copy by hand:
     });
     return m;
   };
+  const origUrls = new Map();
+  const remember = (e, name, values) => { const m = origUrls.get(e) || {}; m[name] = values; origUrls.set(e, m); };
   const tokenise = (el) => {
     [el, ...el.querySelectorAll("*")].forEach((e) => {
       for (const a of [...e.attributes]) {
         if (INJECTED.test(a.name)) { e.removeAttribute(a.name); continue; }
-        if (URLATTR.test(a.name) || a.value.includes("://")) e.setAttribute(a.name, "[URL:" + a.name + "]");
-        if (a.name === "style" && /url\(/i.test(a.value)) e.setAttribute("style", a.value.replace(/url\([^)]*\)/gi, "url([URL:style])"));
+        if (URLATTR.test(a.name) || a.value.includes("://")) { remember(e, a.name, [a.value]); e.setAttribute(a.name, "[URL:" + a.name + "]"); continue; }
+        if (a.name === "style" && /url\(/i.test(a.value)) { remember(e, "style", [...a.value.matchAll(/url\(([^)]*)\)/gi)].map((x) => x[1])); e.setAttribute("style", a.value.replace(/url\([^)]*\)/gi, "url([URL:style])")); }
       }
     });
   };
@@ -296,7 +298,7 @@ additions the rules require, so that nothing is ever added to the copy by hand:
   }
   tokenise(skeleton);
   [...skeleton.querySelectorAll("*"), skeleton].forEach((e) => {
-    for (const a of [...e.attributes]) { const m = /^\[URL:([^\]]+)\]$/.exec(a.value); if (m && !spots.find((x) => x.id === "URL:" + m[1])) spots.push({ id: "URL:" + m[1], kind: "url", attr: m[1] }); }
+    for (const a of [...e.attributes]) { const m = /\[URL:([^\]]+)\]/.exec(a.value); if (m && !spots.find((x) => x.id === "URL:" + m[1])) spots.push({ id: "URL:" + m[1], kind: "url", attr: m[1] }); }
   });
   if (ATC_SELECTOR) {
     const atc = [skeleton, ...skeleton.querySelectorAll("*")].filter((e) => e.matches(ATC_SELECTOR));
@@ -335,13 +337,21 @@ additions the rules require, so that nothing is ever added to the copy by hand:
       const id = "BRANCH:" + state + ":" + (++n);
       const clone = x.el.cloneNode(true);
       tokenise(clone);
+      const fixed = new Set(Object.values(FIXED_TEXTS));
+      [clone, ...clone.querySelectorAll("*")].forEach((e) => [...e.childNodes].forEach((t) => {
+        const txt = t.nodeType === 3 ? t.textContent.trim() : "";
+        if (!txt || fixed.has(txt)) return;
+        const tid = "TEXT:" + (++n);
+        t.textContent = t.textContent.replace(txt, "[" + tid + "]");
+        spots.push({ id: tid, path, kind: "text", state, normal: txt });
+      }));
       const idx = [...x.el.parentElement.children].indexOf(x.el);
       const ref = parent.el.children[idx] || null;
       const open = document.createComment("HR-IF:" + id), close = document.createComment("HR-ENDIF:" + id);
       parent.el.insertBefore(close, ref);
       parent.el.insertBefore(clone, close);
       parent.el.insertBefore(open, clone);
-      branches.push({ id, state, path, kind: "only-in-state", texts: [...clone.querySelectorAll("*"), clone].flatMap((e) => [...e.childNodes].filter((t) => t.nodeType === 3 && t.textContent.trim()).map((t) => t.textContent.trim())) });
+      branches.push({ id, state, path, kind: "only-in-state" });
     }
     for (const path of base.keys()) {
       if (m.has(path)) continue;
@@ -353,11 +363,19 @@ additions the rules require, so that nothing is ever added to the copy by hand:
       branches.push({ id, state, path, kind: "missing-in-state" });
     }
   }
-  return { specimens: Object.keys(tiles), spots, branches, skeleton: skeleton.outerHTML };
+  const urlValues = [];
+  [skeleton, ...skeleton.querySelectorAll("*")].forEach((e) => [...e.attributes].forEach((a) => {
+    const count = (a.value.match(/\[URL:/g) || []).length;
+    if (!count) return;
+    const vals = (origUrls.get(e) || {})[a.name] || [];
+    for (let i = 0; i < count; i++) urlValues.push(vals[i] || "");
+  }));
+  return { specimens: Object.keys(tiles), spots, branches, skeleton: skeleton.outerHTML, urlValues };
 })();
 ```
 
-The result has three parts, and each goes somewhere:
+Save the whole result as `diff.json` in the scratch folder (the fidelity check reads it) and its
+`skeleton` field as `skeleton.html`. The result has three parts, and each goes somewhere:
 
 - **`skeleton`** — the normal tile with `[TEXT:n]`, `[ATTR:name:n]`, `[URL:name]` and `[CLASS:state:n]`
   tokens, and `<!--HR-IF:…-->` / `<!--HR-ENDIF:…-->` markers around state-only markup. Save it as
@@ -367,8 +385,10 @@ The result has three parts, and each goes somewhere:
   `{{ product.extraData.itemNumber }}`; `| escape` inside attributes); for each branch the Liquid
   condition (`product.isOnSale`, `product.inStock == false`, `product.inStock`), or `always` when the
   difference was noise (a "new" badge that happened to sit on the normal specimen, a class the theme
-  toggles at random). Texts inside an inserted branch (a badge's "-20 %") are bound like any other
-  spot: add a `TEXT` row for them with the expression, and note the token id you assign.
+  toggles at random). Texts inside an inserted branch (a badge's "-20 %", a "Sold out" label) come
+  out as `TEXT` rows of their own, carrying the state specimen's value: bind a computed one to its
+  expression (`{{ product.oldPrice | minus: product.price | times: 100 | divided_by: product.oldPrice | round }}`)
+  and a fixed label to the literal text itself (or list it in `FIXED_TEXTS` for recom).
 - Save the filled table as `bindings.json` (shape in `scripts/bind-tile.mjs`) and run the script
   (workflow step 8). It substitutes, refuses to write a template while any token or marker is
   unbound, and refuses when the element sequence changed — the two ways a hand edit would show.
@@ -610,6 +630,90 @@ class the tile carries that hide or displace the element:
 - Anything else the scan returns is reported under SHELL CSS NOTES with the selector and the
   declaration — the shell decides; you never patch it with CSS. This case has not been seen in the
   field yet; the visual fidelity check catches what the scan misses.
+
+## FIDELITY CHECK — OUR TILE NEXT TO THE SHOP'S, JUDGED BY EYE
+
+The hand-over gate (workflow step 8b). It answers one question per state and viewport: does the
+tile we will emit look like the shop's own tile? The comparison is **visual** — a side-by-side
+screenshot judged by you — and it tests the markup and the reach of the theme's CSS, which is what
+this skill controls. It does not test the feed bindings (the parity table and QA do) and it cannot
+see the shell's own overlay CSS (the shell repeats the check after the push).
+
+### 1. Render the preview for a state
+
+The script renders the skeleton with the specimen's native values — no Liquid engine, so nothing
+depends on the dashboard — and applies the same root edits the template will carry:
+
+```bash
+node "<skill-base-dir>/scripts/bind-tile.mjs" --preview --diff diff.json --state sale --bindings bindings.json --out preview-sale.html
+```
+
+One preview per surveyed state: `normal`, `sale`, `soldout`, each badge state you captured. A
+`missingValues` entry in the script's summary means the diff did not record a value — re-run the
+diff snippet rather than editing the preview.
+
+### 2. Place it beside the native tile
+
+Encode the preview so it can travel inside `browser_evaluate` (`base64 < preview-sale.html | tr -d '\n'`),
+then run this on the category page with the specimen of the same state. `CONTAINER_HOOKS` and
+`CELL_HOOKS` are the PARENT HOOKS you verified — the harness stands in for the shell's products
+container and cell:
+
+```javascript
+(() => {
+  const PREVIEW_B64 = "…";
+  const NATIVE = ".product-tile-selector.sale-example";
+  const CONTAINER_HOOKS = [];
+  const CELL_HOOKS = [];
+  document.getElementById("hr-fidelity")?.remove();
+  const native = document.querySelector(NATIVE);
+  native.scrollIntoView({ block: "center" });
+  const r = native.getBoundingClientRect();
+  const fitsRight = r.right + 24 + r.width <= window.innerWidth;
+  const host = document.createElement("div");
+  host.id = "hr-fidelity";
+  host.className = CONTAINER_HOOKS.join(" ");
+  host.style.cssText = "position:fixed;top:" + Math.round(r.top) + "px;left:" + Math.round(fitsRight ? r.right + 24 : r.left - 24 - r.width) + "px;width:" + Math.round(r.width) + "px;z-index:2147483647;background:#fff;outline:2px dashed #e11;outline-offset:6px";
+  const cell = document.createElement("div");
+  cell.className = CELL_HOOKS.join(" ");
+  cell.innerHTML = decodeURIComponent(escape(atob(PREVIEW_B64)));
+  host.appendChild(cell);
+  document.body.appendChild(host);
+  const h = host.getBoundingClientRect();
+  return { native: { w: Math.round(r.width), h: Math.round(r.height) }, preview: { w: Math.round(h.width), h: Math.round(h.height) }, placed: fitsRight ? "right" : "left" };
+})();
+```
+
+Then `browser_take_screenshot` (viewport, `filename: fidelity-<state>-desktop.png`). The dashed
+red outline marks our tile. On headless React storefronts the host must stay on `document.body`,
+as here (`centra.md`).
+
+### 3. Judge, classify, repeat
+
+Look at the pair as a customer would: layout and proportions, image fit and ratio, type size and
+weight, colours, spacing, badge and price placement, the buy control. Then decide:
+
+- **Same** → that state passes; write it under FIDELITY with the screenshot name.
+- **Different** → every difference gets one of three causes, and only these three:
+  1. **Markup deviation** — something the pipeline changed or missed: a root strip that also
+     styled the card, a wrong root choice, a class token resolved wrongly, a branch that should
+     not be there. Fix it in `bindings.json` (root block, `always`) or in the diff configuration,
+     re-run the script and the harness. Never edit the preview or the template.
+  2. **Parent hook** — the theme's rule needs an ancestor the harness lacks. Add the class to
+     `CONTAINER_HOOKS` or `CELL_HOOKS`, re-run; when the pair matches, that is the PARENT HOOKS
+     line for the shell.
+  3. **Shell-side** — a difference the harness cannot resolve with markup or hooks (a theme rule
+     scoped to `body.`/`#id`, a rule the overlay's own CSS will override). Report it under
+     SHELL CSS NOTES with the selector and the native computed values; the shell decides.
+  A CSS patch from you is never one of the answers.
+- **Repeat at phone width**: `browser_resize` to 375 × 812, re-run step 2 (the host's width follows
+  the native tile), screenshot as `fidelity-<state>-mobile.png`.
+
+When a difference is not obvious from the screenshot, the computed-style diff in ANCESTOR-SCOPED
+CSS is the debugging aid: run it with the preview as `TILE_HTML` and read which properties differ.
+It is a lens, not the gate — the screenshot decides.
+
+Remove the host when done: `document.getElementById("hr-fidelity")?.remove()`.
 
 ## HOVER STATE INSPECTION
 

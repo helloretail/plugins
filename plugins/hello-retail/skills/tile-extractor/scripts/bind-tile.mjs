@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 /**
- * bind-tile.mjs — turn the captured tile skeleton into the Liquid tile body by substitution.
+ * bind-tile.mjs — the tile skill's substitution step. Two modes, no dependencies, Node ≥ 18.
  *
- * Input (all in the session scratch folder — never in the repo or the plugin):
+ * BIND (default): skeleton + the filled BINDINGS table → the Liquid tile body.
+ *
+ *   node bind-tile.mjs --skeleton skeleton.html --bindings bindings.json --out tile.liquid
+ *
  *   skeleton.html   the normal tile's outerHTML with tokens and markers, produced by the
  *                   MULTI-TILE DIFF snippet in references/survey-snippets.md:
  *                     [TEXT:3]              a text node that differs between two normal tiles
@@ -28,13 +31,25 @@
  *                     }
  *                   A branch bound to "always" keeps the element unconditionally (the difference
  *                   was noise); any other value is the Liquid condition for {% if … %}.
+ *                   Expressions must be self-contained inline chains — the skeleton has no place
+ *                   for a {% assign %} preamble.
  *
- * Output: tile.liquid. The script exits 1 without writing when a token or marker is left unbound,
- * or when the output has a different element count than the skeleton — the copy is never edited
- * by hand, so an unbound token means the table is incomplete, not that the model should improvise.
+ *   Exits 1 without writing when a token or marker is left unbound, or when the output has a
+ *   different element sequence than the skeleton. The copy is never edited by hand: an unbound
+ *   token means the table is incomplete, not that the model should improvise.
  *
- * Usage:
- *   node "<skill-base-dir>/scripts/bind-tile.mjs" --skeleton skeleton.html --bindings bindings.json --out tile.liquid
+ * PREVIEW: skeleton + the diff result → the tile as the shop shows it for one state, with the
+ * specimen's own native values, for the visual fidelity check (no Liquid engine involved).
+ *
+ *   node bind-tile.mjs --preview --diff diff.json --state sale [--bindings bindings.json] --out preview-sale.html
+ *
+ *   diff.json       the whole MULTI-TILE DIFF result saved as-is (spots, branches, skeleton,
+ *                   urlValues). --state names the specimen to render: normal, sale, soldout,
+ *                   badge, … Branch markers keep or drop their element for that state, class tokens
+ *                   resolve to the state's classes, [TEXT]/[ATTR] tokens take the normal specimen's
+ *                   values, [URL] tokens the recorded native URLs, [INPUT] the native text,
+ *                   [TRACKING] a placeholder. --bindings, when given, applies the same root edits
+ *                   as BIND so the preview shows the tile exactly as the template will emit it.
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -45,39 +60,31 @@ const args = Object.fromEntries(
     return acc;
   }, []),
 );
-const skeletonPath = args.skeleton || "skeleton.html";
-const bindingsPath = args.bindings || "bindings.json";
-const outPath = args.out || "tile.liquid";
 
 const fail = (msg, detail) => {
   console.error(`bind-tile: ${msg}`);
   if (detail) console.error(typeof detail === "string" ? detail : JSON.stringify(detail, null, 2));
   process.exit(1);
 };
+const readText = (path, what) => {
+  try {
+    return readFileSync(path, "utf8");
+  } catch (e) {
+    return fail(`cannot read ${what} ${path}: ${e.message}`);
+  }
+};
+const readJson = (path, what) => {
+  try {
+    return JSON.parse(readText(path, what));
+  } catch (e) {
+    return fail(`${what} ${path} is not valid JSON: ${e.message}`);
+  }
+};
 
-let skeleton;
-let bindings;
-try {
-  skeleton = readFileSync(skeletonPath, "utf8");
-} catch (e) {
-  fail(`cannot read skeleton ${skeletonPath}: ${e.message}`);
-}
-try {
-  bindings = JSON.parse(readFileSync(bindingsPath, "utf8"));
-} catch (e) {
-  fail(`cannot read bindings ${bindingsPath}: ${e.message}`);
-}
-const spots = bindings.spots || {};
-const branches = bindings.branches || {};
-const root = bindings.root || {};
-
-let out = skeleton;
-
-// 1. Root-only edits: width/position classes and inline declarations, and the <li> bullet reset.
-//    Only the first start tag is ever touched (Output Rules 10 and 14).
-const rootTag = /^\s*<([a-zA-Z][\w-]*)([^>]*)>/.exec(out);
-if (!rootTag) fail("skeleton does not start with an element");
-{
+/** Root-only edits (Output Rules 10 and 14): width/position classes and declarations, <li> reset. */
+const applyRootEdits = (html, root) => {
+  const rootTag = /^\s*<([a-zA-Z][\w-]*)([^>]*)>/.exec(html);
+  if (!rootTag) fail("skeleton does not start with an element");
   const tag = rootTag[1].toLowerCase();
   let attrsText = rootTag[2];
   const stripClasses = new Set(root.stripClasses || []);
@@ -94,13 +101,99 @@ if (!rootTag) fail("skeleton does not start with an element");
     if (root.liReset && tag === "li" && !decls.some((d) => /^list-style(-type)?\s*:/i.test(d))) decls.push("list-style-type:none");
     return decls.length ? ` style="${decls.join(";")};"` : "";
   };
-  if (/\sstyle="[^"]*"/.test(attrsText)) {
-    attrsText = attrsText.replace(/\sstyle="([^"]*)"/, (m, v) => editStyle(v));
-  } else if (root.liReset && tag === "li") {
-    attrsText += editStyle("");
+  if (/\sstyle="[^"]*"/.test(attrsText)) attrsText = attrsText.replace(/\sstyle="([^"]*)"/, (m, v) => editStyle(v));
+  else if (root.liReset && tag === "li") attrsText += editStyle("");
+  return {
+    html: html.replace(rootTag[0], `<${rootTag[1]}${attrsText}>`),
+    summary: {
+      strippedClasses: root.stripClasses || [],
+      strippedStyleProps: root.stripStyleProps || [],
+      liReset: !!(root.liReset && tag === "li"),
+    },
+  };
+};
+
+const TOKEN = /\[(TEXT|ATTR|URL|CLASS|BRANCH|INPUT):[^\]]*\]|\[TRACKING\]/g;
+const MARKER = /<!--HR-(IF|ENDIF):[^>]*-->/g;
+
+/** Start-tag sequence with Liquid and markers removed — substitution must never change it. */
+const tagSequence = (html) =>
+  html
+    .replace(MARKER, "")
+    .replace(/{%[\s\S]*?%}|{{[\s\S]*?}}/g, "")
+    .match(/<([a-zA-Z][\w-]*)\b/g)
+    ?.map((t) => t.slice(1).toLowerCase()) || [];
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// PREVIEW mode
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+if (args.preview) {
+  const diff = readJson(args.diff || "diff.json", "diff");
+  const state = args.state || "normal";
+  const outPath = args.out || `preview-${state}.html`;
+  let html = args.skeleton ? readText(args.skeleton, "skeleton") : diff.skeleton;
+  if (!html) fail("no skeleton: pass --skeleton or a diff.json that carries one");
+  let rootSummary = null;
+  if (args.bindings) {
+    const r = applyRootEdits(html, readJson(args.bindings, "bindings").root || {});
+    html = r.html;
+    rootSummary = r.summary;
   }
-  out = out.replace(rootTag[0], `<${rootTag[1]}${attrsText}>`);
+  const spotById = Object.fromEntries((diff.spots || []).map((s) => [s.id, s]));
+  const branchById = Object.fromEntries((diff.branches || []).map((b) => [b.id, b]));
+  const missingValues = new Set();
+
+  html = html.replace(/\[(TEXT|ATTR):[^\]]*\]/g, (m) => {
+    const s = spotById[m.slice(1, -1)];
+    if (!s || s.normal === undefined) { missingValues.add(m); return ""; }
+    return s.normal;
+  });
+  html = html.replace(/\[INPUT:([^\]]+)\]/g, (m, name) => spotById[`INPUT:${name}`]?.text ?? name);
+  html = html.split("[TRACKING]").join("preview");
+  let k = 0;
+  const urls = diff.urlValues || [];
+  html = html.replace(/\[URL:[^\]]+\]/g, () => {
+    const v = urls[k++];
+    if (v === undefined) missingValues.add(`[URL] #${k}`);
+    return v ?? "";
+  });
+  html = html.replace(/\[CLASS:([^:\]]+):[^\]]*\]/g, (m, st) => (st === state ? branchById[m.slice(1, -1)]?.adds || "" : ""));
+
+  // Branch markers: keep the element for its own state, drop it otherwise; "not-<state>" inverts.
+  const pair = /<!--HR-IF:BRANCH:(not-)?([^:]+):(\d+)-->([\s\S]*?)<!--HR-ENDIF:BRANCH:(?:not-)?[^:]+:\3-->/;
+  let guard = 0;
+  while (pair.test(html) && guard++ < 10000) {
+    html = html.replace(pair, (m, not, st, n, inner) => (not ? st !== state : st === state) ? inner : "");
+  }
+  const leftoverMarkers = html.match(MARKER) || [];
+  if (leftoverMarkers.length) fail("unmatched branch markers in the skeleton", [...new Set(leftoverMarkers)]);
+
+  writeFileSync(outPath, html);
+  console.log(
+    JSON.stringify(
+      { mode: "preview", state, out: outPath, elements: tagSequence(html).length, missingValues: [...missingValues], rootEdits: rootSummary },
+      null,
+      2,
+    ),
+  );
+  process.exit(0);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// BIND mode
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+const skeletonPath = args.skeleton || "skeleton.html";
+const bindingsPath = args.bindings || "bindings.json";
+const outPath = args.out || "tile.liquid";
+
+const skeleton = readText(skeletonPath, "skeleton");
+const bindings = readJson(bindingsPath, "bindings");
+const spots = bindings.spots || {};
+const branches = bindings.branches || {};
+
+// 1. Root-only edits.
+const rootResult = applyRootEdits(skeleton, bindings.root || {});
+let out = rootResult.html;
 
 // 2. Auto-bound tokens: the tracking call and recom text inputs need no table line unless overridden.
 out = out.replace(/\[INPUT:([^\]]+)\]/g, (m, name) => (spots[`INPUT:${name}`] !== undefined ? m : `{% input ${name} %}`));
@@ -120,8 +213,7 @@ for (const [id, value] of Object.entries(branches)) {
   out = out.split(token).join(value === "always" ? "" : value);
 }
 
-// 3. Branch markers: <!--HR-IF:id--> … <!--HR-ENDIF:id--> become {% if cond %} … {% endif %},
-//    or vanish when the branch is bound to "always".
+// 3. Branch markers → {% if cond %} … {% endif %}, or nothing when bound to "always".
 for (const [id, cond] of Object.entries(branches)) {
   if (id.startsWith("CLASS:")) continue;
   const open = `<!--HR-IF:${id}-->`;
@@ -132,8 +224,8 @@ for (const [id, cond] of Object.entries(branches)) {
 }
 
 // 4. Gate: nothing unbound may remain.
-const leftoverTokens = [...out.matchAll(/\[(TEXT|ATTR|URL|CLASS|BRANCH|INPUT):[^\]]*\]|\[TRACKING\]/g)].map((m) => m[0]);
-const leftoverMarkers = [...out.matchAll(/<!--HR-(IF|ENDIF):[^>]*-->/g)].map((m) => m[0]);
+const leftoverTokens = out.match(TOKEN) || [];
+const leftoverMarkers = out.match(MARKER) || [];
 if (leftoverTokens.length || leftoverMarkers.length) {
   fail("the BINDINGS table is incomplete — add a line for each of these, then run again", {
     tokens: [...new Set(leftoverTokens)],
@@ -142,14 +234,7 @@ if (leftoverTokens.length || leftoverMarkers.length) {
 }
 const unused = [...Object.keys(spots), ...Object.keys(branches)].filter((id) => !used.has(id));
 
-// 5. Gate: the output must have the same elements as the skeleton — substitution never adds or
-//    removes an element. Compare start-tag sequences with Liquid and markers removed.
-const tagSequence = (html) =>
-  html
-    .replace(/<!--HR-(IF|ENDIF):[^>]*-->/g, "")
-    .replace(/{%[\s\S]*?%}|{{[\s\S]*?}}/g, "")
-    .match(/<([a-zA-Z][\w-]*)\b/g)
-    ?.map((t) => t.slice(1).toLowerCase()) || [];
+// 5. Gate: the element sequence must not change — substitution never adds or removes an element.
 const before = tagSequence(skeleton);
 const after = tagSequence(out);
 if (before.join(",") !== after.join(",")) {
@@ -163,16 +248,13 @@ writeFileSync(outPath, out);
 console.log(
   JSON.stringify(
     {
+      mode: "bind",
       out: outPath,
       elements: after.length,
       spotsBound: Object.keys(spots).length,
       branchesBound: Object.keys(branches).length,
       unusedBindings: unused,
-      rootEdits: {
-        strippedClasses: root.stripClasses || [],
-        strippedStyleProps: root.stripStyleProps || [],
-        liReset: !!(root.liReset && rootTag[1].toLowerCase() === "li"),
-      },
+      rootEdits: rootResult.summary,
     },
     null,
     2,
