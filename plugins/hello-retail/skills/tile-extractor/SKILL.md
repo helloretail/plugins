@@ -32,7 +32,7 @@ step.
 | ---------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | Live category-page URL | `https://shop.example.com/c/shoes`     | A page with multiple product tiles, not the homepage. If no browser MCP is available at all, the operator pastes the raw tile HTML instead (see `references/browser.md`). |
 | Feed access            | `website-uuid` **or** pasted feed JSON | With a `website-uuid`, fetch real fields via the hello-retail MCP `productData_get`; otherwise the operator supplies feed rows.             |
-| Target surface         | `search` / `recom` / `pages` / `newsletter` | What the tile body is being built for — set by the caller skill. `search` and `recom`: markup + JS, no CSS. `newsletter`: markup only (rendered to an image, no JS runs). |
+| Target surface         | `search` / `recom` / `pages`           | What the tile body is being built for — set by the caller skill. All three: markup + JS, no CSS. Newsletter and triggered-email tiles are a separate feature with their own skills; this skill never builds them. |
 | Locale                 | `da`, `sv`, `de`                       | For the label sweep word list and any static fallback text. The caller passes it; otherwise infer from `<html lang>`.                      |
 
 If any of these are missing, ask before proceeding — unless you are running as a subagent (see
@@ -63,19 +63,21 @@ The short form. The full text, with the reasons and the field cases behind each 
 `references/output-rules.md` — read it once per build, before step 8.
 
 1. **Always deliver both HTML (Liquid) and JavaScript** — never one without the other.
-2. **Never output CSS.** The site stylesheet styles the tile; anything the tile needs from CSS is *reported* under `PARENT HOOKS`, `ALIGNMENT` and `SHELL CSS NOTES`, and the shell writes it. Documented exception: CSS-in-JS storefronts (MUI/Emotion, styled-components) ship a self-contained `CSS BLOCK` — `references/centra.md`.
+2. **Never write CSS.** The site stylesheet styles the tile; anything the tile needs from CSS is *reported* under `PARENT HOOKS`, `ALIGNMENT` and `SHELL CSS NOTES`, and the shell writes it. One exception, for shops whose CSS is not global (CSS-in-JS, proven by the two checks in `references/centra.md`): first ask the operator whether the customer can make the tile CSS global; only if not, the `CSS BLOCK` is a **copy of the customer's own rules** — never a reconstruction from computed styles, never invented.
 3. **Never add comments** — no `{% comment %}`, `{# #}` or `/* */` anywhere in the output code.
 4. **Never hardcode currency** — `{{ product.currency | currencySymbol }}` or `| priceWithCurrency: product.currency`.
 5. **Every ATC `<form>` has an `action` attribute.**
 6. **Never skip or omit a tile element.** Missing feed data → a harmless static fallback plus a note in the response text. Two exceptions: a fallback that would mislead (a different colour's packshot as hover image) is omitted with operator approval; Viskan / Streamline wishlist stars are omitted by design.
 7. **Unsure about an element's data source → say so in the response**, and still include the element with your best guess or a fallback.
-8. **Restore every URL attribute** stripped during extraction (`src`, `href`, `srcset`, `data-src`, `data-image`, …). All image URL attributes bind to `{{ product.imgUrl }}`; never rewrite a URL per platform (`_400x`, `?width=`); compare the feed image's natural width with the rendered tile width and flag full-size feed images under MISSING DATA.
-9. **Never change element types** — a native `<button>` stays a `<button>`, an `<a>` stays an `<a>`.
-10. **Preserve every `id`, `class`, inline `style` and attribute verbatim**, swapping only dynamic values. The complete strip list: attributes the site did not author (browser-extension and security-tool stamps such as `bis_skin_checked` — provenance decides, never familiarity); on the outermost tile element only, every class or inline declaration whose only job is column width or position (Rule 14); Shopify `section-id` / `data-section-id`; framework loading-state inline styles normalised to the loaded state. Nothing else is ever dropped — when unsure, keep it.
+8. **Restore every URL attribute** stripped during extraction (`src`, `href`, `srcset`, `data-src`, `data-image`, …). Every image URL candidate — the `<img>` and every `<source>` of a `<picture>`, `srcset`, `data-srcset` — binds to `{{ product.imgUrl }}`; the elements stay. Never rewrite a URL per platform (`_400x`, `?width=`). When the native tile serves several sizes, ask under OPEN QUESTIONS whether the customer can supply sized images in the feed; until then one URL fills every slot. Flag full-size feed images under MISSING DATA.
+9. **Never change element types** — a native `<button>` stays a `<button>`, an `<a>` stays an `<a>`, and a custom element (`<product-form>`, `<quick-add-modal>`, anything with `is="…"`) stays as it is: custom elements upgrade themselves when inserted, so they work inside Hello Retail without help. List their tag names under PLATFORM.
+10. **Preserve every `id`, `class`, inline `style` and attribute verbatim**, swapping only dynamic values. The complete strip list: attributes the site did not author (browser-extension and security-tool stamps such as `bis_skin_checked` — provenance decides, never familiarity); on the outermost tile element only, every class or inline declaration whose only job is column width or position (Rule 14); Shopify `section-id` / `data-section-id`; framework loading-state inline styles **and classes** normalised to the settled state (`lazyload` → `lazyloaded`; drop `scroll-trigger--offscreen` and `x-cloak`; add `aos-animate` next to `aos-init`). Nothing else is ever dropped — when unsure, keep it.
 11. **HR cart tracking on every add-to-cart button, and only there:** `onclick="hrq.push(['trackClick','{{ product.trackingCode }}'])"` — prepended to an existing `onclick`, never added to variant / view / sold-out CTAs or the tile links (`fix_links` covers those).
 12. **Report the native content alignment** (computed `text-align` of title, price, description) as the `ALIGNMENT` line — the shells centre by default and must be told otherwise.
 13. **Keep every control the native tile has** (quick view, notify-me, compare, wishlist, size pickers) in the markup; whether it is wired is the shell's decision.
 14. **The tile root is the per-product card, never the grid cell around it, and the shell owns the width.** The shell's own cell replaces the customer's cell: drop the cell element and report any of its classes the tile's CSS needs under PARENT HOOKS as cell-level. Width and position classes on the root go (Rule 10) even when they also style the card — if the card then breaks in the visual check, say so under OPEN QUESTIONS. An `<li>` root stays an `<li>` and gets `style="list-style-type:none;"` added, because the shell's container is a `<div>`.
+15. **Nothing of Hello Retail inside the tile.** The tile body carries no `hr-*` class, no Hello Retail form or wrapper, and it replaces the base design's default tile element wholesale — never keep that element and style it to look like the customer's card, never wrap the customer's markup in a Hello Retail element, never swap the shop's add-to-cart form for a Hello Retail one. The only Hello Retail addition inside the tile is the tracking call of Rule 11. Parity comes from copying markup and restoring reach through PARENT HOOKS, never from CSS that re-creates the native look.
+16. **Fixed texts are copied as they appear on the surveyed page**, in its language ("Add to cart", "Sold out", "From"). For `target = recom` each fixed text becomes an `{% input %}` block like the headline, so the value is set per domain in the dashboard; list them under TEXT INPUTS. Search and Pages keep the words; translations are fixed when a design is copied to another market.
 
 ---
 
@@ -103,7 +105,11 @@ run returns nothing.
 
 4c. **Check tile content alignment** — read the native tile's computed `text-align` and report it as an ALIGNMENT line so the shell can match it (`references/survey-snippets.md` → TILE CONTENT ALIGNMENT).
 
-4d. **Check image sizing** — compare the feed image's natural width with the rendered tile width (Output Rule 8); flag full-size feed images.
+4d. **Check image sizing** — compare the feed image's natural width with the rendered tile width (Output Rule 8); flag full-size feed images. If the native tile serves several sizes (`<picture>` sources, a multi-candidate `srcset`), add the sized-images question under OPEN QUESTIONS.
+
+4e. **Check the mobile markup** — `browser_resize` to a phone width, settle the same product's tile and compare its tag and class sequence with the desktop copy (`references/survey-snippets.md` → MOBILE MARKUP CHECK). Same markup, different CSS: nothing to do, the customer's stylesheet handles it. A different DOM swapped in by JavaScript: report it under OPEN QUESTIONS; the desktop copy stays the tile body.
+
+4f. **Check for hidden-state classes** — run the hidden-state scan (`references/survey-snippets.md` → HIDDEN-STATE CLASSES): stylesheet rules keyed on a class the tile carries that set `opacity: 0`, `visibility: hidden` or a transform. Normalise the known ones (Output Rule 10) and report the rest under SHELL CSS NOTES.
 
 5. **Check third-party widgets** — inspect how ratings actually work (Loox, rateit, Lipscore, Yotpo, etc.) and what the native ATC / quick-view / wishlist controls are bound to (`references/rating-widgets.md`).
 
@@ -137,7 +143,8 @@ only in your own context — if you learned it, it is in one of these sections.
                                        (standalone tiles only ship the MutationObserver engine)
 
 ### CSS BLOCK
-```css … ```                         ← CSS-in-JS storefronts only; otherwise `not applicable — classic theme`
+```css … ```                         ← only on a proven non-global-CSS shop, after the operator said the customer cannot
+                                       make it global: a copy of the customer's own rules; otherwise `not applicable`
 
 ### PLATFORM
 - platform: <name> (+ frontend, e.g. Magento 2 Hyvä) · signals: <what matched>
@@ -168,6 +175,10 @@ only in your own context — if you learned it, it is in one of these sections.
 - tile root: rendered width <N>px · real card / gutter-padded cell · grid <N> columns, gap <N>px
 - buy button: background <rgb> · color <rgb>; accent colour <rgb>
 - rules that can't reach the tile, preview-only differences, mobile hover behaviour
+
+### TEXT INPUTS
+- recom only: one line per `{% input %}` block emitted for a fixed text, with the native value —
+  `add_to_cart_label` = "…" (search / pages: `none — texts copied verbatim`)
 
 ### MISSING DATA
 - one line per missing / empty / unverifiable feed field, with the fallback used and who fixes it
@@ -212,6 +223,15 @@ while you work. In that mode:
 | Attributes           | preserve EVERY `id`/`class`/inline `style`/attr verbatim; strip only injected attributes, root-only width/position classes and declarations, Shopify `section-id` | stripping `id`, `style`, `data-*`, `tabindex` |
 | Injected attributes  | remove what the site did not author (`bis_*`, `data-gramm*`, `data-lastpass-*`, …) and anything stamped on nearly every element; keep every site `data-*` | keeping `bis_skin_checked`; dropping Vue `data-v-*` or Alpine `x-data` as "noise" |
 | Tile root            | the per-product card; the customer's grid cell is dropped and its needed classes reported as cell-level PARENT HOOKS; an `<li>` root keeps its tag + inline `list-style-type:none` | copying the grid cell into the shell's cell; converting `<li>` to `<div>`; keeping a width class on the root |
+| Hello Retail in the tile | none — no `hr-*` class, no HR form or wrapper; the customer's card replaces the base default tile element; only `trackClick` is added | keeping the base `hr-search-overlay-product-link` skeleton and styling it; wrapping the card in an HR element; an HR `.hr-form` instead of the shop's form |
+| Parity gap           | fix the markup, or report a PARENT HOOK / base-overlay rule for the shell                                                 | CSS that re-creates the native look on HR or customer classes |
+| Badges               | copied verbatim — the Search shell deletes the overlay reset                                                              | inline padding/margin added to every badge      |
+| Non-global CSS       | prove it with the two-page test; ask whether the customer can make it global; else copy the customer's own rules into CSS BLOCK | a stylesheet reconstructed from computed styles; invented rules |
+| Picture / source     | every `<source>`, `srcset`, `data-srcset` candidate → `{{ product.imgUrl }}`; elements kept; several native sizes → ask for sized feed images | dropping `<source>` elements; leaving the customer's URLs in them |
+| Custom elements      | copied as-is incl. `is=`; tag names listed under PLATFORM                                                                 | replaced by plain `<div>` / `<form>`            |
+| Hidden-state classes | normalise the known list to the settled state; report other opacity/visibility rules under SHELL CSS NOTES                | copying `scroll-trigger--offscreen` / `lazyload` / `x-cloak` verbatim; `opacity:1 !important` patches |
+| Fixed texts          | copied verbatim in the page language; recom: `{% input %}` per text, listed under TEXT INPUTS                             | translating by hand; hardcoding a text in a recom design |
+| Mobile markup        | one copy — CSS handles the width; a JS-swapped mobile DOM is reported under OPEN QUESTIONS                                | building a second tile body                     |
 | Images               | `src`/`srcset`/`data-src` → `{{ product.imgUrl }}`; flag full-size feed images                                            | rewriting URLs per platform (`_400x`, `?width=`) |
 | Classes              | keep the full class list, incl. runtime/JS ones (`lazyloaded`, `lazyautosizes`, `is-loaded`, `active`)                     | dropping "artifact" classes; trusting a static opacity probe to delete one |
 | Price filter         | `\| price`                                                                                                                | `\| money`                                    |
@@ -244,7 +264,7 @@ while you work. In that mode:
 | --- | --- | --- |
 | `references/browser.md` | any live-site step | The two browser backends, the tool table, login and mobile rules, pasted-HTML mode, the off-limits pages |
 | `references/platform-detection.md` | step 1 | The signal table, the detection snippet, and the per-platform routing list (which file to read for which platform) |
-| `references/survey-snippets.md` | steps 3–6b | Verbatim `outerHTML` capture (specimen, settle, injected-attribute strip, ancestor-chain probe; `collect()` on the Chrome fallback), the variation survey, the label-vocabulary sweep, the PARENT HOOKS scan and harness, the alignment probe, hover-state inspection |
+| `references/survey-snippets.md` | steps 3–6b | Verbatim `outerHTML` capture (specimen, settle, injected-attribute strip, ancestor-chain probe; `collect()` on the Chrome fallback), the variation survey, the label-vocabulary sweep, the PARENT HOOKS scan and harness, the alignment probe, the mobile markup check, the hidden-state scan, hover-state inspection |
 | `references/css-ownership.md` | steps 4b–4c and the SHELL CSS NOTES section | Who writes CSS on classic vs CSS-in-JS themes, and what to report to the shell |
 | `references/rating-widgets.md` | step 5 | How to identify the rating system and where each system's recipe lives; when the generic JS engine applies |
 | `references/missing-data.md` | step 7 and the MISSING DATA section | Feed fields that are routinely missing or empty, with the fallback for each |

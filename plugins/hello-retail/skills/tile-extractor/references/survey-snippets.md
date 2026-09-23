@@ -228,8 +228,8 @@ never made it into the HR tile because the reference category carried no new pro
    outlet label); "new"/"bestseller"
    usually have no feed field → parity-table row with ✗ plus the `extraDataList.*` flag the
    feed team should add, and render the label from that flag so it lights up the moment the
-   feed carries it. The inline padding/margin rule (overlay-reset killer, below) applies to
-   every one of these labels.
+   feed carries it. Copy each label element verbatim — no inline spacing added (`liquid-rules.md`
+   → Labels & badges).
 5. **Report the carrier product names** in your response — the shell skill and QA verify each
    label type by pulling exactly those products in the live overlay.
 
@@ -369,6 +369,69 @@ directly (e.g. a badge with a `text-center` class) are unaffected — their own 
 inheritance, exactly as on the storefront, so preserving classes verbatim (Output Rule #10) keeps
 them correct automatically. When the native value is `center`, set `center` instead — the rule is
 *match the customer*, not *always left*.
+
+## MOBILE MARKUP CHECK — one copy, unless JavaScript swaps the DOM
+
+The same tile body serves the desktop and the mobile designs, and the customer's own CSS handles
+the width — so the mobile viewport is a check, not a second extraction. `browser_resize` to
+375 × 812, reload, settle the same product's tile and capture it again, then compare structure:
+
+```javascript
+(() => {
+  const tile = document.querySelector(".product-tile-selector");
+  return [tile, ...tile.querySelectorAll("*")].map((e) => e.tagName.toLowerCase() + "." + [...e.classList].sort().join("."));
+})();
+```
+
+Run it at desktop and at phone width and diff the two arrays.
+
+- **Identical arrays** (or differences only in state classes such as `lazyloaded`): nothing to do —
+  the markup is responsive by CSS.
+- **Different arrays** (elements present at one width only, different tags, a different wrapper):
+  the theme swaps the DOM with JavaScript per breakpoint. Report it under OPEN QUESTIONS with the
+  differing elements; the desktop copy is the tile body, and the operator decides whether the mobile
+  differences matter. Never build a second tile body on your own.
+
+Note what the native tile shows at phone width for hover-only elements (hidden, or shown statically)
+under SHELL CSS NOTES, as before.
+
+## HIDDEN-STATE CLASSES — rules that keep a copied tile invisible
+
+A class captured at survey time can mean "not loaded yet" or "not scrolled into view yet"; the
+theme's script that would flip it never runs inside Hello Retail. Find stylesheet rules keyed on a
+class the tile carries that hide or displace the element:
+
+```javascript
+(() => {
+  const tile = document.querySelector(".product-tile-selector");
+  const classes = new Set();
+  [tile, ...tile.querySelectorAll("*")].forEach((e) => e.classList.forEach((c) => classes.add(c)));
+  const esc = (c) => c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const hits = [];
+  for (const sheet of document.styleSheets) {
+    let rules;
+    try { rules = sheet.cssRules; } catch (e) { continue; }
+    const walk = (rs) => {
+      for (const r of rs) {
+        if (r.cssRules) { walk(r.cssRules); continue; }
+        if (!r.selectorText || !r.style) continue;
+        const hides = r.style.opacity === "0" || r.style.visibility === "hidden" || (r.style.transform && r.style.transform !== "none");
+        if (!hides) continue;
+        const cls = [...classes].filter((c) => new RegExp("\\." + esc(c) + "(?![\\w-])").test(r.selectorText));
+        if (cls.length) hits.push({ selector: r.selectorText, classes: cls, css: r.style.cssText.slice(0, 120) });
+      }
+    };
+    walk(rules);
+  }
+  return hits;
+})();
+```
+
+- Classes on the known list (`lazyload`, `scroll-trigger--offscreen`, `x-cloak`, `aos-init` without
+  `aos-animate`) are normalised to the settled state per Output Rule 10.
+- Anything else the scan returns is reported under SHELL CSS NOTES with the selector and the
+  declaration — the shell decides; you never patch it with CSS. This case has not been seen in the
+  field yet; the visual fidelity check catches what the scan misses.
 
 ## HOVER STATE INSPECTION
 
