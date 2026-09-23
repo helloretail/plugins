@@ -167,7 +167,9 @@ hand, never taken from a list (Output Rule 16).
 ```
 
 Name inputs in snake_case after the role (`add_to_cart_label`, `sold_out_label`, `from_label`), not
-after the current wording, so the same design reads correctly on every domain.
+after the current wording, so the same design reads correctly on every domain. In the bind-by-table
+flow these come from the diff snippet's `FIXED_TEXTS` setting (`survey-snippets.md` → MULTI-TILE
+DIFF): each listed text becomes an `[INPUT:name]` token that the script turns into `{% input name %}`.
 
 ### JSON parse — ALWAYS `jsonParse`, NEVER `parse_json`
 

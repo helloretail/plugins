@@ -72,7 +72,7 @@ The short form. The full text, with the reasons and the field cases behind each 
 8. **Restore every URL attribute** stripped during extraction (`src`, `href`, `srcset`, `data-src`, `data-image`, …). Every image URL candidate — the `<img>` and every `<source>` of a `<picture>`, `srcset`, `data-srcset` — binds to `{{ product.imgUrl }}`; the elements stay. Never rewrite a URL per platform (`_400x`, `?width=`). When the native tile serves several sizes, ask under OPEN QUESTIONS whether the customer can supply sized images in the feed; until then one URL fills every slot. Flag full-size feed images under MISSING DATA.
 9. **Never change element types** — a native `<button>` stays a `<button>`, an `<a>` stays an `<a>`, and a custom element (`<product-form>`, `<quick-add-modal>`, anything with `is="…"`) stays as it is: custom elements upgrade themselves when inserted, so they work inside Hello Retail without help. List their tag names under PLATFORM.
 10. **Preserve every `id`, `class`, inline `style` and attribute verbatim**, swapping only dynamic values. The complete strip list: attributes the site did not author (browser-extension and security-tool stamps such as `bis_skin_checked` — provenance decides, never familiarity); on the outermost tile element only, every class or inline declaration whose only job is column width or position (Rule 14); Shopify `section-id` / `data-section-id`; framework loading-state inline styles **and classes** normalised to the settled state (`lazyload` → `lazyloaded`; drop `scroll-trigger--offscreen` and `x-cloak`; add `aos-animate` next to `aos-init`). Nothing else is ever dropped — when unsure, keep it.
-11. **HR cart tracking on every add-to-cart button, and only there:** `onclick="hrq.push(['trackClick','{{ product.trackingCode }}'])"` — prepended to an existing `onclick`, never added to variant / view / sold-out CTAs or the tile links (`fix_links` covers those).
+11. **HR cart tracking on every add-to-cart button, and only there:** `onclick="hrq.push(['trackClick','{{ product.trackingCode }}'])"` — prepended to an existing `onclick`, never added to variant / view / sold-out CTAs or the tile links (`fix_links` covers those). The diff snippet's `ATC_SELECTOR` places it and the bind script fills it in; never add it to the output by hand.
 12. **Report the native content alignment** (computed `text-align` of title, price, description) as the `ALIGNMENT` line — the shells centre by default and must be told otherwise.
 13. **Keep every control the native tile has** (quick view, notify-me, compare, wishlist, size pickers) in the markup; whether it is wired is the shell's decision.
 14. **The tile root is the per-product card, never the grid cell around it, and the shell owns the width.** The shell's own cell replaces the customer's cell: drop the cell element and report any of its classes the tile's CSS needs under PARENT HOOKS as cell-level. Width and position classes on the root go (Rule 10) even when they also style the card — if the card then breaks in the visual check, say so under OPEN QUESTIONS. An `<li>` root stays an `<li>` and gets `style="list-style-type:none;"` added, because the shell's container is a `<div>`.
@@ -119,7 +119,15 @@ run returns nothing.
 
 7. **Map feed fields & produce a parity table** — pull 3–5 `productData_get` rows (one per tile state found) and, for every native tile element **including every label type from the 6b sweep**, record the feed field and one of: ✓ present · ⚠ field exists but empty (e.g. `brand`, `extraDataList.size`) · ✗ no feed field (e.g. dietary certs, popular/new flags — sale tags map to `product.isOnSale`; "new"/"bestseller" usually need an `extraDataList.*` flag → ✗, flag to the feed team). Check every row of `references/missing-data.md` that the tile needs. Deliver this native-vs-feed table in the response so the feed team knows exactly what to map.
 
-8. **Build the Liquid template** — complete, nothing skipped, no comments, missing data gets a static fallback. Field-level rules: `references/liquid-rules.md`; the full output rules: `references/output-rules.md`; Magento price box, ids and CTA: `references/magento.md`.
+7b. **Diff the specimens** — with one selector per captured state, run the MULTI-TILE DIFF snippet (`references/survey-snippets.md`). Set `ATC_SELECTOR` to the tile's add-to-cart control (the snippet places the Rule 11 tracking call there) and, for `target = recom`, `FIXED_TEXTS` to the texts that become `{% input %}` blocks (Rule 16). It returns the tokenised `skeleton` (the normal tile with `[TEXT:n]`, `[ATTR:name:n]`, `[URL:name]`, `[CLASS:state:n]`, `[TRACKING]` and `[INPUT:name]` tokens and `<!--HR-IF:…-->` markers around state-only markup) plus the `spots` and `branches` rows. Save the skeleton as `skeleton.html` in the session scratch folder — never edit it by hand.
+
+8. **Bind by table, not by hand** — fill the BINDINGS table: one line per spot with its feed expression and one per branch with its Liquid condition (or `always` when the difference was noise). Field-level rules: `references/liquid-rules.md`; the full output rules: `references/output-rules.md`; Magento price box, ids and CTA: `references/magento.md`. Save the table as `bindings.json` (root strips, `<li>` reset and everything else that Rules 10 and 14 allow on the root go in its `root` block) and run:
+
+   ```bash
+   node "<skill-base-dir>/scripts/bind-tile.mjs" --skeleton skeleton.html --bindings bindings.json --out tile.liquid
+   ```
+
+   The script substitutes and refuses to write while a token or marker is unbound or the element sequence changed. Fix the table, never the output. `tile.liquid` is the `TILE_BODY`. `node` is any Node 18 or newer; on a machine set up by `browser-login` it is `~/.hr-node/bin/node`.
 
 9. **Write JavaScript** — ATC form/handler markup hooks, rating init, in-tile sliders. Ship the `MutationObserver` engine (`references/js-engine.md`) **only** for a standalone tile; for `search` and `recom` the shell owns re-init (`fix_links` / `afterInit`).
 
@@ -154,6 +162,9 @@ only in your own context — if you learned it, it is in one of these sections.
 
 ### PARITY TABLE
 | Native element | Feed field | Status ✓ / ⚠ / ✗ | Fallback used |
+
+### BINDINGS
+| Token | Native example | Feed expression or condition |   ← every spot and branch from the diff, as bound in bindings.json
 
 ### VARIATIONS
 - one line per state found: normal, sale, sold-out, each badge type (DOM or baked into image),
@@ -209,7 +220,7 @@ while you work. In that mode:
   does not start you again for the second variant. So survey every state and both the desktop and
   a mobile viewport of the native grid in this single run (mobile differences go under
   VARIATIONS / SHELL CSS NOTES).
-- Do not write files and do not push anything through the MCP. Reads (`productData_get`) are fine.
+- Write only to the session scratch directory (`skeleton.html`, `spots.json`, `bindings.json`, `tile.liquid`) — never into the repository or the plugin — and push nothing through the MCP. Reads (`productData_get`) are fine.
 
 ---
 
@@ -232,6 +243,7 @@ while you work. In that mode:
 | Hidden-state classes | normalise the known list to the settled state; report other opacity/visibility rules under SHELL CSS NOTES                | copying `scroll-trigger--offscreen` / `lazyload` / `x-cloak` verbatim; `opacity:1 !important` patches |
 | Fixed texts          | copied verbatim in the page language; recom: `{% input %}` per text, listed under TEXT INPUTS                             | translating by hand; hardcoding a text in a recom design |
 | Mobile markup        | one copy — CSS handles the width; a JS-swapped mobile DOM is reported under OPEN QUESTIONS                                | building a second tile body                     |
+| Binding              | diff two normal tiles + the state tiles → tokens and markers; fill `bindings.json`; `bind-tile.mjs` substitutes and gates | editing the copied HTML by hand; leaving a token or marker; a binding that adds markup |
 | Images               | `src`/`srcset`/`data-src` → `{{ product.imgUrl }}`; flag full-size feed images                                            | rewriting URLs per platform (`_400x`, `?width=`) |
 | Classes              | keep the full class list, incl. runtime/JS ones (`lazyloaded`, `lazyautosizes`, `is-loaded`, `active`)                     | dropping "artifact" classes; trusting a static opacity probe to delete one |
 | Price filter         | `\| price`                                                                                                                | `\| money`                                    |
@@ -264,7 +276,8 @@ while you work. In that mode:
 | --- | --- | --- |
 | `references/browser.md` | any live-site step | The two browser backends, the tool table, login and mobile rules, pasted-HTML mode, the off-limits pages |
 | `references/platform-detection.md` | step 1 | The signal table, the detection snippet, and the per-platform routing list (which file to read for which platform) |
-| `references/survey-snippets.md` | steps 3–6b | Verbatim `outerHTML` capture (specimen, settle, injected-attribute strip, ancestor-chain probe; `collect()` on the Chrome fallback), the variation survey, the label-vocabulary sweep, the PARENT HOOKS scan and harness, the alignment probe, the mobile markup check, the hidden-state scan, hover-state inspection |
+| `references/survey-snippets.md` | steps 3–7b | Verbatim `outerHTML` capture (specimen, settle, injected-attribute strip, ancestor-chain probe; `collect()` on the Chrome fallback), the variation survey, the multi-tile diff that yields the skeleton and the BINDINGS rows, the label-vocabulary sweep, the PARENT HOOKS scan and harness, the alignment probe, the mobile markup check, the hidden-state scan, hover-state inspection |
+| `scripts/bind-tile.mjs` | step 8 | The substitution script: skeleton + bindings.json → tile.liquid, with the unbound-token and element-count gates; usage in its header |
 | `references/css-ownership.md` | steps 4b–4c and the SHELL CSS NOTES section | Who writes CSS on classic vs CSS-in-JS themes, and what to report to the shell |
 | `references/rating-widgets.md` | step 5 | How to identify the rating system and where each system's recipe lives; when the generic JS engine applies |
 | `references/missing-data.md` | step 7 and the MISSING DATA section | Feed fields that are routinely missing or empty, with the fallback for each |
