@@ -91,9 +91,9 @@ handle_live_update();
 
 Source of truth per platform: `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/<platform>/add-to-cart.md`.
 
-## Shopify — `.hr-form` submit to `/cart/add.js`
+## Shopify — the copied theme form
 
-**Cart function:** `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md` → *Search overlay* block. The binding mechanics (scope to `.hr-overlay-search`, idempotent guard, call after each `fix_links`) are described above; the per-platform `add_to_cart()` body lives in that file.
+The tile carries the theme's own `<product-form>` / `form.js-product-form`, never a Hello Retail `.hr-form` (that option was retired on 2026-09-23 — tile-extractor Output Rule 15). Step 0 first: `<product-form>` upgrades itself when the overlay inserts the tile, so on many Dawn-family themes a real click already adds to cart and you write nothing. If it does not, **cart function:** `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md` → *Binding the copied theme form* (a delegated `submit` on `form.js-product-form` posting to `/cart/add.js`, section refresh, quick-add dialog). The binding mechanics (scope to `.hr-overlay-search`, idempotent guard, call after each `fix_links`) are described above.
 
 Confirm the **drawer event** against the customer's theme — `upcart:cart:change` (UpCart), `theme:cart:change` (Dawn-style), `cart:refresh` (Sense/custom). Wrong event = item adds but the drawer never refreshes.
 
