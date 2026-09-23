@@ -35,7 +35,7 @@ generator, globals, markup) run in the Playwright MCP; the per-platform notes li
 | `DanDomain` | classic / Webshop 8 | `generator = DanDomain` |
 | `Lightspeed` | eCom (C-Series) | `webshopapp.com` assets |
 | `Starweb` | — | `starweb` assets |
-| `Viskan Streamline` | — | `viskan` assets |
+| `Viskan` | `Streamline`, `NG` | `window.viskan`; `window._streamline` = Streamline, absent = NG |
 | `Wikinggruppen` | — | `wikinggruppen` assets |
 | `PrestaShop` | version, theme | `prestashop` globals |
 | `Centra` | — | `centra` API calls |
