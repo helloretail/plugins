@@ -129,6 +129,8 @@ run returns nothing.
 
    The script substitutes and refuses to write while a token or marker is unbound or the element sequence changed. Fix the table, never the output. `tile.liquid` is the `TILE_BODY`. `node` is any Node 18 or newer; on a machine set up by `browser-login` it is `~/.hr-node/bin/node`.
 
+8b. **Fidelity check — the hand-over gate** (`references/survey-snippets.md` → FIDELITY CHECK). For every surveyed state: render the preview with the script's `--preview` mode, place it beside the native specimen of that state with the PARENT HOOKS applied, `browser_take_screenshot`, and judge the pair by eye; then again at phone width. Same → PASS. Different → classify each difference as a markup deviation (fix the table or the diff configuration and re-run), a parent hook (add it, re-run, report it) or shell-side (report under SHELL CSS NOTES). A CSS patch is never an answer. Record the verdicts under FIDELITY; a state that is not PASS or fully classified does not hand over.
+
 9. **Write JavaScript** — ATC form/handler markup hooks, rating init, in-tile sliders. Ship the `MutationObserver` engine (`references/js-engine.md`) **only** for a standalone tile; for `search` and `recom` the shell owns re-init (`fix_links` / `afterInit`).
 
 10. **Return the response in the RESPONSE FORMAT** — every section, exact headings.
@@ -191,6 +193,11 @@ only in your own context — if you learned it, it is in one of these sections.
 - recom only: one line per `{% input %}` block emitted for a fixed text, with the native value —
   `add_to_cart_label` = "…" (search / pages: `none — texts copied verbatim`)
 
+### FIDELITY
+- <state> @ desktop: PASS · screenshot `fidelity-<state>-desktop.png`
+- <state> @ 375px: <element>: <what differs> → markup deviation (fixed) | parent hook (`…`, reported) | shell-side (see SHELL CSS NOTES)
+  — one line per state and viewport; every state PASS or fully classified before hand-over
+
 ### MISSING DATA
 - one line per missing / empty / unverifiable feed field, with the fallback used and who fixes it
 
@@ -244,6 +251,7 @@ while you work. In that mode:
 | Fixed texts          | copied verbatim in the page language; recom: `{% input %}` per text, listed under TEXT INPUTS                             | translating by hand; hardcoding a text in a recom design |
 | Mobile markup        | one copy — CSS handles the width; a JS-swapped mobile DOM is reported under OPEN QUESTIONS                                | building a second tile body                     |
 | Binding              | diff two normal tiles + the state tiles → tokens and markers; fill `bindings.json`; `bind-tile.mjs` substitutes and gates | editing the copied HTML by hand; leaving a token or marker; a binding that adds markup |
+| Fidelity gate        | preview per state beside the native tile with the hooks applied, screenshot, judge by eye, desktop + 375px; differences → markup / hook / shell-side | handing over unseen; "fixing" a difference with CSS; a computed-style diff as the verdict |
 | Images               | `src`/`srcset`/`data-src` → `{{ product.imgUrl }}`; flag full-size feed images                                            | rewriting URLs per platform (`_400x`, `?width=`) |
 | Classes              | keep the full class list, incl. runtime/JS ones (`lazyloaded`, `lazyautosizes`, `is-loaded`, `active`)                     | dropping "artifact" classes; trusting a static opacity probe to delete one |
 | Price filter         | `\| price`                                                                                                                | `\| money`                                    |
@@ -276,8 +284,8 @@ while you work. In that mode:
 | --- | --- | --- |
 | `references/browser.md` | any live-site step | The two browser backends, the tool table, login and mobile rules, pasted-HTML mode, the off-limits pages |
 | `references/platform-detection.md` | step 1 | The signal table, the detection snippet, and the per-platform routing list (which file to read for which platform) |
-| `references/survey-snippets.md` | steps 3–7b | Verbatim `outerHTML` capture (specimen, settle, injected-attribute strip, ancestor-chain probe; `collect()` on the Chrome fallback), the variation survey, the multi-tile diff that yields the skeleton and the BINDINGS rows, the label-vocabulary sweep, the PARENT HOOKS scan and harness, the alignment probe, the mobile markup check, the hidden-state scan, hover-state inspection |
-| `scripts/bind-tile.mjs` | step 8 | The substitution script: skeleton + bindings.json → tile.liquid, with the unbound-token and element-count gates; usage in its header |
+| `references/survey-snippets.md` | steps 3–8b | Verbatim `outerHTML` capture (specimen, settle, injected-attribute strip, ancestor-chain probe; `collect()` on the Chrome fallback), the variation survey, the multi-tile diff that yields the skeleton and the BINDINGS rows, the label-vocabulary sweep, the PARENT HOOKS scan and harness, the alignment probe, the mobile markup check, the hidden-state scan, the fidelity check harness, hover-state inspection |
+| `scripts/bind-tile.mjs` | steps 8 and 8b | The substitution script: skeleton + bindings.json → tile.liquid, with the unbound-token and element-count gates; `--preview` renders a state with native values for the fidelity check; usage in its header |
 | `references/css-ownership.md` | steps 4b–4c and the SHELL CSS NOTES section | Who writes CSS on classic vs CSS-in-JS themes, and what to report to the shell |
 | `references/rating-widgets.md` | step 5 | How to identify the rating system and where each system's recipe lives; when the generic JS engine applies |
 | `references/missing-data.md` | step 7 and the MISSING DATA section | Feed fields that are routinely missing or empty, with the fallback for each |
