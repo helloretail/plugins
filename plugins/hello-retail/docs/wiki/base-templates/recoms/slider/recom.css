@@ -1,9 +1,11 @@
 /* ==========================================================================
-   Per-customer overrides — CUSTOM_STYLING_BLOCK slot.
-   The recom-developer skill fills this with CSS that styles the customer's
-   tile (swatches, badges, sale price, ATC button) to match their storefront.
-   Scope every rule to #hello-retail-{{ key }}. Override the scaffold below;
-   don't restate it.
+   CUSTOM_STYLING_BLOCK slot — stays empty.
+   The recom box is injected into the live storefront, so the customer's own
+   theme CSS styles the copied tile. Only two kinds of rule may ever be added
+   below this line, both by the recom-developer skill: prev/next arrow and
+   box-shell parity (shell chrome, not tile), and a theme rule restated
+   verbatim, rescoped to #hello-retail-{{ key }}, when it provably cannot
+   reach the slider. Never a rule that re-creates the tile's look.
    ========================================================================== */
 {{ CUSTOM_STYLING_BLOCK }}
 

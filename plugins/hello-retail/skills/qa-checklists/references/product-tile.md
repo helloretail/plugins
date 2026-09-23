@@ -21,6 +21,13 @@ functionality instead: click-through, PDP-price parity, CTA/ATC, translations
 
 ## Tile
 
+- [ ] **Tile is not the customer's own markup** — a Hello Retail tile skeleton
+      (`hr-search-overlay-product-*`, the default recom or Pages tile) restyled with CSS to look like
+      the shop's card, a Hello Retail wrapper or class inside the tile, or a Hello Retail form in
+      place of the shop's own add-to-cart form. **FAIL even when it looks right**: it breaks the
+      moment the theme changes, and the team's standard since 2026-09 is the copied card with the
+      shop's classes, the shop's form and only the tracking call added. Check the design's Liquid
+      (code pass), not the screenshot.
 - [ ] Tile design is not consistent throughout the shop
 - [ ] We show products that are not "products" on the customer's end (e.g. blog and package content)
 - [ ] Clicking on a tile misbehaves (e.g. does nothing, or opens a new tab)
