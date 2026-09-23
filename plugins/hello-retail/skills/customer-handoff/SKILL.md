@@ -104,7 +104,7 @@ Work through `references/sources.md` → *Field map*; it names the tool or file 
 the exact wording when a source is unavailable. In short:
 
 - **Platform (mandatory):** the storefront's own signatures via the detection snippet in
-  `../tile-extractor/SKILL.md` → *PLATFORM DETECTION*, run in the Playwright MCP (Claude in Chrome
+  `../tile-extractor/references/platform-detection.md`, run in the Playwright MCP (Claude in Chrome
   as fallback). Value from the *Platform vocabulary*, plus theme / frontend flavour and version when
   visible. Ambiguous → carry both candidates to Step 3, never pick one silently. On an update, keep
   the recorded platform unless detection shows a replatform — then ask.
@@ -235,6 +235,6 @@ front matter `closed` + `final: true`, §2 close date, and a task-log entry `sta
   modes, field → tool/file map, source tags, performance definitions, unavailable-source wording.
 - `scripts/build-index.sh` — regenerates `INDEX.md` from the documents' front matter.
 - `../qa-checklists/SKILL.md` → *Step 1.5* — the ClickUp fetch ladder and two-lane procedure.
-- `../tile-extractor/SKILL.md` → *PLATFORM DETECTION* — the detection snippet.
+- `../tile-extractor/references/platform-detection.md` — the detection snippet.
 - `${CLAUDE_PLUGIN_ROOT}/docs/wiki/onboarding/customer-onboarding-flow.md` — the lifecycle this
   document closes.

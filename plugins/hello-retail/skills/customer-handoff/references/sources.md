@@ -21,7 +21,7 @@ wording* — never a guess and never a blank.
 ## Platform vocabulary (§1, mandatory)
 
 Use exactly one of these, then a middle dot and the flavour (`Shopify · Dawn 15.2`) for theme / frontend and version when visible.
-Detection: the snippet in `../../tile-extractor/SKILL.md` → *PLATFORM DETECTION* (scripts, meta
+Detection: the snippet in `../../tile-extractor/references/platform-detection.md` (scripts, meta
 generator, globals, markup) run in the Playwright MCP; the per-platform notes live in
 `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/<platform>/`.
 
