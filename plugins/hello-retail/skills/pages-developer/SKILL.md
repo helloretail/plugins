@@ -113,11 +113,17 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    `filters_title`, `sorting_title`, `clear_button_text`, `filter_search_text`,
    `filter_position` — value-swaps only, never rename/add/delete.
 3. **Tile body.** Comes from `tile-extractor`, started as a background subagent with
-   `target surface = pages`; read its RESPONSE FORMAT sections by name (`../tile-extractor/SKILL.md`).
+   `target surface = pages`; read its RESPONSE FORMAT sections by name (`../tile-extractor/SKILL.md`):
+   **FIDELITY** (every state PASS or fully classified before the splice — a shell-side item becomes
+   a NOTES line or a sanctioned edit, a markup item goes back to the tile skill, never into CSS),
+   **PARENT HOOKS** (container hooks for step 4; cell-level hooks onto the design's own product
+   wrapper, scope classes only), **BINDINGS** and **PARITY TABLE** (build record), **MISSING DATA**
+   and **OPEN QUESTIONS**; TEXT INPUTS is `none` for Pages — fixed texts are copied as they are.
    Its Output Rules and `../tile-extractor/references/liquid-rules.md` are binding here too — do not
    restate or improvise them. Splice the
    converted tile into the per-product slot of `templateHtml` only; keep the design's
-   own product-loop wrapper element the way recom keeps `.hr-product`.
+   own product-loop wrapper element the way recom keeps `.hr-product` — that wrapper is the cell,
+   so the customer's grid cell is never copied.
 
    **SEO microdata is part of the foundation — never remove it.** The default tile
    wrapper (`aw-infinite-search-results__item hr-product`, `itemscope`
@@ -233,7 +239,12 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    compare each written field byte-for-byte (whitespace-tolerant at most). A claimed
    tool call is never proof. Unverified after 3 attempts → report the target as NOT
    applied.
-7. **QA.** Run the `pages-qa` skill with the checklist catalogue
+7. **Tile fidelity, by eye.** Where a native reference exists, put a rendered HR tile next to
+   the native tile of the same state at 1440 and 375 px (the FIDELITY CHECK harness in
+   `../tile-extractor/references/survey-snippets.md` works on the live page). Same → done.
+   Different → a tile problem goes back to `tile-extractor`, a hook is mirrored (step 4), a theme
+   rule that cannot reach the design is restated verbatim and rescoped — never a rule that
+   re-creates the tile's look. Then **QA.** Run the `pages-qa` skill with the checklist catalogue
    (`../qa-checklists/references/pages.md`): native-reference survey first, the
    test-div browser probe from the pages cheat sheet, four widths (1440/1024/820/375),
    worst-case tiles, measured verdicts. A FAIL verdict is a successful QA run.
@@ -253,8 +264,9 @@ click, `hello_retail_id` bootstrap) are in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/chea
 - Draft-only; publishing is a human dashboard step. Never publish/archive/delete.
 - Extend, never rewrite: foundation survives byte-identical outside sanctioned edits.
 - Read-back verify every write; 3 strikes → NOT applied.
-- Tile body verbatim from the tile skill; no invented classes; no `hr-product` boilerplate
-  where the design's own wrapper differs.
+- Tile body verbatim from the tile skill; no invented classes; no Hello Retail class inside
+  the tile; no `hr-product` boilerplate where the design's own wrapper differs. A difference
+  after the push is a tile fix, a hook or a restated theme rule — never CSS that re-creates the look.
 - Settings from real fields + live tool schema — never from memory.
 - Platform guides exist for Shopify and DanDomain Classic Pages setups — read them
   before touching those platforms (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/features/pages/pages.md` → guides).
