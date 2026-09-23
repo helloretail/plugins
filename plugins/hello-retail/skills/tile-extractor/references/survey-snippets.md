@@ -7,11 +7,98 @@ Playwright ones (`browser_evaluate`, `browser_hover`); the Claude in Chrome fall
 the SKILL.md BROWSER TOOL table. What each snippet finds goes into the named RESPONSE FORMAT section:
 VARIATIONS, LABEL VOCABULARY, PARENT HOOKS, ALIGNMENT, SHELL CSS NOTES.
 
-## TILE INSPECTION — HOW TO EXTRACT HTML WITHOUT BEING BLOCKED
+## TILE INSPECTION — COPY THE REAL HTML
 
-Use the `collect()` approach below on both backends — it captures **every attribute** on every element, marks URL values as `[URL_VALUE]`, and removes only `bis_skin_checked`. The marking exists because the Claude in Chrome `javascript_tool` blocks output containing URLs; Playwright's `browser_evaluate` has no such block, but the URL values are never copied into the template anyway (they are replaced by feed fields, Output Rule 8), so the same snippet serves both. Call in slices (`results.slice(0, 50)`, then `results.slice(50)` etc.) to avoid output truncation.
+The template starts from a byte-faithful copy of one native tile. On Playwright, capture the
+element's `outerHTML` directly. The node-list `collect()` walk is kept only for the Claude in Chrome
+fallback, whose `javascript_tool` refuses output that contains URLs. On either path only two kinds
+of value are touched: URL-bearing attribute values become `[URL:<attribute>]` tokens (Output Rule 8
+restores every one from the feed), and attributes the site did not author are removed (Output
+Rule 10). Everything else comes out exactly as the storefront has it.
+
+### 1. Pick a clean specimen
+
+Take the tile from the main product grid of the category page — never a slider clone
+(`.swiper-slide-duplicate`, `.slick-cloned`), never a tile inside a third-party recommendation
+widget, never one inside an existing Hello Retail box (`[id^="hello-retail"]`). Prefer a tile in the
+viewport whose product is a plain in-stock product; the sale, sold-out and badge specimens come from
+the survey in the next section, captured the same way.
+
+### 2. Settle it before capturing
+
+The DOM at first paint is not the DOM the customer sees. Scroll the tile into view, wait until its
+images have loaded, and move the pointer off it so no hover state is captured:
 
 ```javascript
+(async () => {
+  const tile = document.querySelector(".product-tile-selector");
+  tile.scrollIntoView({ block: "center" });
+  const imgs = [...tile.querySelectorAll("img")];
+  await Promise.all(imgs.map((i) => (i.complete ? null : new Promise((r) => { i.onload = i.onerror = r; }))));
+  await new Promise((r) => setTimeout(r, 600));
+  return imgs.map((i) => ({ loaded: !!i.currentSrc, naturalWidth: i.naturalWidth }));
+})();
+```
+
+Then `browser_hover` on the page header (anything outside the grid) and capture.
+
+### 3. Capture on Playwright — `outerHTML`
+
+```javascript
+(() => {
+  const tile = document.querySelector(".product-tile-selector");
+  const clone = tile.cloneNode(true);
+  const INJECTED = /^(bis_|__processed_|data-gramm|data-gr-|data-new-gr-|data-lastpass|data-1p-|data-dashlane|data-kwimpala|data-darkreader|data-ms-editor|cz-shortcut-listen)/i;
+  const all = document.querySelectorAll("*");
+  const seen = {};
+  all.forEach((el) => [...el.attributes].forEach((a) => {
+    const k = a.name + "=" + a.value;
+    seen[k] = (seen[k] || 0) + 1;
+  }));
+  const uniform = new Set(Object.entries(seen)
+    .filter(([, n]) => n > all.length * 0.8)
+    .map(([k]) => k.split("=")[0]));
+  const removed = new Set();
+  [clone, ...clone.querySelectorAll("*")].forEach((el) => {
+    for (const a of [...el.attributes]) {
+      if (INJECTED.test(a.name) || uniform.has(a.name)) {
+        removed.add(a.name);
+        el.removeAttribute(a.name);
+        continue;
+      }
+      if (/^(src|href|srcset|data-src|data-srcset|data-image|data-href|poster|action)$/i.test(a.name) ||
+          a.value.includes("://")) el.setAttribute(a.name, `[URL:${a.name}]`);
+      if (a.name === "style" && /url\(/i.test(a.value))
+        el.setAttribute("style", a.value.replace(/url\([^)]*\)/gi, "url([URL:style])"));
+    }
+  });
+  return { removedAttributes: [...removed], html: clone.outerHTML };
+})();
+```
+
+`html` is the tile as-is with `[URL:*]` tokens. `removedAttributes` is what the injected-attribute
+rule dropped — repeat it under ASSUMPTIONS so the operator sees the decision.
+
+**Injected attributes — strip by provenance, and only those.** Browser extensions and security tools
+stamp the DOM they scan: Bitdefender's `bis_skin_checked`, `bis_size`, `bis_id`, `bis_register`;
+Grammarly's `data-gramm*` / `data-gr-*`; password managers' `data-lastpass-*` / `data-1p-*` /
+`data-dashlane-*`; Dark Reader's `data-darkreader-*`. The snippet removes those families and, because
+a scanner marks nearly every element on the page with the same attribute and value, any attribute
+that appears with a constant value on more than 80 % of all elements — so a new tool is caught
+without a list update. Everything the site authored stays, however odd it looks: Vue `data-v-*`,
+Alpine `x-data`, Magento `data-mage-init`, Shopware `data-product-information`, theme-JS `aria-*`.
+Playwright sessions run without extensions, so on the default backend the list is normally empty; it
+matters on the Claude in Chrome fallback and for pasted HTML, where you apply the same denylist by
+hand and list what you dropped.
+
+### 3, fallback — Claude in Chrome: `collect()`
+
+Same tokens, same injected-attribute rule, but as a node list because that tool blocks URL output.
+Call it in slices (`results.slice(0, 50)`, then `results.slice(50)` …) to avoid truncation, and
+rebuild the markup from the list without reordering, dropping or renaming anything.
+
+```javascript
+const INJECTED = /^(bis_|__processed_|data-gramm|data-gr-|data-new-gr-|data-lastpass|data-1p-|data-dashlane|data-kwimpala|data-darkreader|data-ms-editor|cz-shortcut-listen)/i;
 const results = [];
 let idx = 0;
 function collect(el, depth) {
@@ -19,25 +106,58 @@ function collect(el, depth) {
   const tag = el.tagName?.toLowerCase();
   const attrs = {};
   Array.from(el.attributes || []).forEach((a) => {
-    if (a.name === "bis_skin_checked") return;
-    // class and style are load-bearing — capture them in FULL, never truncate (Output Rule #10)
+    if (INJECTED.test(a.name)) return;
     if (a.name === "class" || a.name === "style") { attrs[a.name] = a.value; return; }
     const hasUrl =
       a.value.includes("://") || (a.value.includes("/") && a.value.length > 15);
-    attrs[a.name] = hasUrl ? "[URL_VALUE]" : a.value.slice(0, 150);
+    attrs[a.name] = hasUrl ? `[URL:${a.name}]` : a.value;
   });
   const txt =
-    el.children.length === 0 ? el.textContent.trim().slice(0, 60) : "";
+    el.children.length === 0 ? el.textContent.trim() : "";
   results.push({ i: idx++, d: depth, tag, attrs, txt });
   Array.from(el.children).forEach((c) => collect(c, depth + 1));
 }
-collect(tile, 0);
-// Call in slices to avoid truncation:
+collect(document.querySelector(".product-tile-selector"), 0);
 JSON.stringify(results.slice(0, 50));
-// then results.slice(50), results.slice(100), etc.
 ```
 
-Every `[URL_VALUE]` in the extracted output MUST be restored in the Liquid template with the correct HR feed field. Never leave a `[URL_VALUE]` placeholder in the final output.
+### 4. Record the ancestor chain — for the root decision and PARENT HOOKS
+
+Output Rule 14 says the tile root is the per-product card, never the grid cell around it. Decide it
+with evidence, not by eye:
+
+```javascript
+(() => {
+  const tile = document.querySelector(".product-tile-selector");
+  const sig = (el) => el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") + [...el.classList].map((c) => "." + c).join(".");
+  const probe = (el) => {
+    const s = getComputedStyle(el);
+    const p = getComputedStyle(el.parentElement);
+    return {
+      el: sig(el),
+      chrome: s.borderTopWidth !== "0px" || s.backgroundColor !== "rgba(0, 0, 0, 0)" || s.boxShadow !== "none",
+      width: Math.round(el.getBoundingClientRect().width),
+      parentDisplay: p.display,
+      siblings: el.parentElement.children.length,
+      children: el.children.length,
+    };
+  };
+  const out = [];
+  let el = tile;
+  for (let i = 0; i < 4 && el && el !== document.body; i++) { out.push({ level: i, ...probe(el) }); el = el.parentElement; }
+  return out;
+})();
+```
+
+Read it upward from the element you selected. The first level with card chrome (border, background
+or shadow), or the first level that holds the whole card as its only child, is the **root**. A level
+above it whose parent is `display: grid` or `flex`, that has many siblings and no chrome of its own,
+is the customer's **cell**: it is dropped, and any of its classes the tile's CSS needs go under
+PARENT HOOKS as *cell-level*. Where the same element is both (WooCommerce `li.product`, Lightspeed
+`li.data-product`), it is the root and Rule 10's width strip applies to it.
+
+Every `[URL:*]` token in the captured markup MUST be restored in the Liquid template with the correct
+HR feed field. Never leave a token in the final output.
 
 ## TILE SURVEY — FIND ALL VARIATIONS
 
