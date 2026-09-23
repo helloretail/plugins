@@ -71,10 +71,11 @@ The short form. The full text, with the reasons and the field cases behind each 
 7. **Unsure about an element's data source → say so in the response**, and still include the element with your best guess or a fallback.
 8. **Restore every URL attribute** stripped during extraction (`src`, `href`, `srcset`, `data-src`, `data-image`, …). All image URL attributes bind to `{{ product.imgUrl }}`; never rewrite a URL per platform (`_400x`, `?width=`); compare the feed image's natural width with the rendered tile width and flag full-size feed images under MISSING DATA.
 9. **Never change element types** — a native `<button>` stays a `<button>`, an `<a>` stays an `<a>`.
-10. **Preserve every `id`, `class`, inline `style` and attribute verbatim**, swapping only dynamic values. The complete strip list: `bis_skin_checked`; on the outermost tile element only, `col-*` / `row-*` classes and any `order:` inline declaration; Shopify `section-id` / `data-section-id`; framework loading-state inline styles normalised to the loaded state. Nothing else is ever dropped — when unsure, keep it.
+10. **Preserve every `id`, `class`, inline `style` and attribute verbatim**, swapping only dynamic values. The complete strip list: attributes the site did not author (browser-extension and security-tool stamps such as `bis_skin_checked` — provenance decides, never familiarity); on the outermost tile element only, every class or inline declaration whose only job is column width or position (Rule 14); Shopify `section-id` / `data-section-id`; framework loading-state inline styles normalised to the loaded state. Nothing else is ever dropped — when unsure, keep it.
 11. **HR cart tracking on every add-to-cart button, and only there:** `onclick="hrq.push(['trackClick','{{ product.trackingCode }}'])"` — prepended to an existing `onclick`, never added to variant / view / sold-out CTAs or the tile links (`fix_links` covers those).
 12. **Report the native content alignment** (computed `text-align` of title, price, description) as the `ALIGNMENT` line — the shells centre by default and must be told otherwise.
 13. **Keep every control the native tile has** (quick view, notify-me, compare, wishlist, size pickers) in the markup; whether it is wired is the shell's decision.
+14. **The tile root is the per-product card, never the grid cell around it, and the shell owns the width.** The shell's own cell replaces the customer's cell: drop the cell element and report any of its classes the tile's CSS needs under PARENT HOOKS as cell-level. Width and position classes on the root go (Rule 10) even when they also style the card — if the card then breaks in the visual check, say so under OPEN QUESTIONS. An `<li>` root stays an `<li>` and gets `style="list-style-type:none;"` added, because the shell's container is a `<div>`.
 
 ---
 
@@ -92,7 +93,7 @@ run returns nothing.
 
 2b. **Sweep blocking popups before reading anything** (canonical rules: `../qa-checklists/SKILL.md` → "First-load popup sweep"). ACCEPT the cookie/consent banner by clicking its real accept button — never decline and never JS-delete the overlay: prices, lazy images, and HR itself are often consent-gated, and a swept-away-but-unanswered banner silently yields a wrong tile survey. Close newsletter/discount popups via their ✕ (never enter an email). Answer region/language pickers with the market matching `category-url`, then re-verify the URL didn't redirect. The default `playwright` server and the workers run **isolated** sessions, so the sweep repeats in every new session (only `playwright-profile` and Claude in Chrome remember answers). Popups still open during extraction also contaminate the DOM dump — confirm none are open before step 3.
 
-3. **Extract the complete tile HTML** — via `browser_evaluate` with the `collect()` snippet (`references/survey-snippets.md` → TILE INSPECTION); every single element, no skips. URL values come out as `[URL_VALUE]` — every URL attribute (`src`, `href`, `data-image`, etc.) MUST be restored with the correct HR feed value in the final Liquid output (Output Rule 8).
+3. **Copy the tile HTML verbatim** — pick a clean specimen, settle it, then capture its `outerHTML` via `browser_evaluate` (`references/survey-snippets.md` → TILE INSPECTION; the `collect()` walk only on the Claude in Chrome fallback). Decide the tile root with the ancestor-chain probe (Output Rule 14): the per-product card, never the grid cell around it. URL values come out as `[URL:<attribute>]` tokens — every one MUST be restored with the correct HR feed value in the final Liquid output (Output Rule 8) — and the snippet reports the injected attributes it removed; list them under ASSUMPTIONS.
 
 3b. **Scan the extracted markup for template-syntax collisions** — `{{`, `{%`, `{#`, and Alpine/Vue attributes (`x-data`, `x-text`, `:class`, `@click`, `v-if`) whose values contain braces. Hello Retail's Liquid parses `{{ … }}` and `{% … %}` inside the template, so such markup breaks or renders empty. See *Native template syntax in the markup* in `references/liquid-rules.md`.
 
@@ -156,6 +157,7 @@ only in your own context — if you learned it, it is in one of these sections.
 
 ### PARENT HOOKS
 - minimal verified class set for the products container: `…`  (or `none — tile is self-styled`)
+- cell-level: classes of the customer's dropped grid cell that the tile's CSS needs: `…` (or `none`)
 - `body.`/`#id`-scoped rules that need restating: selector → computed values
 
 ### ALIGNMENT
@@ -175,6 +177,7 @@ only in your own context — if you learned it, it is in one of these sections.
 
 ### ASSUMPTIONS
 - anything not surveyed (pasted-HTML mode, pages not reachable, states never seen)
+- injected attributes removed by the capture: <names> (or `none`)
 ````
 
 **Running as a subagent.** The shell skills start you in the background as soon as they have a
@@ -206,7 +209,9 @@ while you work. In that mode:
 | Output               | HTML + JS always, no CSS                                                                                                  | CSS included / JS missing                     |
 | Comments             | None — flag issues in response text only                                                                                  | `{% comment %}`, `/* */`, `{# #}`             |
 | Element types        | preserve exact tags from native tile                                                                                      | `<button>` → `<a>`, `<object>` → `<div>`      |
-| Attributes           | preserve EVERY `id`/`class`/inline `style`/attr verbatim; strip only `bis_skin_checked`, root-only `col-*`/`row-*`/`order:`, Shopify `section-id` | stripping `id`, `style`, `data-*`, `tabindex` |
+| Attributes           | preserve EVERY `id`/`class`/inline `style`/attr verbatim; strip only injected attributes, root-only width/position classes and declarations, Shopify `section-id` | stripping `id`, `style`, `data-*`, `tabindex` |
+| Injected attributes  | remove what the site did not author (`bis_*`, `data-gramm*`, `data-lastpass-*`, …) and anything stamped on nearly every element; keep every site `data-*` | keeping `bis_skin_checked`; dropping Vue `data-v-*` or Alpine `x-data` as "noise" |
+| Tile root            | the per-product card; the customer's grid cell is dropped and its needed classes reported as cell-level PARENT HOOKS; an `<li>` root keeps its tag + inline `list-style-type:none` | copying the grid cell into the shell's cell; converting `<li>` to `<div>`; keeping a width class on the root |
 | Images               | `src`/`srcset`/`data-src` → `{{ product.imgUrl }}`; flag full-size feed images                                            | rewriting URLs per platform (`_400x`, `?width=`) |
 | Classes              | keep the full class list, incl. runtime/JS ones (`lazyloaded`, `lazyautosizes`, `is-loaded`, `active`)                     | dropping "artifact" classes; trusting a static opacity probe to delete one |
 | Price filter         | `\| price`                                                                                                                | `\| money`                                    |
@@ -239,7 +244,7 @@ while you work. In that mode:
 | --- | --- | --- |
 | `references/browser.md` | any live-site step | The two browser backends, the tool table, login and mobile rules, pasted-HTML mode, the off-limits pages |
 | `references/platform-detection.md` | step 1 | The signal table, the detection snippet, and the per-platform routing list (which file to read for which platform) |
-| `references/survey-snippets.md` | steps 3–6b | `collect()` extraction, the variation survey, the label-vocabulary sweep, the PARENT HOOKS scan and harness, the alignment probe, hover-state inspection |
+| `references/survey-snippets.md` | steps 3–6b | Verbatim `outerHTML` capture (specimen, settle, injected-attribute strip, ancestor-chain probe; `collect()` on the Chrome fallback), the variation survey, the label-vocabulary sweep, the PARENT HOOKS scan and harness, the alignment probe, hover-state inspection |
 | `references/css-ownership.md` | steps 4b–4c and the SHELL CSS NOTES section | Who writes CSS on classic vs CSS-in-JS themes, and what to report to the shell |
 | `references/rating-widgets.md` | step 5 | How to identify the rating system and where each system's recipe lives; when the generic JS engine applies |
 | `references/missing-data.md` | step 7 and the MISSING DATA section | Feed fields that are routinely missing or empty, with the fallback for each |
