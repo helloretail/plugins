@@ -26,9 +26,11 @@ Each variant lives in its own folder with `search.js`, `search.liquid`, `search.
 
 > ⚠️ **Extend, never rewrite.** The base `search.css` is ~1,300 lines and most of it styles chrome you don't see while building — filters, filter dropdowns, selected-filter counts, the price range slider, sorting, the results header, the content column, animations. A reworked stylesheet passes a first screenshot with the filter styling already destroyed. Override with higher specificity, and ask the operator before altering the foundation: [foundation-rules.md](../foundation-rules.md).
 
-> ⚠️ **Before you ship:** an empty `CUSTOM_STYLING_BLOCK` is a *starting point*, not the finish. Keeping the customer's tile classes does **not** guarantee their theme CSS styles the tile inside the HR overlay — the theme often styles via a grid-ancestor the overlay doesn't reproduce, and HR's base `search.css` overrides the rest. Open the overlay, run a real search, and add a scoped parity block if needed. Method + checklist: [cheat-sheets/search/general.md → _Tile CSS parity_](../../cheat-sheets/search/general.md).
+> ⚠️ **Before you ship:** `CUSTOM_STYLING_BLOCK` stays empty. Keeping the customer's tile classes does **not** by itself guarantee their theme CSS reaches the tile inside the overlay — the theme often styles via a grid ancestor the overlay doesn't reproduce, and the base `search.css` centres and sizes things its own way. The answer is never tile CSS: mirror the tile skill's PARENT HOOKS onto the container, apply the sanctioned shell edits (TILE FILL with the surveyed alignment, `product_tile_width`, the reset deletion), and put the rendered tile next to the native one before calling it done. Method + checklist: [cheat-sheets/search/general.md → _Tile fidelity_](../../cheat-sheets/search/general.md).
+
+The per-customer tile replaces the **whole default tile element** in the `{% else %}` branch of the product loop — the base files carry a `TILE_BODY` marker comment there. The shell removes the comment when it assembles the design; neither the comment nor the default tile survives in a pushed design.
 
 ## Related
 
 - Playbook: [../../onboarding/search-templates.md](../../onboarding/search-templates.md)
-- **Tile CSS parity** (must-read): [cheat-sheets/search/general.md](../../cheat-sheets/search/general.md) · platform specifics: [lightspeed.md](../../cheat-sheets/search/lightspeed.md)
+- **Tile fidelity** (must-read): [cheat-sheets/search/general.md](../../cheat-sheets/search/general.md) · platform specifics: [lightspeed.md](../../cheat-sheets/search/lightspeed.md)
