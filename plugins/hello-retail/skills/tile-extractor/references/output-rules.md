@@ -1,0 +1,55 @@
+# Output rules — full text
+
+The 13 rules of `../SKILL.md` → OUTPUT RULES, with the reasons and the field cases behind each.
+Read this once per build, before workflow step 8. The short form in `SKILL.md` is binding on its
+own; this file explains it and settles the edge cases.
+
+1. **Always deliver both HTML (Liquid) and JavaScript** — never one without the other
+
+2. **Never output CSS** — the site's existing stylesheet applies; adding CSS creates conflicts. Anything the tile needs from CSS that the site stylesheet will not deliver inside Hello Retail (hover-only elements, ancestor-scoped rules, alignment) is **reported** to the calling shell skill under `PARENT HOOKS`, `ALIGNMENT` and `SHELL CSS NOTES` (see RESPONSE FORMAT in `SKILL.md`) — the shell writes the CSS, in its own styles field, scoped to its own root.
+   - **Documented exception — CSS-in-JS storefronts (MUI/Emotion, styled-components):** their styles are injected per page, so the site stylesheet does NOT reliably apply inside the HR overlay (verified: same tile rendered differently on a category page vs a PDP). On these platforms the tile MUST ship a self-contained, HR-scoped CSS block built from computed styles, returned under `CSS BLOCK` for the shell's styles field. See `centra.md`.
+
+3. **Never add comments** — no `{% comment %}`, no `{# #}`, no `/* */` anywhere in the output code
+
+4. **Never hardcode currency** — always use `{{ product.currency | currencySymbol }}` (or the equivalent one-shot `| priceWithCurrency: product.currency` — see the Price section of `liquid-rules.md`)
+
+5. **Never miss the form `action` attribute** — every ATC `<form>` must have `action="..."`
+
+6. **Never skip or omit any tile element** — if feed data for an element is missing, use a static fallback value and call it out in your response text (not in the code)
+   - **Exception — when the fallback would actively mislead, omit with operator approval.** A static fallback must be *harmless*. If the only available data makes the element behave wrongly (e.g. the native hover-image is a lifestyle photo but the feed's `altImage` is a *different color's* packshot — hovering would show the wrong product; or `imgUrl` as hover-image causes a contain→cover crop-jump native tiles don't have), propose omitting the element until the feed carries the right field, get the operator's sign-off, and flag it in MISSING DATA. Wrong behavior is worse than an absent nicety.
+   - **Exception — platform-unsupported controls are left out by design, no approval needed.** Hello Retail does not support wishlist / favourite buttons on **Viskan / Streamline**: drop the native `.CMS-ArticleFavorite-icon` star from the tile (every native `ListArticle` carries one) and state the omission in your response text. QA grades its absence ACCEPTED, not as a missing element. → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan-streamline/README.md`
+
+7. **If confused about an element's data source, say so in your response** — still include the element with your best guess or a static fallback; never silently drop it
+
+8. **URL attributes stripped during extraction MUST be restored in the Liquid output** — `src`, `href`, `data-image`, `srcset`, `data-src`, and any other URL-bearing attribute are stripped from JS extraction snippets only to avoid browser tool blocks. They are NOT optional in the final template. Every such attribute must appear in the Liquid output populated with the matching HR feed field (e.g. `src="{{ product.imgUrl }}"`, `href="{{ product.url }}"`, `data-image="{{ product.imgUrl }}"`). If no feed field maps to it, use the best available fallback and flag it in your response text — never leave the attribute absent from the rendered HTML.
+   - **Images: the feed has one `imgUrl`, so `src`, `srcset` and `data-src` all bind to `{{ product.imgUrl }}`** (a `srcset` with one candidate is valid). Never rewrite the URL per platform (`_400x`, `?width=`) — the team's rule is to fix sizing in the feed, not in the template. During the survey compare the feed image's natural width with the native tile's rendered width (`img.naturalWidth` vs `getBoundingClientRect().width × devicePixelRatio`); if the feed image is more than ~2× the rendered size, add a MISSING DATA line — *"feed images are full-size (N px for a M px tile) — fix in the feed or ask the customer for sized images"*. Keep `loading="lazy"` and `width`/`height` exactly as the native tile has them (Rule 10).
+
+9. **Never change element types** — the output must use the exact same HTML tags as the native tile. A native `<button>` stays a `<button>` with all its original attributes; a native `<a>` stays an `<a>`; a native `<object>` stays an `<object>`. Only attribute *values* that contain dynamic data (URLs, prices, IDs) are replaced with Liquid tags — the attribute *names* and element *types* are never touched. The customer's CSS and JS are bound to specific element types and selectors; changing a `<button>` to an `<a>` silently breaks hover styles, click handlers, and any JS that queries by tag name.
+
+10. **Never remove or modify attributes — preserve EVERY `id`, `class`, inline `style`, and attribute verbatim, no matter what.** Every attribute present on the native element must appear on the same element in the Liquid output, byte-for-byte, with only its *dynamic values* swapped for Liquid tags (URLs, prices, IDs). This is absolute:
+    - **`class`** — keep the **entire** class list, every token, in the original order. Do **not** drop, dedupe, "clean up", or rename any class — including classes that look like runtime/JS artifacts (`lazyloaded`, `lazyautosizes`, `lazyloading`, `is-loaded`, `loaded`, `active`, `swiper-slide-visible`, `js-*`, hashed/utility classes). The customer's CSS **and** JS are bound to these exact tokens; a "harmless-looking" class is often load-bearing. Real example: dropping `lazyloaded`/`lazyautosizes` interfered with the theme's lazysizes image styling, and **a static `getComputedStyle` opacity probe is NOT reliable for deciding a class is dead** — verify in the live overlay, and when unsure, **keep the class.**
+    - **`id`** — keep it; if it embeds a dynamic value, parameterize that value (e.g. `id="rating-result_{{ product.extraData.itemNumber }}"`), never delete the attribute.
+    - **inline `style=""`** — keep the whole declaration verbatim (ratio-box `padding-bottom`, aspect hacks, color vars, etc.); only swap dynamic values (e.g. `background-image:url(...)`).
+      - **Exception — framework loading-state styles are normalized to the loaded state.** Lazy/reveal components (lazysizes, React reveal wrappers) render images with `style="opacity:0;visibility:hidden"` and flip them on load via JS that never runs in HR — copied verbatim, the images stay invisible forever. Emit the *loaded* state instead (`opacity: 1`, drop `visibility:hidden`; keep any transition), and flag the change in your response.
+    - **all other attributes** — `data-*`, `tabindex`, `role`, `aria-*`, `fetchpriority`, `loading`, `width`/`height`, `data-mage-init`, `data-bind`, `srcset`, `sizes`, etc. — preserved exactly.
+    - **Never remove a `style` attribute** — not even if it only contains `order:`.
+    - The **only** things ever stripped from the output are (this is the complete list — the cheatsheet repeats it):
+      - `bis_skin_checked="1"` (injected by a browser extension, not part of the site)
+      - On the **outermost tile element only**: CSS grid/column positioning classes (`col-*`, `row-*`) and any `order:` declaration inside an inline `style` attribute (e.g. `style="order: 2;"` → remove the attribute entirely; `style="order: 2; background:red;"` → `style="background:red;"`). These are category-page layout classes that break HR overlay and recommendation design. **This exception applies strictly to the single root tile element — every nested element inside the tile is fully untouched, including all their `style` attributes and class lists.**
+      - Shopify `section-id` / `data-section-id` values — page-specific, not in the feed; omit the attribute (`shopify.md`).
+      - Framework loading-state inline styles, normalized to the loaded state as described above (a value edit, not a removal).
+    - Nothing else is ever dropped — if you think an attribute/class is unnecessary, keep it anyway and (if truly noteworthy) mention it in your response text; never silently delete it.
+
+11. **Never forget HR cart tracking on the add-to-cart button** — every button (or element) that adds a product to the cart MUST carry the HR click-tracking attribute:
+
+    ```liquid
+    onclick="hrq.push(['trackClick','{{ product.trackingCode }}'])"
+    ```
+
+    Without it, cart additions from HR-rendered tiles are not attributed to Hello Retail. This applies to every ATC pattern — plain `<form action>` submit buttons, AJAX ATC buttons, and quick-add/variant-picker buttons. If the native button already has an `onclick`, prepend the `hrq.push` call to the existing handler code rather than replacing it (e.g. `onclick="hrq.push(['trackClick','{{ product.trackingCode }}']); originalHandler()"`) — never drop the native handler (Output Rule #10).
+
+    **And ONLY on add-to-cart actions.** Never add `trackClick` to CTAs that navigate instead of adding to cart — variant CTAs ("SE VARIANTER" / "Choose variant" links to the PDP), view CTAs ("Se mer" / "View product"), sold-out CTAs, or the tile/image/title links themselves. Hello Retail attributes those clicks through its own link handling (Search: `fix_links`; Recom: the platform's link tracking — the `#aw_source=` fragment is only visible to logged-in staff); a duplicate `trackClick` there is wrong, not extra-safe. (Scope confirmed by the QA team, 2026-07.)
+
+12. **Tile content alignment must match the native tile** — during the survey, read the native tile's computed `text-align` (title, price, description — see `survey-snippets.md` → TILE CONTENT ALIGNMENT) and report it as an **ALIGNMENT** line for the calling shell skill. The HR Search/Recom shells set `text-align: center` at the overlay/cell level (`.hr-overlay-search`, `.hr-search-overlay-product`, `.hr-product`), and most native tiles rely on the *inherited default* (`start`) rather than setting their own — so a byte-perfect tile silently renders **centered** inside HR while the storefront shows it **left-aligned**. This skill never outputs CSS (Output Rule #2), so the compensation lives in the shell's tile-fill rule; your job is to detect and report the native value, never to assume it.
+
+13. **Keep every control the native tile has** — quick view, notify-me, compare, wishlist, size pickers. They stay in the markup verbatim (Rule 10); whether they get *wired* is the shell skill's decision. Only the documented platform exception (Viskan wishlist, Rule 6) removes a control. List each control and what drives it natively under `SHELL CSS NOTES` / `PLATFORM` so the shell can bind it.
