@@ -44,7 +44,7 @@ When the operator doesn't specify a variant, do NOT generate all three (or even 
 
 **Build exactly the variants in scope** (SKILL.md → *Core intake* Q0: desktop / mobile / both). Don't pair desktop+mobile on your own — when the card is silent on scope, Q0 is asked **up front** in the first batched round, never at the end after one design is already built. The mobile-specific decisions (list/grid, categories tab, Navigation Island) are booleans in the mobile base: `references/mobile-toggles.md`.
 
-The `{{ TILE_BODY }}` is **shared across all variants** — the product card is the same regardless of which overlay renders it. Generate the tile once (via the tile skill) and reuse it in each variant.
+The tile body is **shared across all variants** — the product card is the same regardless of which overlay renders it. Generate the tile once (via the tile skill) and reuse it in each variant.
 
 ## Edit scope — what you actually change
 
@@ -63,18 +63,18 @@ Each variant's `search.liquid` has the same slot structure inside `{% capture re
         </a>
       </div>
     {% else %}
-      {# === NON-BANNER BRANCH — this is where TILE_BODY goes === #}
-      {{ TILE_BODY }}
+      {% comment %} TILE_BODY — the customer's tile replaces this whole default tile element; the shell removes this comment when it assembles the design {% endcomment %}
+      <a class="hr-search-overlay-product-link" href="{{ product.url }}">… the base's default tile …</a>
     {% endif %}
   </div>
 {% endfor %}
 ```
 
-**Your work is exclusively inside the `{% else %}` branch — the `{{ TILE_BODY }}` slot.** That slot's contents come from `tile-extractor`. **Never touch the banner branch** (`{% if product.isBanner … %}`).
+**Your work is exclusively inside the `{% else %}` branch.** The tile body from `tile-extractor` **replaces the whole default tile element** — the `<a class="hr-search-overlay-product-link">…</a>` and everything in it — and the marker comment is deleted: neither survives in a pushed design, and the customer's root is the direct child of `.hr-search-overlay-product`. Search keeps no Hello Retail wrapper around the tile (Recom keeps `.hr-product`, Pages its microdata wrapper); never keep the default tile's skeleton and style it, never wrap the customer's markup in a Hello Retail element. **Never touch the banner branch** (`{% if product.isBanner … %}`).
 
 Each variant's `search.css` has one slot: `{{ CUSTOM_STYLING_BLOCK }}`. **Leave it empty** — the skill does not author tile CSS (the tile's classes are preserved verbatim, so the customer's theme CSS styles it). The only CSS the skill emits is the TILE FILL rule below (and header-match overrides if the operator opted in — see `branding-and-header.md`).
 
-**Outside the for-loop** (filters, captured_filters, hr-results, content blog branch, hr-close, animations): don't touch — the base template handles all of it. There are exactly **two sanctioned edits outside the loop**: parent-scope class mirroring and the TILE FILL rule, both below.
+**Outside the for-loop** (filters, captured_filters, hr-results, content blog branch, hr-close, animations): don't touch — the base template handles all of it. The sanctioned edits are listed at the top of this file; the two that apply to every build are parent-scope mirroring (container and cell) and the TILE FILL rule, both below.
 
 ## Parent / ancestor scope — mirror the tile's required ancestor hooks onto `hr-products-container`
 
@@ -100,7 +100,9 @@ Add the hooks to **every** `hr-products-container` occurrence in each `search.li
 - Rules scoped to **`body.<class>` or `html.<class>`** (e.g. `body.catalog-view .card { … }`) can't be satisfied by a class on a div — and adding classes to the customer's `<body>` is off-limits (it would restyle the whole page).
 - Rules scoped under an **`#id`** ancestor — never duplicate an id inside the overlay.
 
-For those, copy the affected rules into `resultStyles` **rescoped under `.hr-overlay-search`** (same spirit as the CSS-in-JS tile-CSS block; keep the copied declarations byte-identical, only the scope changes) and note it in the report.
+For those, copy the affected rules into `resultStyles` **rescoped under `.hr-overlay-search`** (same spirit as the copied customer rules on a non-global-CSS shop; keep the copied declarations byte-identical, only the scope changes) and note it in the report.
+
+**Cell-level hooks.** The tile skill drops the customer's grid cell (its Rule 14: the root is the card, the shell's cell replaces the customer's) and reports the cell's load-bearing classes as *cell-level* PARENT HOOKS. Mirror those onto the `hr-search-overlay-product` cell's class attribute in the loop — scope classes only. A class that set the cell's width or column position is never mirrored: the width is the shell's (TILE FILL, `product_tile_width`).
 
 Watch for **side-effects**: a mirrored hook class may itself carry styling (e.g. `.products-grid` sets its own `display`/margins) that now applies to `hr-products-container`. HR's own grid rule (`.hr-overlay-search .hr-products-container`, two-class specificity) still wins for the result-grid columns; verify the rest in the rendered check and prefer the *minimal* hook set that makes the tile styled.
 
@@ -108,7 +110,7 @@ Common hook classes seen in the field: `products-grid`, `product-grid`, `collect
 
 If you can't tell whether the styling depends on an ancestor, flag it in NOTES with the exact selector rather than guessing.
 
-**Verify by computed-style diff, not by the selector scan alone — the scan goes blind on cross-origin sheets.** `cssRules` throws on any stylesheet served from another origin (app CDNs, `custom.css`/`styles.css` on some themes), so those rules are invisible to step 1 and their ancestor hooks are never reported. The tile then renders with the theme's *fallback* styling and looks plausible rather than obviously broken — which is why this survives a visual glance. Diff the computed styles of the tile's key atoms between a **native** tile and an **overlay** tile, at the same viewport, and reconcile every difference:
+**Verify by eye, side by side — and use the computed-style diff to find whose rule differs, because the selector scan goes blind on cross-origin sheets.** `cssRules` throws on any stylesheet served from another origin (app CDNs, `custom.css`/`styles.css` on some themes), so those rules are invisible to step 1 and their ancestor hooks are never reported. The tile then renders with the theme's *fallback* styling and looks plausible rather than obviously broken — which is why a careless glance misses it. Put the overlay tile next to a native tile at the same viewport (the tile skill's FIDELITY CHECK harness works with the overlay open) and, for anything that looks off, diff the key atoms to learn *which property* differs:
 
 ```javascript
 const pick = t => { const b = t.querySelector('<the tile's CTA selector>'), c = getComputedStyle(b);
@@ -118,7 +120,7 @@ pick(document.querySelector('product-card'));                              // na
 pick(document.querySelector('.hr-search-overlay-product product-card'));   // overlay
 ```
 
-Cover at minimum the **CTA button** (width, padding, radius — an icon-only button collapsing to a full-width text button is the classic tell), its **icon vs label spans** (`display`), and the **alignment** of the control's wrapper. Do the same **while hovering**, since hover-revealed controls are the ones most often styled from an ancestor-scoped rule. When the hooks can't be discovered because the sheet is unreadable, restate the native computed result explicitly in `resultStyles`, scoped to `.hr-overlay-search`, and say so in NOTES — that is a sanctioned addition, not foundation surgery. (Field case, store-D 2026-08: the theme's quick-add rules lived in two CORS-blocked sheets; native rendered a 38×38 icon button right-aligned, the overlay a 230×43 left-aligned text button. Identical class strings on both — only the computed values exposed it.)
+Cover at minimum the **CTA button** (width, padding, radius — an icon-only button collapsing to a full-width text button is the classic tell), its **icon vs label spans** (`display`), and the **alignment** of the control's wrapper. Do the same **while hovering**, since hover-revealed controls are the ones most often styled from an ancestor-scoped rule. A differing property is a question, not a value to set back: find the rule that sets it natively. When `cssRules` is blocked, **fetch the stylesheet itself** (`browser_network_request` on the sheet's URL — CORS blocks script access to the parsed rules, not the file) and search it for the tile's class; the selector then tells you whether it is an ancestor hook to mirror or a theme rule to restate **verbatim, rescoped** to `.hr-overlay-search`. Say so in NOTES — restating the theme's own rule is a sanctioned addition; a rule authored from computed values is not. (Field case, store-D 2026-08: the theme's quick-add rules lived in two CORS-blocked sheets; native rendered a 38×38 icon button right-aligned, the overlay a 230×43 left-aligned text button. Identical class strings on both — only the side-by-side exposed it, and only the sheet itself said why.)
 
 > **Static inline layout hooks live with the tile.** Inline styles the tile's layout depends on (e.g. `style="padding-bottom: 100%;"` on a ratio box) are part of the tile body and are the tile skill's responsibility to reproduce verbatim. If you spot one missing in the assembled output, flag it — don't drop it.
 
@@ -186,7 +188,7 @@ Mirror the native column count; add one step-down breakpoint (the desktop-overla
 
 ## Self-contained tile CSS — CSS-in-JS storefronts only
 
-On MUI/Emotion (and other CSS-in-JS) storefronts, the customer's styles are **injected per page and per rendered state** — the overlay opens from any page, so the verbatim-classes tile renders differently (or broken) depending on where it opens. On these platforms the tile skill produces a **self-contained tile CSS block** (computed styles scoped under `.hr-overlay-search`, keyed on stable label classes) alongside the tile markup. **Appending that block to `resultStyles` is a sanctioned edit** — treat it as part of the tile drop-in, place it after the TILE FILL rule, and don't edit its values here (fidelity is the tile skill's responsibility). Everything else about the no-tile-CSS rule still stands for classic themes. Details: the tile skill's `../../tile-extractor/references/centra.md`.
+On shops whose CSS is not global (MUI/Emotion and other CSS-in-JS storefronts), the customer's styles are **injected per page and per rendered state** — the overlay opens from any page, so the verbatim-classes tile renders differently (or broken) depending on where it opens. The tile skill proves that with two checks, then asks the operator whether the customer can make the tile CSS global; only when the answer is *no* does it hand over a **copy of the customer's own rules** under CSS BLOCK (verbatim, rescoped under `.hr-overlay-search`, keyed on the stable label classes). **Appending that copy to `resultStyles` is a sanctioned edit** — treat it as part of the tile drop-in, place it after the TILE FILL rule, and don't edit its values here. Everything else about the no-tile-CSS rule still stands for classic themes. Details: the tile skill's `../../tile-extractor/references/centra.md`.
 
 ## Tile text alignment — match the native tile, don't inherit the base's center
 

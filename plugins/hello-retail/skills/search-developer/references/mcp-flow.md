@@ -23,7 +23,7 @@ This is the **only** flow this skill uses. It needs a `website-uuid` — given b
 
 | MCP field | This skill's file | Notes |
 |---|---|---|
-| `resultTemplate` | `search.liquid` | HTML/Liquid results. Holds the `{{ TILE_BODY }}` slot (filled by the tile skill) + the shell. |
+| `resultTemplate` | `search.liquid` | HTML/Liquid results. Holds the product loop whose non-banner default tile the tile skill's body replaces (the base marks the spot with a `TILE_BODY` comment that never reaches a pushed design) + the shell. |
 | `resultStyles` | `search.css` | Keep `CUSTOM_STYLING_BLOCK` empty; only the TILE FILL rule (and header-match overrides, if opted in) is appended. |
 | `initializationCode` | `search.js` | `trigger_selector` + add-to-cart wiring. |
 | `inputTemplate` | **not produced by this skill** | We wire a `trigger_selector` to the customer's own input. Leave `inputTemplate` out of the update unless the operator explicitly asks for it. |
@@ -66,7 +66,7 @@ Skip them and you either thrash on an oversized result or loop on a failed call 
 2. **Updating: push only after explicit operator approval of the diff.** If a push errors, report it once and stop — don't loop. `search_updateDesign` always leaves the config in REVIEW and cannot publish.
 
 3. **`search_getDesign` returns a large payload — never read it whole.** A real design (`resultTemplate` + `initializationCode` + `resultStyles`) runs tens of KB and **will exceed the tool-result limit and spill to a file** (`Error: result (… characters) exceeds maximum allowed tokens. Output saved to <file>`). Do not try to hold or diff the whole design inline — that is the stall. Instead:
-   - Point a **subagent** (or `jq`/`grep` on the saved file) at it and extract only the regions this skill edits: the non-banner `TILE_BODY`, the `trigger_selector` line(s), the cart function + its `fix_links` call-sites, the branding header tokens (`header_logo_url`, `webshop_name`, `primary_shop_color`), the `hr-products-container` opening tags, and any existing custom CSS / TILE FILL rule.
+   - Point a **subagent** (or `jq`/`grep` on the saved file) at it and extract only the regions this skill edits: the non-banner tile branch of the product loop, the `trigger_selector` line(s), the cart function + its `fix_links` call-sites, the branding header tokens (`header_logo_url`, `webshop_name`, `primary_shop_color`), the `hr-products-container` opening tags, and any existing custom CSS / TILE FILL rule.
    - **Survey and diff only those regions** — never the full field. You assemble the final field values from the **team base scaffold + the surveyed tile** (which you hold in full, and which is equivalent since the rest of a real design *is* that scaffold), so you can push without ever holding the whole design in context.
 
 ## Read path (modify-in-place)
