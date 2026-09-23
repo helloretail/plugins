@@ -17,7 +17,7 @@ Elements carry two kinds of Emotion classes — copy **both** verbatim (Output R
   styles change **and different variants of the same component get different hashes per state**
   (sale vs normal price row, selected vs unselected swatch, each badge color).
 
-## THE BIG ONE — Emotion CSS is injected per page; the tile CANNOT rely on it
+## The big one — Emotion CSS is injected per page; the tile brings no styling with it
 
 Emotion inserts a rule only on pages that rendered a component using it. The HR Search overlay
 opens from the header on **every** page — PDP, blog, cart, homepage — where the category-tile
@@ -29,23 +29,39 @@ injected there), and the swatch-row layout collapsed on the PDP. Worse, the site
 copied class can **actively break** the tile out of context — the image class resolved to the PDP
 gallery's `position: absolute`, pulling the tile image out of flow and collapsing the image box.
 
-**Therefore, on CSS-in-JS storefronts the tile MUST ship self-contained CSS** (the documented
-exception to Output Rule #2):
+### Prove it before treating a shop as CSS-in-JS
 
-- Reproduce the native tile's computed styles (`getComputedStyle` on a category page) as a
-  stylesheet scoped under the HR container (`.hr-overlay-search …` for Search), one rule per tile
-  element, keyed on the **label classes**. Typography, colors, image box, badges, price row,
-  swatch strip/buttons — everything visible.
-- Own the geometry defensively: put the **aspect-ratio on the image wrapper** and
-  **absolute-fill the `<img>`** (`position:absolute; inset:0; object-fit:…`) so the tile renders
-  identically whether the site's rules are absent, present, or hostile.
-- Pin inherited properties the shell or page may override: `font-family` (with real fallbacks),
-  `letter-spacing: normal`, `word-break: normal`, `text-align` on the tile root.
-- Hand this block to the calling shell skill (`search-developer` / `recom-developer`) for
-  its styles field — the markup still keeps every native class.
-- **Verify on two page types**: render the tile on a category page AND a PDP/content page (the
-  overlay opens anywhere). If it only looks right on the category page, the CSS block is
-  incomplete.
+Both checks must hold; fail either and it is a classic theme — Output Rule 2 applies unchanged and
+you write no CSS:
+
+1. **Injected style tags on the page.** `document.querySelectorAll('style[data-emotion], style[data-styled], style[data-s]').length > 0`,
+   or the tile's classes are content hashes (`css-1xdhyk6`) with no matching rule in any
+   `<link rel="stylesheet">` sheet.
+2. **The tile loses its rules on another page type.** Run the body-level harness
+   (`survey-snippets.md` → ANCESTOR-SCOPED CSS) with the captured tile on a PDP or content page: if
+   the computed styles differ from the category page for the same markup, the CSS is page-dependent.
+
+### Then, in this order
+
+1. **Ask the operator first** — put it under OPEN QUESTIONS: *can the customer make the tile's CSS
+   global?* Most CSS-in-JS setups can extract the product-card styles into a plain stylesheet loaded
+   on every page (a static CSS export, or a global style block for the card component). That fixes
+   every Hello Retail surface at once and keeps the tile CSS-free.
+2. **Only if the answer is no, copy the customer's own rules.** Collect the actual declarations that
+   match the tile's classes from the injected style tags and sheets on the category page (walk
+   `document.styleSheets` and the `data-emotion` tags' `sheet.cssRules`; keep the rules whose
+   selectors match an element of the tile), rescope them under the Hello Retail root
+   (`.hr-overlay-search …` for Search, `#hello-retail-{{ key }}` for Recom), keyed on the **label
+   classes** (hash classes change per state — see above), and return that as `CSS BLOCK`. It is a
+   copy, not a reconstruction: never rebuild a stylesheet from `getComputedStyle`, never invent a
+   value. Include the rules for every surveyed state (sale, sold-out, badge variants), since each
+   state has its own hash. Say under SHELL CSS NOTES which rules were copied and from which tags.
+3. **Verify on two page types**: harness the tile with the copied block on a category page AND a
+   PDP/content page. If it only looks right on the category page, the copy is missing state rules.
+
+Geometry the copied rules do not cover (an image box that collapses because a class resolves
+differently out of context) is reported, not patched: name the element and the native computed
+values under SHELL CSS NOTES and let the shell decide.
 
 ## Lazy-load / reveal inline styles — normalize to the loaded state
 
