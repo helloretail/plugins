@@ -10,6 +10,44 @@ fragments into the version it publishes.
 
 ## Unreleased
 
+## 1.12.2 — 2026-09-23
+
+### Added
+
+- `hello-retail-knowledge` answers how a newsletter campaign picks products: that the algorithm
+  runs for a recipient with no page context, that known and unknown recipients take different
+  paths, and how the pinned, default and exclude lists differ. Pinned products ignore the
+  campaign's filters, so they show even when out of stock.
+- `support-debugging` triages newsletter tickets. "Wrong products for a recipient" previews the
+  campaign as both a known and an unknown recipient, which is where an algorithm that only works
+  for one of them shows up.
+
+### Changed
+
+- `support-debugging`'s capability matrix now covers the recommendation strategy, general settings
+  and creation tools, the Retail Media campaign tools, and the newsletter campaign tools — three
+  areas it previously listed as impossible or did not mention at all.
+- `support-debugging` warns that newsletter design and campaign writes are live on save. A design
+  edit repoints the tile images in newsletters already sitting in recipients' inboxes, so the safe
+  route is to copy the design and edit the copy.
+- `customer-handoff` records the customer's newsletter campaigns, not just their designs — name,
+  type, product count, design and ESP platform. A rolling or manual campaign whose design reads
+  back as "custom" is normal and is no longer recorded as an open item.
+- `customer-handoff` records a recommendation's strategy and product count. The configuration
+  snapshot asked for the algorithm before any tool could return it.
+- `hello-retail-knowledge` gives the campaign types their API names (Auto is `TEMPLATE`, Rolling
+  is `AUTORESET`, Manual is `NORMAL`) and warns that a campaign's type can never be changed after
+  it is created.
+
+### Fixed
+
+- `recom-developer`, `recom-qa`, `qa-checklists`, `customer-handoff` and `support-debugging` call
+  the recommendation tools by the names the MCP actually exposes. Listing recommendations and
+  repointing a box's placement or design previously called tools that no longer exist.
+- `support-debugging` no longer hands back "the recommendation box shows the wrong products" as
+  something the MCP cannot reach. It reads the box's strategy steps, filters and product count, and
+  can write a corrected strategy as a draft for the operator to publish.
+
 ## 1.12.1 — 2026-09-22
 
 Maintenance release — no user-visible changes.
