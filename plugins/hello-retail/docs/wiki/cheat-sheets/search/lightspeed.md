@@ -7,7 +7,7 @@ verified: 2026-09-15
 
 Lightspeed eCom storefronts (formerly SEOshop / webshopapp). **Tell-tale signal:** image and asset URLs on `cdn.webshopapp.com/shops/<id>/…`; product tiles are `li.data-product` inside `ul.list-collection`.
 
-> Read [general.md → _Tile CSS parity_](./general.md) first. Everything below is the Lightspeed-specific instance of that general lesson.
+> Read [general.md → _Tile fidelity_](./general.md) first. Everything below is the Lightspeed-specific instance of that lesson: the width belongs to the shell, the theme's reach is restored with hooks, and tile CSS is never the fix.
 
 ---
 
@@ -20,15 +20,27 @@ ul.list-collection.in-cols   ← grid container, owns column widths (display:gri
   └─ li.data-product         ← the grid ITEM; gets its width from being a direct child
 ```
 
-HR renders each result as `…hr-products-container > div.hr-search-overlay-product > li.data-product`. The `.hr-search-overlay-product` wrapper becomes the grid item, so `.data-product` is now a **grandchild with no width** → it shrinks to min-content and **titles wrap one letter per line**. The class is preserved exactly; the *context* the theme's CSS relied on is gone.
+HR renders each result as `…hr-products-container > div.hr-search-overlay-product > li.data-product`. The `.hr-search-overlay-product` wrapper becomes the grid item, so `.data-product` is a **grandchild with no width** → it shrinks to min-content and **titles wrap one letter per line**. The class is preserved exactly; the *context* the theme's CSS relied on is gone.
 
-On top of that, HR's base `search.css` overrides several theme defaults (centered text, forced image height, reset list pseudos, `display:flex` + lopsided padding on the buy button). So an empty `CUSTOM_STYLING_BLOCK` is **never** enough on Lightspeed — you always ship a scoped parity block.
+This is the textbook case of the tile skill's Rule 14: `li.data-product` is both the card and the cell, so it stays the root, its width is the **shell's** (TILE FILL sizes whatever sits in the cell; `product_tile_width` matches the native width), and `list-collection` / `in-cols` go on `hr-products-container` as PARENT HOOKS. No tile CSS.
 
 ---
 
-## Worked parity block (verified live on a Lightspeed store)
+## What used to be shipped here, and what replaces it
 
-Drop into the design's **Custom Styling (CSS)**. Scoped to `.hr-overlay-search`; CSS-only, so no markup/class change and the theme's delegated JS (quicklook, wishlist, qty, ATC) stays bound. `!important` is required throughout — HR base `search.css` outranks plain selectors.
+**Retired 2026-09-23.** The block at the end of this section restyled the tile with `!important` rules — the pattern the verbatim pipeline replaces. It stays only so existing Lightspeed designs can be read; **do not copy it into a new design.** Each of its fixes now has an owner, and none of them is tile CSS:
+
+| Symptom | Root cause | Legacy CSS did | Now |
+| --- | --- | --- | --- |
+| Titles one letter per line | theme width is on the grid item; HR's wrapper takes that slot | wrapper `display:block` + `.data-product { width:100% }` | Shell: TILE FILL + `product_tile_width`; `li.data-product` stays the root (Rule 14) |
+| Stray line / uneven left edge on each card | `.data-product::after` + `li::before/::after` are row dividers; `border-left:13px solid transparent` is a column gutter | `border:0` + hide the divider pseudos | The transparent gutter border is a width/position declaration → root strip. Divider pseudos are grid rules the overlay reproduces wrongly → reported as **shell-side** by the tile skill; the shell restates the theme's own rule rescoped or leaves them |
+| Hover highlight missing | `.data-product::before` is the hover card | keep `::before`, hide only `::after` | Works by itself once the tile is copied verbatim and the hooks are on the container |
+| Text centred | HR base centres tile text | `text-align:left` | ALIGNMENT line → TILE FILL `text-align` |
+| Image wrong size / ratio | feed serves large or variable images; storefront serves fixed `…/180x175x2/…` thumbs | fixed `height` + `object-fit:contain` | Feed: sized images (the tile skill's MISSING DATA line and sized-images question) |
+| Buy button stacked below the quantity select | HR base makes the button `display:flex` and pads it; `p.amount` isn't floated | floats + `padding:0` | **Shell-side** note: the base overlay rule is the cause; the shell restates the theme's own button rule rescoped, or the base gets fixed |
+
+<details>
+<summary>The retired block, kept for reading old designs</summary>
 
 ```css
 /* 1. Tile fills the grid cell (theme width lives on the grid item, which HR's wrapper takes) */
@@ -64,16 +76,7 @@ Drop into the design's **Custom Styling (CSS)**. Scoped to `.hr-overlay-search`;
 .hr-overlay-search .data-product footer.extra form button.cart-form-submit .hidden { display: none !important; }
 ```
 
-### What each fix maps to (so you can adapt per theme)
-
-| Symptom | Root cause | Fix |
-| --- | --- | --- |
-| Titles one letter per line | theme width is on the grid item; HR's `.hr-search-overlay-product` wrapper takes that slot | wrapper `display:block` + `.data-product { width:100% }` |
-| Stray line / uneven left edge on each card | theme uses `.data-product::after` + `li::before/::after` as row dividers, and `border-left:13px solid transparent` as a column gutter | `border:0` + hide the **divider** pseudos only |
-| Hover highlight missing | `.data-product::before` is the hover card (white bg, 1px `#f0f0f0`, 5px radius, soft shadow, `opacity 0→1`) — don't blanket-hide all pseudos | hide `::after` + inner `li` pseudos, **leave `::before`** |
-| Text centered | HR base centers tile text | `text-align:left` |
-| Image wrong size / ratio | HR feed serves large/variable images; storefront serves fixed `…/180x175x2/…` thumbs | uniform box: `height` + `object-fit:contain` |
-| Buy button stacked below qty | HR base makes the button `display:flex` (block-level) and `p.amount` isn't floated | float `p.amount` left; button `display:flex` + `padding:0` (kills HR's `19px 38px 19px 0`) for a centered icon |
+</details>
 
 ---
 
@@ -93,3 +96,4 @@ But HR's `product.productNumber` on this kind of Lightspeed shop often resolves 
 
 ## Timeline
 - 2026-06-04: Created from a Lightspeed onboarding. Captures the grid-ancestor collapse, the verified parity block, the hover-`::before` vs divider-pseudo distinction, and the SKU-vs-numeric-id blocker for cart/wishlist/Quick View.
+- 2026-09-23: Parity block retired in favour of the verbatim pipeline (root = `li.data-product`, width owned by the shell, hooks on the container, remaining differences classified); kept in a collapsed block for reading old designs.
