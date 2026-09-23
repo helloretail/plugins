@@ -249,6 +249,19 @@ sizes, and either flag turns that into a broken feed:
   asked for `pageSize=200` returns 197, 196, 200, 199, 183… page by page. The run stops
   after page one and 197 of 10194 products become "the whole catalogue".
 
+### `createProducts` decides whether the feed may ever add a product
+
+`false` lets the feed update products it already knows and silently ignore every other
+item. That is the right setting while a migrated transform is still being checked against
+a live catalogue — it cannot create duplicates if a url turns out wrong.
+
+It is the wrong setting the moment the feed becomes the only source. On one five-site
+migration the switch to `true` created 426–621 products per site that the V1 feed had
+never delivered, and had it been missed the catalogue would have quietly gone stale as
+new products were added to the shop and never imported.
+
+Set it deliberately, and say in the notes which of the two states the feed is in and why.
+
 ### Pagination defaults by platform
 
 Recognise the platform from the url and use these rather than probing:
@@ -639,6 +652,12 @@ A feed created ACTIVE starts running within a minute, and a full run **deletes e
 product missing from its output** — which, with a transform still being verified, can mean
 most of the catalogue. Create INACTIVE and let a human activate it.
 
+**Never leave the V1 and the V2 feed ACTIVE on the same website.** They overwrite each
+other on every run and the product data flips between generations — hourly, where the V1
+feed runs hourly and the V2 feed every six. Whoever looks at a product sees whichever
+generation wrote last, which makes any verification meaningless. Retire the V1 feed in the
+same change that activates V2.
+
 Then report the feed id and state, repeat the three-bucket summary, and point at the
 dashboard's feed editor, which runs the transform against the live feed without saving:
 
@@ -651,7 +670,9 @@ https://my.helloretail.com/company/app/{companyId}/websites/{websiteUuid}/feed/p
 After a run, `feeds_getLatestRun` is the check that matters: `problems` empty,
 `autoCorrectedFields` empty (anything listed there is a field name you got wrong and the
 system silently renamed), `ignoredFields` empty (a nested object you returned and it
-dropped), and `total` close to what you predicted.
+dropped), and the product counts close to what you predicted — read `itemsAdded` /
+`itemsUpdated` / `itemsDeleted`, not `itemsTotal`, which is unreliable and has been seen
+reporting `3` for a run of 7,337 items.
 
 ---
 

@@ -228,6 +228,28 @@ silently-empty extraction is indistinguishable from a healthy import in the run 
 Never verify a mapping from run status. Verify with `productData_get` on named products and
 read the actual field.
 
+### Never reduce a transform to test it
+
+Commenting fields out of the return object to make a run "safe" is the most destructive
+edit available, and it looks like the most cautious one. `url`, `imgUrl`, `title` and
+`price` are all required: a product missing any of them is still saved, but set INACTIVE.
+A transform reduced to `url` alone therefore deactivates the **entire catalogue** on the
+next run — every product drops out of search and recommendations at once.
+
+The dashboard's feed editor is the tool for this. It runs the transform against the live
+feed, shows every field of every product, and writes nothing.
+
+### Read the right numbers off a run
+
+Two fields on the run summary mislead:
+
+- **`itemsTotal` is unreliable.** It reported `3` for a run that parsed 7,337 items and
+  updated 7,336 products. Read `itemsAdded` / `itemsUpdated` / `itemsDeleted`, or the
+  `Created N new products` / `Updated N products` lines in `messages`.
+- **`nextRunAt` keeps advancing on an INACTIVE feed**, showing a time that may be days
+  past. The scheduler never picks an INACTIVE feed up, so it will not run on its own
+  whatever that field says — only a manual run from the dashboard triggers it.
+
 ### Delta runs will not backfill a fix
 
 With `allowDeltaRuns: true`, a run only reprocesses products the source reports as
