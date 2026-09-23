@@ -1042,7 +1042,7 @@ follow:
   support a native tile control on the platform — today: wishlist / favourite buttons on
   Viskan / Streamline (`window.viskan`, `#Streamline` root) — its absence from HR tiles is by
   design: record ACCEPTED with the platform named, at every breakpoint, and keep it off the fix
-  list (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan-streamline/README.md`).
+  list (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan/README.md`).
 - **Same domain, second feature → reuse and reconcile.** When another feature's report for
   this domain already exists (search ↔ recoms share the product tile), diff its
   native-baseline facts against yours before saving. A contradiction (one report says native

@@ -689,7 +689,7 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       correct fix scope was desktop + tablet only). **Viskan / Streamline exception:** Hello
       Retail does not support wishlist buttons on Viskan — HR tiles ship without the native star
       by design; record ACCEPTED (platform named), never FAIL/WARN
-      (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan-streamline/README.md`)
+      (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan/README.md`)
 - [ ] **Delivery / availability text** — matches native exactly (capitalisation, punctuation,
       spacing)
 - [ ] **Side-by-side element parity sweep — one HR tile next to one native tile, per
