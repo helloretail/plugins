@@ -17,7 +17,7 @@ This is the single most platform-dependent part of an HR install — each platfo
 | Magento 2 (Luma / Hyvä) | [magento/add-to-cart.md](./magento/add-to-cart.md) | `uenc` + `form_key` injection, `mage/mage` or `x-magento-init` binding, swatch renderer for configurables |
 | Shopware 6 | [shopware/add-to-cart.md](./shopware/add-to-cart.md) | `PluginManager.initializePlugins` over `form.buy-widget` |
 | Starweb | [starweb/add-to-cart.md](./starweb/add-to-cart.md) | `quickShop.init()` |
-| Viskan / Streamline | [viskan-streamline/add-to-cart.md](./viskan-streamline/add-to-cart.md) | `window.viskan.cart.add(plu, qty)` from a delegated click handler with a quantity stepper |
+| Viskan (Streamline / NG) | [viskan/add-to-cart.md](./viskan/add-to-cart.md) | `window.viskan.cart.add(plu, qty)` from a delegated click handler with a quantity stepper |
 | DanDomain / Lightspeed | [dandomain/add-to-cart.md](./dandomain/add-to-cart.md) | plain form POST, no JS |
 | BigCommerce Stencil | [bigcommerce/add-to-cart.md](./bigcommerce/add-to-cart.md) | `POST /remote/v1/cart/add` with `FormData`; CSRF headers injected by the storefront |
 | Wikinggruppen | [wikinggruppen/README.md#add-to-cart](./wikinggruppen/README.md#add-to-cart) | platform AJAX endpoint from a delegated click handler appended to `initializationCode` |
@@ -30,7 +30,7 @@ This is the single most platform-dependent part of an HR install — each platfo
 | Magento | form POST to `/checkout/cart/add/...` with `uenc` | `.aw-buy-form` or `[data-role=tocart-form]` | `mage('catalogAddToCart')` or `x-magento-init` + `catalogAddToCart` (Luma); plain POST (Hyvä) |
 | Shopware | Shopware `PluginManager` | `form.buy-widget[data-add-to-cart="true"]` | `PluginManager.initializePlugins(selector, formEl)`, once per form |
 | Starweb | `quickShop` module | (handled internally by `quickShop`) | `quickShop.init()` |
-| Viskan / Streamline | `window.viskan.cart` JS API (`add(plu, qty)`, `get()`) | `.hr-cta-button` buy button + `.hr-qty-container` stepper | delegated `click` on `document`, `await window.viskan.cart.add(...)`, then a state sweep; fires GA4 events itself |
+| Viskan (Streamline / NG) | `window.viskan.cart` JS API (`add(plu, qty)`, `get()`) | `.hr-cta-button` buy button + `.hr-qty-container` stepper | delegated `click` on `document`, `await window.viskan.cart.add(...)`, then a state sweep; fires GA4 events itself |
 | DanDomain / Lightspeed | native form POST | the tile's own form | none |
 | BigCommerce | `POST /remote/v1/cart/add` (`FormData`) | `form[data-cart-item-add-from-card]` | per-form submit listener, guarded |
 | Wikinggruppen | platform AJAX endpoint | `.js-product-item-add` | delegated `click` handler in `initializationCode` |
@@ -52,7 +52,7 @@ Both Search and Recom need the platform to pick the cart binding. Infer it from 
 | `typeof window.require === 'undefined'` and `[x-data]` present on a Magento DOM | Magento 2 Hyvä |
 | `form.buy-widget[data-add-to-cart]`, `PluginManager` global | Shopware |
 | `window.quickShop` global | Starweb |
-| `window.viskan.cart` / `window._streamline` / `window.v12` globals, `#Streamline` root element | Viskan / Streamline |
+| `window.viskan.cart` global (Streamline also has `window._streamline` / `window.v12`, `#Streamline` root element) | Viskan (Streamline / NG) |
 | Assets on `cdn11.bigcommerce.com/s-.../stencil/`, `csrf-protection-header-*.js` in `<head>` | BigCommerce Stencil |
 
 ## Binding per surface
