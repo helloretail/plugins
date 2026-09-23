@@ -337,13 +337,21 @@ additions the rules require, so that nothing is ever added to the copy by hand:
       const id = "BRANCH:" + state + ":" + (++n);
       const clone = x.el.cloneNode(true);
       tokenise(clone);
+      const fixed = new Set(Object.values(FIXED_TEXTS));
+      [clone, ...clone.querySelectorAll("*")].forEach((e) => [...e.childNodes].forEach((t) => {
+        const txt = t.nodeType === 3 ? t.textContent.trim() : "";
+        if (!txt || fixed.has(txt)) return;
+        const tid = "TEXT:" + (++n);
+        t.textContent = t.textContent.replace(txt, "[" + tid + "]");
+        spots.push({ id: tid, path, kind: "text", state, normal: txt });
+      }));
       const idx = [...x.el.parentElement.children].indexOf(x.el);
       const ref = parent.el.children[idx] || null;
       const open = document.createComment("HR-IF:" + id), close = document.createComment("HR-ENDIF:" + id);
       parent.el.insertBefore(close, ref);
       parent.el.insertBefore(clone, close);
       parent.el.insertBefore(open, clone);
-      branches.push({ id, state, path, kind: "only-in-state", texts: [...clone.querySelectorAll("*"), clone].flatMap((e) => [...e.childNodes].filter((t) => t.nodeType === 3 && t.textContent.trim()).map((t) => t.textContent.trim())) });
+      branches.push({ id, state, path, kind: "only-in-state" });
     }
     for (const path of base.keys()) {
       if (m.has(path)) continue;
@@ -377,8 +385,10 @@ Save the whole result as `diff.json` in the scratch folder (the fidelity check r
   `{{ product.extraData.itemNumber }}`; `| escape` inside attributes); for each branch the Liquid
   condition (`product.isOnSale`, `product.inStock == false`, `product.inStock`), or `always` when the
   difference was noise (a "new" badge that happened to sit on the normal specimen, a class the theme
-  toggles at random). Texts inside an inserted branch (a badge's "-20 %") are bound like any other
-  spot: add a `TEXT` row for them with the expression, and note the token id you assign.
+  toggles at random). Texts inside an inserted branch (a badge's "-20 %", a "Sold out" label) come
+  out as `TEXT` rows of their own, carrying the state specimen's value: bind a computed one to its
+  expression (`{{ product.oldPrice | minus: product.price | times: 100 | divided_by: product.oldPrice | round }}`)
+  and a fixed label to the literal text itself (or list it in `FIXED_TEXTS` for recom).
 - Save the filled table as `bindings.json` (shape in `scripts/bind-tile.mjs`) and run the script
   (workflow step 8). It substitutes, refuses to write a template while any token or marker is
   unbound, and refuses when the element sequence changed — the two ways a hand edit would show.
