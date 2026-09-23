@@ -9,11 +9,12 @@ Two facts decide who writes CSS:
   tile with its classes preserved verbatim is styled by the theme. This skill writes **no CSS**
   (Output Rule 2). The **dashboard preview** loads no site CSS, so a CSM reviewing there sees an unstyled
   tile — that is expected and not a defect; say so in the response so nobody "fixes" it.
-- On **CSS-in-JS storefronts** (MUI/Emotion, styled-components) the live surfaces cannot rely on the
-  site stylesheet either — styles are injected per page and per rendered state, so the same tile
-  renders differently depending on which page the overlay opens from. Here the tile **must** ship a
-  self-contained CSS block (computed styles, scoped, keyed on stable label classes), returned under
-  `CSS BLOCK`, verified on a category page **and** a PDP. Details + failure modes: `centra.md`.
+- On **shops whose CSS is not global** (CSS-in-JS: MUI/Emotion, styled-components) the live surfaces
+  cannot rely on the site stylesheet either — styles are injected per page and per rendered state,
+  so the same tile renders differently depending on which page the overlay opens from. Prove it with
+  the two checks in `centra.md`, then ask the operator whether the customer can make the tile CSS
+  global; only if not, return a `CSS BLOCK` that is a copy of the customer's own rules — never a
+  reconstruction from computed styles — verified on a category page **and** a PDP. Details: `centra.md`.
 
 What you report under `SHELL CSS NOTES` for every build (the shell decides and writes the rule):
 

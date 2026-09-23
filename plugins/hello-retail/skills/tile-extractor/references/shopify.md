@@ -8,15 +8,18 @@ Read before writing a Shopify tile's ATC form, rating widget, or ATC JavaScript.
 
 ---
 
-## Add to cart — form markup + JavaScript
+## Add to cart — copy the shop's own form
 
-**Code:** `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md`. Two approaches there:
+**Never a Hello Retail form.** The tile keeps the theme's `<product-form>` / `form.js-product-form`
+markup exactly as the category page has it — custom elements upgrade themselves when inserted, so
+much of it works without any binding — with the variant id bound to the feed and the tracking call
+of Output Rule 11 on the submit button. The binding, when one is needed, is the shell's job:
+`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md` → **Approach B** (AJAX add +
+cart-section refresh + quick-add dialog).
 
-- **Approach A — HR `.hr-form`** + a small per-surface binding to `/cart/add.js` (used by the Search
-  and Recom shells).
-- **Approach B — theme `js-product-form` mirror** — the simple + variant form markup plus the
-  delegated IIFE (AJAX add + cart-section refresh + quick-add dialog). Use this when the extracted
-  tile keeps the theme's own `<product-form>` markup.
+That page's **Approach A** (Hello Retail's own `.hr-form` inside the tile) is retired: Output Rule 15
+forbids any Hello Retail element or class inside the tile. Do not use it even while the page still
+lists it.
 
 ---
 
