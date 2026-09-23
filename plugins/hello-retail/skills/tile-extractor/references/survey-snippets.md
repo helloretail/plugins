@@ -200,6 +200,184 @@ Array.from(tiles)
   }));
 ```
 
+## MULTI-TILE DIFF — DYNAMIC SPOTS AND STATE BRANCHES
+
+The template is the normal tile's copy with two kinds of change: product values swapped for feed
+expressions, and state-only markup wrapped in conditions. Both are found by comparing tiles, not
+by judgment:
+
+- a value that differs between **two normal tiles** of the same shop is **dynamic** (title, price,
+  alt text, a product id inside `id`, `data-*` or `href`);
+- markup present in a **state tile** (sale, sold-out, badge) but not in the normal tile — or missing
+  from it — is a **branch**; a class that only a state tile carries is a **class token**.
+
+Run once, after the survey has given you one selector per state (workflow steps 4 and 6b). Two
+normal tiles are mandatory; omit states the shop does not have. Two more settings feed the
+additions the rules require, so that nothing is ever added to the copy by hand:
+
+- `ATC_SELECTOR` — the add-to-cart control inside the tile (`""` when the tile has none). The
+  snippet puts the Output Rule 11 tracking call on it, prepended to any existing `onclick`, as a
+  `[TRACKING]` token the script binds to `{{ product.trackingCode }}` on its own.
+- `FIXED_TEXTS` — `target = recom` only: the fixed texts that become dashboard inputs (Output
+  Rule 16), as `{ add_to_cart_label: "Læg i kurv", sold_out_label: "Udsolgt" }`. Each exact text
+  node becomes `[INPUT:name]`, which the script binds to `{% input name %}`; list the same names
+  under TEXT INPUTS. Leave it `{}` for Search and Pages.
+
+```javascript
+(() => {
+  const SPECIMENS = {
+    normal: ".product-tile-selector:nth-child(1)",
+    normalB: ".product-tile-selector:nth-child(2)",
+    sale: ".product-tile-selector.sale-example",
+    soldout: ".product-tile-selector.soldout-example",
+    badge: ".product-tile-selector.badge-example",
+  };
+  const ATC_SELECTOR = "button.add-to-cart-selector";
+  const FIXED_TEXTS = {};
+  const INJECTED = /^(bis_|__processed_|data-gramm|data-gr-|data-new-gr-|data-lastpass|data-1p-|data-dashlane|data-kwimpala|data-darkreader|data-ms-editor|cz-shortcut-listen)/i;
+  const URLATTR = /^(src|href|srcset|data-src|data-srcset|data-image|data-href|poster|action)$/i;
+  const pathOf = (el, root) => {
+    const p = [];
+    while (el && el !== root) {
+      const parent = el.parentElement;
+      const idx = [...parent.children].filter((c) => c.tagName === el.tagName).indexOf(el);
+      p.unshift(el.tagName.toLowerCase() + "[" + idx + "]");
+      el = parent;
+    }
+    return p.join(">") || ".";
+  };
+  const scan = (root) => {
+    const m = new Map();
+    [root, ...root.querySelectorAll("*")].forEach((el) => {
+      const attrs = {};
+      [...el.attributes].forEach((a) => { if (!INJECTED.test(a.name)) attrs[a.name] = a.value; });
+      const texts = [...el.childNodes].filter((t) => t.nodeType === 3 && t.textContent.trim()).map((t) => t.textContent.trim());
+      m.set(pathOf(el, root), { el, attrs, texts });
+    });
+    return m;
+  };
+  const tokenise = (el) => {
+    [el, ...el.querySelectorAll("*")].forEach((e) => {
+      for (const a of [...e.attributes]) {
+        if (INJECTED.test(a.name)) { e.removeAttribute(a.name); continue; }
+        if (URLATTR.test(a.name) || a.value.includes("://")) e.setAttribute(a.name, "[URL:" + a.name + "]");
+        if (a.name === "style" && /url\(/i.test(a.value)) e.setAttribute("style", a.value.replace(/url\([^)]*\)/gi, "url([URL:style])"));
+      }
+    });
+  };
+  const tiles = {};
+  for (const [k, s] of Object.entries(SPECIMENS)) { const el = document.querySelector(s); if (el) tiles[k] = el; }
+  if (!tiles.normal || !tiles.normalB) return { error: "two normal specimens are required" };
+  const maps = {};
+  for (const [k, el] of Object.entries(tiles)) maps[k] = scan(el);
+  const base = maps.normal, other = maps.normalB;
+  const skeleton = tiles.normal.cloneNode(true);
+  const skel = scan(skeleton);
+  const spots = [];
+  const branches = [];
+  let n = 0;
+  for (const [path, a] of base) {
+    const s = skel.get(path), b = other.get(path);
+    const textNodes = [...s.el.childNodes].filter((t) => t.nodeType === 3 && t.textContent.trim());
+    a.texts.forEach((txt, i) => {
+      if (b && b.texts[i] !== undefined && b.texts[i] !== txt) {
+        const id = "TEXT:" + (++n);
+        textNodes[i].textContent = textNodes[i].textContent.replace(txt, "[" + id + "]");
+        spots.push({ id, path, kind: "text", normal: txt, normalB: b.texts[i] });
+      }
+    });
+    for (const [name, v] of Object.entries(a.attrs)) {
+      if (b && b.attrs[name] !== undefined && b.attrs[name] !== v && name !== "class" && name !== "style" && !URLATTR.test(name) && !v.includes("://")) {
+        const id = "ATTR:" + name + ":" + (++n);
+        s.el.setAttribute(name, s.el.getAttribute(name).replace(v, "[" + id + "]"));
+        spots.push({ id, path, kind: "attr", attr: name, normal: v, normalB: b.attrs[name] });
+      }
+    }
+  }
+  tokenise(skeleton);
+  [...skeleton.querySelectorAll("*"), skeleton].forEach((e) => {
+    for (const a of [...e.attributes]) { const m = /^\[URL:([^\]]+)\]$/.exec(a.value); if (m && !spots.find((x) => x.id === "URL:" + m[1])) spots.push({ id: "URL:" + m[1], kind: "url", attr: m[1] }); }
+  });
+  if (ATC_SELECTOR) {
+    const atc = [skeleton, ...skeleton.querySelectorAll("*")].filter((e) => e.matches(ATC_SELECTOR));
+    atc.forEach((e) => {
+      const existing = e.getAttribute("onclick");
+      e.setAttribute("onclick", "hrq.push(['trackClick','[TRACKING]'])" + (existing ? "; " + existing : ""));
+    });
+    spots.push({ id: "TRACKING", kind: "tracking", elements: atc.length });
+  }
+  for (const [name, text] of Object.entries(FIXED_TEXTS)) {
+    let hits = 0;
+    [skeleton, ...skeleton.querySelectorAll("*")].forEach((e) => [...e.childNodes].forEach((t) => {
+      if (t.nodeType === 3 && t.textContent.trim() === text) { t.textContent = t.textContent.replace(text, "[INPUT:" + name + "]"); hits++; }
+    }));
+    spots.push({ id: "INPUT:" + name, kind: "input", text, hits });
+  }
+  for (const [state, m] of Object.entries(maps)) {
+    if (state === "normal" || state === "normalB") continue;
+    for (const [path, x] of m) {
+      if (base.has(path)) {
+        const a = base.get(path), s = skel.get(path);
+        if (a.attrs.class !== undefined && x.attrs.class !== undefined && a.attrs.class !== x.attrs.class) {
+          const extra = x.attrs.class.split(/\s+/).filter((c) => c && !a.attrs.class.split(/\s+/).includes(c));
+          if (extra.length) {
+            const id = "CLASS:" + state + ":" + (++n);
+            s.el.setAttribute("class", (s.el.getAttribute("class") + " [" + id + "]").trim());
+            branches.push({ id, state, path, kind: "class-only-in-state", adds: extra.join(" ") });
+          }
+        }
+        continue;
+      }
+      if ([...m.keys()].some((p) => p !== path && path.startsWith(p + ">") && !base.has(p))) continue;
+      const parentPath = path.includes(">") ? path.slice(0, path.lastIndexOf(">")) : ".";
+      const parent = skel.get(parentPath);
+      if (!parent) continue;
+      const id = "BRANCH:" + state + ":" + (++n);
+      const clone = x.el.cloneNode(true);
+      tokenise(clone);
+      const idx = [...x.el.parentElement.children].indexOf(x.el);
+      const ref = parent.el.children[idx] || null;
+      const open = document.createComment("HR-IF:" + id), close = document.createComment("HR-ENDIF:" + id);
+      parent.el.insertBefore(close, ref);
+      parent.el.insertBefore(clone, close);
+      parent.el.insertBefore(open, clone);
+      branches.push({ id, state, path, kind: "only-in-state", texts: [...clone.querySelectorAll("*"), clone].flatMap((e) => [...e.childNodes].filter((t) => t.nodeType === 3 && t.textContent.trim()).map((t) => t.textContent.trim())) });
+    }
+    for (const path of base.keys()) {
+      if (m.has(path)) continue;
+      if ([...base.keys()].some((p) => p !== path && path.startsWith(p + ">") && !m.has(p))) continue;
+      const s = skel.get(path);
+      const id = "BRANCH:not-" + state + ":" + (++n);
+      s.el.before(document.createComment("HR-IF:" + id));
+      s.el.after(document.createComment("HR-ENDIF:" + id));
+      branches.push({ id, state, path, kind: "missing-in-state" });
+    }
+  }
+  return { specimens: Object.keys(tiles), spots, branches, skeleton: skeleton.outerHTML };
+})();
+```
+
+The result has three parts, and each goes somewhere:
+
+- **`skeleton`** — the normal tile with `[TEXT:n]`, `[ATTR:name:n]`, `[URL:name]` and `[CLASS:state:n]`
+  tokens, and `<!--HR-IF:…-->` / `<!--HR-ENDIF:…-->` markers around state-only markup. Save it as
+  `skeleton.html` in the session scratch folder. **Never edit it by hand.**
+- **`spots`** and **`branches`** — the rows of the BINDINGS table. For each spot decide the feed
+  expression (`{{ product.title }}`, `{{ product.price | price }} {{ product.currency | currencySymbol }}`,
+  `{{ product.extraData.itemNumber }}`; `| escape` inside attributes); for each branch the Liquid
+  condition (`product.isOnSale`, `product.inStock == false`, `product.inStock`), or `always` when the
+  difference was noise (a "new" badge that happened to sit on the normal specimen, a class the theme
+  toggles at random). Texts inside an inserted branch (a badge's "-20 %") are bound like any other
+  spot: add a `TEXT` row for them with the expression, and note the token id you assign.
+- Save the filled table as `bindings.json` (shape in `scripts/bind-tile.mjs`) and run the script
+  (workflow step 8). It substitutes, refuses to write a template while any token or marker is
+  unbound, and refuses when the element sequence changed — the two ways a hand edit would show.
+
+Paths are `tag[index]` chains from the tile root, so the same path names the same element in every
+specimen. A shop whose normal tiles differ in structure between themselves (one has a swatch strip,
+one has not) shows those as `missing-in-state` rows against `normalB`; bind them to the feed field
+that drives the element (`extraDataList.swatchIMG`) or `always`.
+
 ## LABEL VOCABULARY — SURVEY THE DEDICATED LABEL PAGES
 
 The reference category is never enough for labels. Shops concentrate them on dedicated pages —
