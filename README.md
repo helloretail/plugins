@@ -24,7 +24,7 @@ scripts/validate.mjs              # structural checks + `claude plugin validate 
 scripts/bump-version.mjs          # bumps changed plugins' versions (level from the merge commit title)
 scripts/changelog.mjs             # rolls `## Unreleased` into `## <version>`, reads it back for the Release
 .github/workflows/ci.yml          # validate · markdown lint · shellcheck · secret scan · version preview
-.github/workflows/release.yml     # on main: auto-bump → commit → tag <plugin>-v<version> → GitHub Release
+.github/workflows/release.yml     # on main: auto-bump → release PR; on its merge: tag <plugin>-v<version> → GitHub Release
 ```
 
 The only language in the repo is the plugins' own content: Markdown, JSON, Liquid, a few
@@ -115,13 +115,17 @@ npm run check      # validate + lint — the same checks CI runs
 2. Open a PR with a [Conventional Commits](https://www.conventionalcommits.org) title —
    `fix: …` (patch), `feat: …` (minor), `feat!: …` or a `BREAKING CHANGE` footer (major). The
    "Version bump preview" check shows what will be released.
-3. Add your entry to `plugins/hello-retail/CHANGELOG.md` under `## Unreleased` — that section
-   becomes the GitHub Release body. `CLAUDE.md` → "Release notes" has the structure; skip it only
-   for root-only changes (README, CI, scripts).
+3. Add your release note as a **new file** under `plugins/hello-retail/changelog.d/`, named after
+   your branch — never edit `CHANGELOG.md`. It becomes the GitHub Release body. `CLAUDE.md` →
+   "Release notes" has the structure; skip it only for root-only changes (README, CI, scripts).
 4. Squash-merge when CI is green. The Release workflow bumps `plugin.json` → `version` for every
-   plugin the PR touched, rolls `## Unreleased` into `## <version>`, commits both to `main`, tags
-   `hello-retail-v<version>` and publishes a GitHub Release carrying those notes. It is live for
-   everyone on their next marketplace update.
+   plugin the PR touched, folds the notes into `## <version>` in `CHANGELOG.md`, and opens — or
+   refreshes — the one **release pull request** (`chore(release): …`, branch `release/next`)
+   carrying both. **Merging that PR is the release**: it tags `hello-retail-v<version>` and
+   publishes a GitHub Release with those notes, and everyone gets the update on their next
+   marketplace update (Claude Code updates a plugin when its version changes). Merges made while
+   it is open join the same PR; nothing queues up. It shows no checks — GitHub runs no workflows
+   for a PR the workflow opened itself — and needs one approval like any other.
 5. To choose the version yourself, bump `plugin.json` in the PR; a version that already changed
    is left alone. `[bump minor]` / `[bump major]` in the title also override the level.
 

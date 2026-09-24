@@ -1,8 +1,8 @@
 name: CI
 
-# Every PR and every push to main. Merging to main IS the publish step — Claude Code
-# installs plugins from this repo over git — so nothing may land on main that fails here.
-# Version bumps and tags are handled after merge by release.yml.
+# Every PR and every push to main. Everything on main goes out with the next release, so
+# nothing may land on main that fails here. Version bumps, the release PR and tags are handled
+# after merge by release.yml.
 on:
   pull_request:
   push:

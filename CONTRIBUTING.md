@@ -14,8 +14,9 @@
 4. **One source of truth.** Edit `plugins/<plugin>/…` directly. There are no generated mirrors
    in this repo. If a job copies content in from elsewhere, its header must say so.
 5. **Every shipped change gets a new plugin version — CI does the bump.** After a squash-merge
-   the Release workflow raises `plugin.json` → `version` for each plugin the PR touched and tags
-   it. The level comes from the PR title (Conventional Commits):
+   the Release workflow raises `plugin.json` → `version` for each plugin the PR touched and puts
+   it on the release pull request; merging that PR tags and publishes it. The level comes from
+   the PR title (Conventional Commits):
    - `fix:`, `docs:`, `chore:`, … → patch: wording, reference fixes, small template tweaks
    - `feat:` → minor: a new skill, a new reference file, new MCP server
    - `feat!:` / `BREAKING CHANGE` → major: a skill renamed/removed, behaviour users must re-learn
@@ -94,8 +95,10 @@ the plugin.
 - Fill the PR template; CODEOWNERS get requested automatically.
 - CI must be green: validate, markdown lint, shellcheck, secret scan. The version preview is
   informational.
-- Squash-merge. The merge commit is what ships: its title is the release-note line **and** decides
-  the version bump (`fix:` patch · `feat:` minor · `feat!:` major).
+- Squash-merge. Its title decides the version bump (`fix:` patch · `feat:` minor · `feat!:`
+  major). The change reaches users when the `chore(release): …` pull request that follows is
+  merged — one release PR at a time, rebuilt after every merge, so merge it whenever you want to
+  ship what has landed.
 
 ## Testing a change before it ships
 

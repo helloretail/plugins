@@ -3,8 +3,9 @@
  * Bump the version of every plugin whose files changed in a commit range, unless the
  * range already changed that plugin's version by hand.
  *
- * Runs on every push to main from .github/workflows/release.yml; the workflow commits
- * the result and tags it. Locally: `npm run version:preview` (dry run against origin/main).
+ * Runs on every push to main from .github/workflows/release.yml, which puts the result on
+ * the release pull request; merging that PR tags it. Locally: `npm run version:preview`
+ * (dry run against origin/main).
  *
  * The range is measured from the plugin's own last release tag (<plugin>-v<version>), not
  * from the previous push. In normal operation those are the same commit. They diverge when a
@@ -24,7 +25,7 @@
  *       GITHUB_OUTPUT  when set, writes `bumped`, `plugins` and `summary` outputs
  */
 import { execFileSync } from "node:child_process";
-import { appendFileSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -70,24 +71,54 @@ function bump(version, lvl) {
 }
 
 // ---------------------------------------------------------------- changed plugins
-// A plugin is in play if it changed since the push base OR since its own last release —
-// the second catches a plugin whose release failed and never got its tag.
-const changedIn = (from) =>
-  git("diff", "--name-only", `${from}..HEAD`).split("\n").filter(Boolean);
-const pluginsIn = (files) =>
-  new Set(files.map((f) => /^plugins\/([^/]+)\//.exec(f)?.[1]).filter(Boolean));
-
-const everyPlugin = readdirSync(join(ROOT, "plugins"), { withFileTypes: true })
-  .filter((d) => d.isDirectory()).map((d) => d.name);
-const plugins = everyPlugin
-  .filter((name) => pluginsIn(changedIn(mergeBase)).has(name) || pluginsIn(changedIn(baseFor(name))).has(name))
-  .sort();
-
 const manifestAt = (ref, name) => {
   const raw = tryGit("show", `${ref}:plugins/${name}/.claude-plugin/plugin.json`);
   if (raw === null) return null;
   try { return JSON.parse(raw); } catch { return null; }
 };
+
+// What the release itself writes does not count as a change waiting to be released: the
+// release PR landing on main would otherwise be bumped and released again, on and on. So
+//   CHANGELOG.md                  never counts — only the release writes it;
+//   changelog.d/<fragment>.md     counts while it exists — a note waiting to be released —
+//                                 but not once deleted, which is the release collecting it;
+//   .claude-plugin/plugin.json    counts only when something other than "version" moved.
+const bookkeeping = (from, file) => {
+  const m = /^plugins\/([^/]+)\/(.+)$/.exec(file);
+  if (!m) return false;
+  const [, name, rest] = m;
+  if (rest === "CHANGELOG.md") return true;
+  if (rest.startsWith("changelog.d/")) return !existsSync(join(ROOT, file));
+  if (rest === ".claude-plugin/plugin.json") {
+    const [a, b] = [manifestAt(from, name), manifestAt("HEAD", name)];
+    return Boolean(a && b) && JSON.stringify({ ...a, version: null }) === JSON.stringify({ ...b, version: null });
+  }
+  return false;
+};
+const changedIn = (from) =>
+  git("diff", "--name-only", `${from}..HEAD`)
+    .split("\n")
+    .filter(Boolean)
+    .filter((f) => !bookkeeping(from, f));
+const pluginsIn = (files) =>
+  new Set(files.map((f) => /^plugins\/([^/]+)\//.exec(f)?.[1]).filter(Boolean));
+
+const hasFragments = (name) => {
+  const dir = join(ROOT, "plugins", name, "changelog.d");
+  return existsSync(dir) &&
+    readdirSync(dir).some((f) => f.endsWith(".md") && f !== "README.md" && !f.startsWith("."));
+};
+
+// A plugin is in play if it changed since the push base OR since its own last release — the
+// second catches a plugin whose release failed and never got its tag — OR it still has a
+// fragment on disk: a note waiting to be released, whatever the ranges say. That can sit behind
+// the last tag when the release PR was merged while the run for a later merge was in flight.
+const everyPlugin = readdirSync(join(ROOT, "plugins"), { withFileTypes: true })
+  .filter((d) => d.isDirectory()).map((d) => d.name);
+const plugins = everyPlugin
+  .filter((name) => pluginsIn(changedIn(mergeBase)).has(name) ||
+    pluginsIn(changedIn(baseFor(name))).has(name) || hasFragments(name))
+  .sort();
 
 const bumped = [];
 const lines = [];
