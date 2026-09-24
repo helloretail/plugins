@@ -61,7 +61,7 @@ The team uses **the same base files for every customer regardless of platform**.
 
 ## The slot model
 
-`search.liquid` (the design's `resultTemplate`) has one place per-customer markup goes: the **`{% else %}` branch of the banner check** within `{% for product in product_list %}`. Every source carries Hello Retail's default tile there (`<a class="hr-search-overlay-product-link">…</a>`); the wiki's desktop-overlay files also put a `TILE_BODY` marker comment in front of it. The `search-developer` skill's `scripts/splice-tile.mjs` finds the branch by parsing the Liquid, so the marker helps a human reader — the tooling does not need it.
+`search.liquid` (the design's `resultTemplate`) has one place per-customer markup goes: the **`{% else %}` branch of the banner check** within `{% for product in product_list %}`. Every source carries Hello Retail's default tile there (`<a class="hr-search-overlay-product-link">…</a>`) and nothing else — no placeholder, no marker comment. The `search-developer` skill's `scripts/splice-tile.mjs` finds the branch by parsing the Liquid. A marker comment was tried and retired: it kept leaking into pushed designs.
 
 ```liquid
 {% for product in product_list %}
@@ -87,7 +87,7 @@ The team uses **the same base files for every customer regardless of platform**.
 
 ## Editing rules
 
-1. **Keep the anchors** in the files the wiki still keeps. The `TILE_BODY` marker comment and the `{{ CUSTOM_STYLING_BLOCK }}` slot must remain — they're the per-customer anchor points.
+1. **Keep the anchors** in the files the wiki still keeps: the default tile in the `{% else %}` branch and the `{{ CUSTOM_STYLING_BLOCK }}` slot (Search), the `{{ TILE_BODY }}` and `{{ CUSTOM_STYLING_BLOCK }}` slots (Recoms). Never add a marker comment to a Search file — it ends up in pushed designs.
 2. **Don't touch the banner branch.** Banners are HR Retail Media markup and have their own conventions. The base handles them correctly out of the box.
 3. **Don't substitute customer-specific values in the defaults.** Token defaults should be neutral (`#232324` not a brand color, `240px` not 300). Operators override per customer in the dashboard.
 4. **Don't add per-customer extension markup.** Amasty Labels, Timesact Pre-order ribbons, Dawn `<details>` collision workarounds — those are per-customer and live in the customer's design, not in the base.
@@ -108,7 +108,7 @@ Hard-won from real onboardings. The reusable pieces live in the [cheat sheets](.
 1. Get the starting design. Embedded or mobile: create the config through the MCP (`search_createConfig`) and read the attached design with `search_getDesign`. Desktop overlay: create a `DESKTOP` config and use `search/desktop-overlay/` as the build base — all three fields get replaced on push.
 2. Extract the three fields to files (`resultTemplate.liquid`, `resultStyles.css`, `initializationCode.js`) in the session scratch folder and work on disk — the payload is too large to hold in context.
 3. Survey the customer's category-page tile (sample 6-12 tiles from the pagination grid, avoiding 3rd-party recom widgets) to identify variations: sale, sold-out, badges, swatches, brand label, ATC form, etc.
-4. Replace the whole `{% else %}` branch content — the default tile element and, in the overlay files, the `TILE_BODY` marker — with the tile body from `tile-extractor` (the customer's card copied as real HTML with the product values bound by table): `node "<search-developer>/scripts/splice-tile.mjs" --liquid resultTemplate.liquid --tile tile.liquid --out resultTemplate.liquid`.
+4. Replace the whole `{% else %}` branch content — the default tile element and everything inside it — with the tile body from `tile-extractor` (the customer's card copied as real HTML with the product values bound by table): `node "<search-developer>/scripts/splice-tile.mjs" --liquid resultTemplate.liquid --tile tile.liquid --out resultTemplate.liquid`.
 5. Leave `{{ CUSTOM_STYLING_BLOCK }}` empty; apply only the shell's sanctioned edits (parent hooks on the container, TILE FILL, `product_tile_width`, the reset deletion).
 6. Push the three files' contents with `search_updateDesign` once the operator approved the diff; publishing stays a dashboard step.
 

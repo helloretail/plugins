@@ -11,3 +11,4 @@
 ### Removed
 
 - The knowledge base no longer keeps copies of the embedded and mobile Search templates. Create the config with `search_createConfig` and read the attached design instead.
+- The Search base template carries no `TILE_BODY` marker comment; it kept ending up in pushed designs. `search-developer` describes the slot in words, and `splice-tile.mjs` finds it.

@@ -67,19 +67,6 @@
 
 /*
 * ===================
-* CSS Resets
-* ===================
-*/
-
-.hr-overlay-search * {
-	padding-inline-start: 0;
-	margin-block-start: 0;
-	margin-block-end: 0;
-}
-
-
-/*
-* ===================
 * Overlay General
 * ===================
 */
@@ -496,9 +483,8 @@ body.hr-search-disable-scroll > .hr-overlay-search {
 }
 
 /* The content-feed heading's h2 wrapper (.hr-title around .hr-content-header) has no
-   margin rule of its own, so without the universal reset block the UA h2 margin pushes
-   "Categories"/"Brands" ~27px below the "Products" heading. Zero it explicitly — the
-   reset block is deleted as a standard build step in search-developer. */
+   margin rule of its own, so without a universal reset the UA h2 margin pushes
+   "Categories"/"Brands" ~27px below the "Products" heading. Zero it explicitly. */
 .hr-overlay-search .hr-results .hr-content .hr-title {
 	margin: 0;
 }
@@ -1233,7 +1219,7 @@ ul.aw-filter-list li.selected > ul,
 	.hr-overlay-search .hr-results-container {
 		flex-direction: column;
 	}
-	
+
 	.hr-overlay-search .hr-results .hr-content {
 		max-width: 100%;
 		flex: revert;
@@ -1279,7 +1265,7 @@ ul.aw-filter-list li.selected > ul,
 	from {
 		opacity: 0;
 	}
-	
+
 	to {
 		opacity: 1;
 	}
@@ -1297,7 +1283,7 @@ ul.aw-filter-list li.selected > ul,
 		transform: translate3d(0, -100%, 0);
 		visibility: visible;
 	}
-	
+
 	to {
 		transform: translate3d(0, 0, 0);
 	}

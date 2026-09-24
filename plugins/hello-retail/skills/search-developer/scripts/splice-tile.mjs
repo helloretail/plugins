@@ -8,8 +8,8 @@
  * and its content is the default tile (<a class="hr-search-overlay-product-link" …>…</a>). This
  * script finds that branch by parsing the Liquid tags, replaces its whole content with the tile
  * body, and optionally mirrors the tile skill's PARENT HOOKS onto every hr-products-container and
- * onto the hr-search-overlay-product cell. The wiki's desktop-overlay base keeps a TILE_BODY marker
- * comment inside the same branch; it disappears with the branch, so both sources splice the same way.
+ * onto the hr-search-overlay-product cell. There is no placeholder to look for: the branch itself is the
+ * slot, so a design read from the MCP and the overlay's wiki files splice the same way.
  *
  * Input (session scratch folder — never in the repo or the plugin):
  *   --liquid resultTemplate.liquid   the design's resultTemplate, extracted from the spilled
@@ -225,6 +225,7 @@ if (hooks.length) {
 // ---------------------------------------------------------------------------------------------
 const after = checkBalance(out);
 if (after) fail(`the Liquid is not balanced after the splice — the tile body opens or closes a block it should not: ${after}`);
+// an early copy of the overlay files carried a TILE_BODY marker comment; one outside the slot means this is not a design the script understands
 if (/TILE_BODY/.test(out)) fail("a TILE_BODY marker survived outside the slot — the design is not one this script understands");
 
 writeFileSync(outPath, out);
