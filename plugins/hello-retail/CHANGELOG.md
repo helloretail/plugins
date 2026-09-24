@@ -10,6 +10,19 @@ fragments into the version it publishes.
 
 ## Unreleased
 
+## 1.17.0 — 2026-09-24
+
+### Added
+
+- `pages-developer` sets up Pages for API use, where the customer's own frontend renders the products. It indexes the fields the caller filters on, configures design filters and sorting to match the storefront, and leaves the page config without product conditions, with no template work.
+
+### Changed
+
+- `pages-developer` establishes the integration mode (client-side, API with HTML, API with JSON) before touching a design, and warns that an INPUT product filter makes its value mandatory, so requests that don't send that field fail.
+- `pages-developer` names new designs after the domain alone (`<domain>`, or `<domain> (API)` for API setups), without "Pages", since a Pages design only exists in Pages.
+- `hello-retail-knowledge` and the skills that read the Viskan platform notes now include `categoryUUID` for Viskan NG shops: the feed maps it, it gets indexed with the `_id` fields, and it is added as a filter. Streamline shops are unchanged.
+- `hello-retail-knowledge` describes the Search setup for Viskan shops that call the Search API themselves: a config without a design, the same filters and sorting as Pages, and a category engine when a category feed exists.
+
 ## 1.16.0 — 2026-09-24
 
 ### Added
