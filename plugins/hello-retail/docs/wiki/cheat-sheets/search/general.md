@@ -892,7 +892,7 @@ For each line it prints, find the rule that sets the native value (DevTools → 
 
 **Symptom:** a content-feed type (e.g. Category) is correctly configured via `search_updateLinkContent`, but on the storefront it doesn't show up as its own stable tab — it's missing, or only appears intermittently depending on what's typed.
 
-**Cause:** the mobile-overlay base template has two tab-rendering modes controlled by the `show_vertical_link_content` boolean (declared in `resultTemplate`):
+**Cause:** the mobile design (the one `search_createConfig(MOBILE)` attaches) has two tab-rendering modes controlled by the `show_vertical_link_content` boolean (declared in `resultTemplate`):
 
 - **`false` ("horizontal" mode):** the `product-tab` button is statically hidden (`hr-hidden`) in the initial render, and a JS routine (`toggle_tab_visibility()`) only un-hides each tab — product **or** content-feed — once that tab has real, non-initial-content results for the current query. A content-feed tab can therefore look broken/absent even though the config is correct: it's gated behind "has this type returned real matches yet."
 - **`true` ("vertical" mode):** no tab is statically hidden; every configured content type (plus Products) renders as a stable top-level tab from the very first render.

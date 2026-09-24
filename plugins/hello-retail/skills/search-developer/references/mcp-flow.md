@@ -46,13 +46,13 @@ A fresh onboarding often arrives as a `website-uuid` alone — the customer has 
 
    | Scope | `target` | Result |
    |---|---|---|
-   | desktop build (the default) | `DESKTOP` | one config, HR's best-practice **embedded** desktop design attached |
-   | mobile build | `MOBILE` | one config, mobile design attached |
+   | desktop build (the default) | `DESKTOP` | one config, HR's best-practice **embedded** desktop design attached — this design is the embedded base; the wiki keeps no copy |
+   | mobile build | `MOBILE` | one config, mobile design attached — the mobile base; the wiki keeps no copy |
    | operator explicitly wants both | `BOTH` | two configs — desktop and mobile are separate per-device configs that coexist at runtime |
    | — | `NONE` | bare config, no design — for API-only frontends; **never for this skill** |
 
    The new config lands as a **draft** (INTERNAL_REVIEW for supervisor accounts, REVIEW for other users); the tool cannot publish. Re-run `search_listConfigs` to read the new `key`, `type` and `state` — that key is the `search-key` for every later call, and all three go in the report's *Config* block.
-3. **Overlay builds:** there is no overlay target. The created `DESKTOP` config carries the embedded design, so the modify-in-place base becomes `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/search/desktop-overlay/` and the push replaces all three design fields (`resultTemplate`, `resultStyles`, `initializationCode`) — still `search_getDesign` the created design first so the diff is against it. The config's `type` label may keep reading as the embedded/Full type; report what `search_listConfigs` shows, don't fight it. **Unverified as of 2026-09-04** — on the first overlay build on a created config, confirm in Step 17b that the overlay opens and renders, then replace this sentence with the outcome.
+3. **Overlay builds:** there is no overlay target. The created `DESKTOP` config carries the embedded design, so the build base is `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/search/desktop-overlay/` — the one variant the wiki still keeps files for — and the push replaces all three design fields (`resultTemplate`, `resultStyles`, `initializationCode`). Still `search_getDesign` the created design first so the diff is against it. Verified 2026-09-23 on an internal test website: 72 KB in one `search_updateDesign` call, read back byte-identical; the config keeps its name ("Embedded overlay") and its `type` ("Overlay search" — the label the whole overlay family shares, so it never tells embedded from overlay; only the name does). Rendering on a storefront is still unverified.
 4. One create per build. A create error → report it once and stop; don't retry in a loop, don't fall back to "create it in the dashboard".
 
 **Never** create when a `search-key` was supplied, when the operator chose an existing config, or before core-intake Q0 (scope) is answered — the target depends on scope only; embedded vs overlay does not change it (both are `DESKTOP`), which is why that question waits for round 2. Q2's `availableFields` menu (`search_getFilters` / `search_getSorting`) needs the key, so it is read **after** this step.
@@ -66,12 +66,13 @@ Skip them and you either thrash on an oversized result or loop on a failed call 
 2. **Updating: push only after explicit operator approval of the diff.** If a push errors, report it once and stop — don't loop. `search_updateDesign` always leaves the config in REVIEW and cannot publish.
 
 3. **`search_getDesign` returns a large payload — never read it whole.** A real design (`resultTemplate` + `initializationCode` + `resultStyles`) runs tens of KB and **will exceed the tool-result limit and spill to a file** (`Error: result (… characters) exceeds maximum allowed tokens. Output saved to <file>`). Do not try to hold or diff the whole design inline — that is the stall. Instead:
-   - Point a **subagent** (or `jq`/`grep` on the saved file) at it and extract only the regions this skill edits: the non-banner tile branch of the product loop, the `trigger_selector` line(s), the cart function + its `fix_links` call-sites, the branding header tokens (`header_logo_url`, `webshop_name`, `primary_shop_color`), the `hr-products-container` opening tags, and any existing custom CSS / TILE FILL rule.
-   - **Survey and diff only those regions** — never the full field. You assemble the final field values from the **team base scaffold + the surveyed tile** (which you hold in full, and which is equivalent since the rest of a real design *is* that scaffold), so you can push without ever holding the whole design in context.
+   - **Work on disk.** Extract the three fields to files in the session scratch folder — `jq -r .resultTemplate <spilled> > resultTemplate.liquid`, `jq -r .resultStyles <spilled> > resultStyles.css`, `jq -r .initializationCode <spilled> > initializationCode.js` — and keep an untouched copy of each for the diff. These files are the base: for embedded and mobile there is no wiki copy of the design.
+   - **Edit only the regions this skill owns, with tools that leave the rest byte-identical:** `scripts/splice-tile.mjs` for the tile slot and the hooks; targeted `sed` / `python` replacements (or a subagent) for the `trigger_selector` / `placement_selector` lines, the cart function and its `fix_links` call-sites, the branding and `{# text … #}` tokens, the reset block and the appended CSS. Never regenerate a field from memory or from a template held in context.
+   - **Diff each file against its untouched copy** — that diff is what the operator approves (Step 16) — and push the files' contents as the field values. The whole design never needs to be in context: read the diff, not the file.
 
 ## Read path (modify-in-place)
 
-Call `search_getDesign` for the named config **regardless of its state** (section 1), and process the spilled result out-of-context (section 3). Treat the extracted regions as your base instead of the team base template — you're editing the customer's real design, not regenerating it. Still consult the base templates for slot structure and the banner branch.
+Call `search_getDesign` for the named config **regardless of its state** (section 1), and process the spilled result out-of-context (section 3). You're editing the customer's real design, not regenerating it; the wiki's overlay files are only ever a source when a created config needs the overlay. `references/shell-structure.md` has the slot structure and the banner branch.
 
 ## Write path (push a draft) — approval is mandatory
 

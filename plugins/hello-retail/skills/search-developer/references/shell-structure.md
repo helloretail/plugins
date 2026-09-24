@@ -22,15 +22,15 @@ These are config tokens / CSS rules in `resultStyles`, not `search.js` wiring. F
 
 ## The three variants
 
-The team maintains three Search variants, each in its own folder under `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/search/`:
+There are three Search variants. Two start from the design the MCP attaches when the config is created; only the overlay still has files in the wiki:
 
-| Variant | Folder | When to use |
+| Variant | Source | When to use |
 |---|---|---|
-| **desktop-overlay** | `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/search/desktop-overlay/` | Default. Full-screen overlay triggered by clicking any `input[type='search']`. Auto-deactivates below 992 px. |
-| **desktop-embedded** | `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/search/desktop-embedded/` | Results render inline inside a page container, not full-screen. |
-| **mobile-overlay** | `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/search/mobile-overlay/` | Mobile-only overlay with tabbed categories/products. The desktop JS bails at 992 px (`return;`), so mobile **always requires** its own template — pair it with whichever desktop variant is used. |
+| **desktop-overlay** | wiki files — `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/search/desktop-overlay/` (no MCP target: create a `DESKTOP` config, then push all three fields from these files) | Default. Full-screen overlay triggered by clicking any `input[type='search']`. Auto-deactivates below 992 px. |
+| **desktop-embedded** | the design `search_createConfig(target=DESKTOP)` attaches — read it with `search_getDesign`; there is no wiki copy | Results render inline inside a page container, not full-screen. |
+| **mobile-overlay** | the design `search_createConfig(target=MOBILE)` attaches — read it with `search_getDesign`; there is no wiki copy | Mobile-only overlay with tabbed categories/products. The desktop JS bails at 992 px (`return;`), so mobile **always requires** its own design — pair it with whichever desktop variant is used. |
 
-Each variant folder contains three files: `search.liquid`, `search.css`, `search.js`.
+Every design has the same three fields — `resultTemplate` (Liquid), `resultStyles` (CSS), `initializationCode` (JS); the overlay's wiki files are those three under the names `search.liquid` / `search.css` / `search.js`.
 
 ## Picking the variant — infer, don't default to "all"
 
@@ -48,7 +48,7 @@ The tile body is **shared across all variants** — the product card is the same
 
 ## Edit scope — what you actually change
 
-Each variant's `search.liquid` has the same slot structure inside `{% capture render_products %}`:
+Every variant's `resultTemplate` has the same slot structure inside `{% capture render_products %}` (the desktop designs open the loop with an earlier `{% if product.isBanner %} … {% else %}{% continue %}{% endif %}` guard — that is not the slot):
 
 ```liquid
 {% for product in product_list %}
@@ -63,13 +63,14 @@ Each variant's `search.liquid` has the same slot structure inside `{% capture re
         </a>
       </div>
     {% else %}
-      <a class="hr-search-overlay-product-link" href="{{ product.url }}">… the base's default tile …</a>
+      {# the overlay's wiki files carry a TILE_BODY marker comment here; designs read from the MCP do not #}
+      <a class="hr-search-overlay-product-link" href="{{ product.url }}">… the design's default tile …</a>
     {% endif %}
   </div>
 {% endfor %}
 ```
 
-**Your work is exclusively inside the `{% else %}` branch.** The tile body from `tile-extractor` **replaces the whole default tile element** — the `<a class="hr-search-overlay-product-link">…</a>` and everything in it: nothing of it survives in a pushed design (there is no placeholder or marker comment to look for — the branch itself is the slot), and the customer's root is the direct child of `.hr-search-overlay-product`. Search keeps no Hello Retail wrapper around the tile (Recom keeps `.hr-product`, Pages its microdata wrapper); never keep the default tile's skeleton and style it, never wrap the customer's markup in a Hello Retail element. **Never touch the banner branch** (`{% if product.isBanner … %}`).
+**Your work is exclusively inside the `{% else %}` branch, and `scripts/splice-tile.mjs` does it.** The script parses the Liquid, finds the banner check's `{% else %}` inside the product loop, and replaces the branch's whole content — the default `<a class="hr-search-overlay-product-link">…</a>` and, in the overlay files, the marker comment — with the tile body; it also puts the container hooks on every `hr-products-container` and the cell hooks on the `hr-search-overlay-product` cell. Neither the default tile nor a marker survives in a pushed design, and the customer's root is the direct child of `.hr-search-overlay-product` (Search keeps no Hello Retail wrapper around the tile). `--show` prints the branch before anything is written; the script refuses to write while a token is unbound or the Liquid would end up unbalanced. **Never touch the banner branch** (`{% if product.isBanner … %}`).
 
 Each variant's `search.css` has one slot: `{{ CUSTOM_STYLING_BLOCK }}`. **Leave it empty** — the skill does not author tile CSS (the tile's classes are preserved verbatim, so the customer's theme CSS styles it). The only CSS the skill emits is the TILE FILL rule below (and header-match overrides if the operator opted in — see `branding-and-header.md`).
 
@@ -206,9 +207,9 @@ The base template centers text at **two** levels: the overlay root rule (`.hr-ov
 - [ ] Native tile's text alignment checked (`getComputedStyle` / the tile skill's ALIGNMENT line) during the survey.
 - [ ] If it isn't `center`, `text-align: <native value>` added to the TILE FILL rule — no base rule edited, no other property touched.
 
-## Remove the overlay reset block (temporary — until it's removed from the base template)
+## Remove the overlay reset block (temporary — until Hello Retail removes it from the default design)
 
-The base template ships a universal reset near the top of `resultStyles`:
+The desktop designs (embedded and overlay — the mobile design has none) ship a universal reset near the top of `resultStyles`:
 
 ```css
 .hr-overlay-search * {
@@ -222,14 +223,14 @@ It zeroes **padding-left** and **vertical margins** on *every* descendant of the
 
 - **What to remove:** exactly the four lines above (the `.hr-overlay-search * { … }` rule with those three properties). Leave the surrounding `/* CSS Resets */` comment header in place — harmless.
 - **Heads-up — it also normalized HR's own chrome.** That reset wasn't tile-specific; it also stripped default UA margins/padding from HR's own `<ul>` filter lists, `<p>`/`<h2>` titles, and the results header. After removing it, **QA the overlay chrome** (filters, header, result subtitle) for reintroduced default spacing. If chrome regresses, the safer fallback is to *scope* the reset to exclude the tile subtree instead of deleting it — but default to deletion and verify.
-- **Known casualty — the content-feed heading (field-confirmed, store-SE-6 2026-07).** The content column's `h2.hr-title` wrapper has **no margin rule of its own** (only its inner `.hr-content-header` div is styled), so once the reset is gone the UA `h2` margin pushes "Categories"/"Brands" ~27px below the "Products" heading. Desktop base templates now ship the fix; if the design was created from an older base, add it per-design:
+- **Known casualty — the content-feed heading (field-confirmed, store-SE-6 2026-07).** The content column's `h2.hr-title` wrapper has **no margin rule of its own** (only its inner `.hr-content-header` div is styled), so once the reset is gone the UA `h2` margin pushes "Categories"/"Brands" ~27px below the "Products" heading. The wiki's desktop-overlay files ship the fix; the design the MCP attaches does not yet, so add it per design when it is missing:
 
   ```css
   .hr-overlay-search .hr-results .hr-content .hr-title { margin: 0; }
   ```
 
 - **Re-run the chrome QA after later search-data changes.** Chrome that isn't configured yet isn't in the DOM to check — link content especially: a design QA'd before `search_updateLinkContent` never rendered the content column, so heading regressions like the one above only surface after the content feed is added. Any later change that adds new chrome (link content, redirects, initial content) re-triggers the chrome QA.
-- **Why temporary:** the goal is to remove this block from the base template (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/search/<variant>/`) entirely. Until that lands, strip it per-design here. Once it's gone from base, this step is a no-op and the inline label-padding fallback in `tile-extractor` becomes redundant.
+- **Why temporary:** the goal is to have Hello Retail remove this block from the default desktop designs (product engineering owns them) and to drop it from the wiki's `desktop-overlay` files. Until that lands, strip it per design here. Once it is gone upstream, this step is a no-op.
 
 ## Tile gutter padding — strip it when it's grid-gutter, keep it when it's card chrome
 
