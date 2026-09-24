@@ -330,6 +330,8 @@ was migrated to the feed's own `raw_price_with_tax`. The two agreed on **every i
 sample** and were wrong on 111 of 198 products, publishing 139,95 where the shop charged
 115,95. Only the product page settled it.
 
+**Starweb feeds:** a V1 price line that reads only `specialPriceIncVat` misses Starweb's scheduled prices. Map `price` from `activePriceExVat` instead, with the helper in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/feeds.md`, and say in the summary that the price source changed.
+
 ## Step 7 — Write the transform
 
 ### Never write jQuery-style syntax

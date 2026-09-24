@@ -79,7 +79,7 @@ V1 feed:
 $("mainVariant sku").text()
 ```
 
-Keep the feed's own `price` field correct even though the handler overwrites what the shopper sees: `isOnSale`, sort by price and the price filter all run on the indexed value.
+Keep the feed's own `price` field correct even though the handler overwrites what the shopper sees: `isOnSale`, sort by price and the price filter all run on the indexed value. On Starweb that means `activePriceExVat`; see [feeds.md](./feeds.md).
 
 ## setSeparators and render
 
