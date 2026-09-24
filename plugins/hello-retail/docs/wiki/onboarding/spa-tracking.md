@@ -116,7 +116,7 @@ Pages configurations, so they are not a substitute for `reload` on an SPA that u
 - [data-requirements.md](./data-requirements.md) — the tracking requirements this satisfies.
 - [../cheat-sheets/search/spa-react.md](../cheat-sheets/search/spa-react.md) — surviving route
   changes inside a custom Search overlay (route detection, reset checklist, re-bindable triggers).
-- [../platforms/viskan-streamline/README.md](../platforms/viskan-streamline/README.md) — a concrete
+- [../platforms/viskan/README.md](../platforms/viskan/README.md) — a concrete
   SPA platform (React/Redux) and the overlay-outside-the-app-root problem.
 - Recom placement on SPAs: `selectorMode` `LIVE_ONCE` / `LIVE_MULTI` re-evaluates the placement
   selector as the DOM changes — see the Recommendations MCP flow in

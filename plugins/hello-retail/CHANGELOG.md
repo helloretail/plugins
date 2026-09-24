@@ -10,6 +10,121 @@ fragments into the version it publishes.
 
 ## Unreleased
 
+## 1.15.1 — 2026-09-23
+
+### Changed
+
+- `hello-retail-knowledge` and every skill that reads the Viskan platform notes now use one Viskan page that covers both storefronts, Streamline and NG (Next.js). It says how to tell the two apart, which features are API integrations on each, and how to set up Pages for API use.
+- `tile-extractor` tells the two Viskan storefronts apart: `window.viskan` means Viskan, and `window._streamline` decides Streamline versus NG. NG shops were previously not recognised as Viskan at all.
+- `customer-handoff` records Viskan as one platform with the flavour `Streamline` or `NG`, instead of the single value `Viskan Streamline`.
+
+## 1.15.0 — 2026-09-23
+
+### Added
+
+- `tile-extractor` builds the Liquid by substitution instead of hand-editing the copied HTML. It diffs two normal tiles and the sale, sold-out and badge tiles to find which values are dynamic and which markup is a state branch, emits a tokenised skeleton, and a bundled script fills in the mapping table and refuses to produce a template while a token is unbound or an element was added or removed. The table is returned as a new BINDINGS section.
+
+### Changed
+
+- `tile-extractor` running in the background may now write its working files to the session scratch folder; it still writes nothing into the repository or the plugin.
+
+## 1.14.0 — 2026-09-23
+
+### Changed
+
+- `tile-extractor` no longer allows anything of Hello Retail inside the tile: no `hr-*` class, no Hello Retail form or wrapper. The customer's card replaces the base design's default tile element, and the only addition is the cart-tracking call on the buy button. Shopify tiles copy the shop's own add-to-cart form; the older Hello Retail form option is retired.
+- `tile-extractor` copies badges verbatim again and no longer adds inline padding to them, because the Search shell deletes the overlay reset that made it necessary.
+- `tile-extractor` treats shops whose CSS is not global (CSS-in-JS) differently: it proves it with two checks, asks the operator whether the customer can make the CSS global, and only then copies the customer's own rules into the CSS block instead of reconstructing styles.
+- `tile-extractor` binds every image candidate, including `<picture>` sources, to the feed image and asks whether the customer can supply sized images when the native tile serves several sizes. It keeps custom elements as they are, normalises the few classes that mean "not loaded yet", and checks the mobile markup, reporting a JavaScript-swapped mobile DOM instead of building a second tile.
+- `tile-extractor` copies fixed texts as they appear on the surveyed page. For Recom designs each fixed text becomes a dashboard input, listed under a new TEXT INPUTS response section.
+
+### Removed
+
+- `tile-extractor` no longer accepts `newsletter` as a target surface; newsletter and triggered-email tiles are a separate feature with their own skills.
+
+## 1.13.0 — 2026-09-23
+
+### Changed
+
+- `tile-extractor` now copies the customer's tile as real HTML on Playwright instead of rebuilding it from a list of nodes, so the markup it hands over is byte-faithful. The node walk remains only for the Claude in Chrome fallback.
+- `tile-extractor` removes attributes injected by browser extensions and security tools by provenance, using a known list plus anything stamped on nearly every element of the page, and reports what it removed. Attributes the site authored are never touched.
+- `tile-extractor` picks the product card as the tile root and drops the customer's grid cell, strips width and position classes from the root because the shell owns the width, and keeps an `<li>` root as an `<li>` with the bullet hidden inline.
+
+## 1.12.3 — 2026-09-23
+
+Maintenance release — no user-visible changes.
+
+## 1.12.2 — 2026-09-23
+
+### Added
+
+- `hello-retail-knowledge` answers how a newsletter campaign picks products: that the algorithm
+  runs for a recipient with no page context, that known and unknown recipients take different
+  paths, and how the pinned, default and exclude lists differ. Pinned products ignore the
+  campaign's filters, so they show even when out of stock.
+- `support-debugging` triages newsletter tickets. "Wrong products for a recipient" previews the
+  campaign as both a known and an unknown recipient, which is where an algorithm that only works
+  for one of them shows up.
+
+### Changed
+
+- `support-debugging`'s capability matrix now covers the recommendation strategy, general settings
+  and creation tools, the Retail Media campaign tools, and the newsletter campaign tools — three
+  areas it previously listed as impossible or did not mention at all.
+- `support-debugging` warns that newsletter design and campaign writes are live on save. A design
+  edit repoints the tile images in newsletters already sitting in recipients' inboxes, so the safe
+  route is to copy the design and edit the copy.
+- `customer-handoff` records the customer's newsletter campaigns, not just their designs — name,
+  type, product count, design and ESP platform. A rolling or manual campaign whose design reads
+  back as "custom" is normal and is no longer recorded as an open item.
+- `customer-handoff` records a recommendation's strategy and product count. The configuration
+  snapshot asked for the algorithm before any tool could return it.
+- `hello-retail-knowledge` gives the campaign types their API names (Auto is `TEMPLATE`, Rolling
+  is `AUTORESET`, Manual is `NORMAL`) and warns that a campaign's type can never be changed after
+  it is created.
+
+### Fixed
+
+- `recom-developer`, `recom-qa`, `qa-checklists`, `customer-handoff` and `support-debugging` call
+  the recommendation tools by the names the MCP actually exposes. Listing recommendations and
+  repointing a box's placement or design previously called tools that no longer exist.
+- `support-debugging` no longer hands back "the recommendation box shows the wrong products" as
+  something the MCP cannot reach. It reads the box's strategy steps, filters and product count, and
+  can write a corrected strategy as a draft for the operator to publish.
+
+## 1.12.1 — 2026-09-22
+
+Maintenance release — no user-visible changes.
+
+## 1.12.0 — 2026-09-22
+
+### Added
+
+- `feed-migration` sets pagination from the platform in the url — SmartWeb, Magento 2 and
+  PrestaShop each get a known request type, page and size parameter, all starting at page 0 —
+  and records the page size the source actually returned next to the one it asked for.
+- `feed-migration` migrates a Shopify feed by applying the shipped Shopify template instead of
+  translating the old crawl strings: it changes the domain, the removed-collection blacklist and
+  the customer's own extra data, then lists every field where the template's value differs from
+  what V1 read, for the customer to accept.
+
+### Changed
+
+- `feed-migration` keeps the meaning of a V1 field rather than its mechanism, writes the V2 form
+  in plain JavaScript, and calls out in the summary every place where the new form changes the
+  result for a real input.
+- `feed-migration` reads the V2 and crawl-string documentation from the MCP before it converts
+  anything, rather than answering V2 questions from memory.
+- `feed-migration` converts from the V1 configuration alone and no longer downloads the feed, so
+  a source reachable only from inside Hello Retail's network can still be migrated.
+- `feed-migration` turns both run safety stops off on every feed it creates or updates, because a
+  source that answers with more or fewer items than the page size asked for otherwise aborts the
+  run or publishes a fraction of the catalogue as the whole one.
+- `feed-migration` always emits `description` as plain readable text, parsed with the sandbox's
+  own HTML parser, so markup, entities and stray line breaks stop reaching recommendation tiles.
+- `feed-migration` hands the price check back to a person with named products to compare against
+  the shop's own product pages, and states which reading of an ambiguous V1 price line it took.
+
 ## 1.11.0 — 2026-09-16
 
 ### Changed

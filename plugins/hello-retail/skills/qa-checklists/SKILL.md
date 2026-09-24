@@ -323,7 +323,7 @@ HR, not the browser), so absence of client-side calls to `core.helloretail.com` 
 API-based — that's why Signal 1 is the strongest:
 
 1. **MCP config (strongest).**
-   - Recoms: `recoms_listDesigns` + `recoms_listBoxes`. Every box pointing at an
+   - Recoms: `recoms_listDesigns` + `recoms_list`. Every box pointing at an
      untouched shared standard design (`standard: true`) with **zero custom company designs**
      means nobody built an HR-rendered frontend — the boxes exist only to configure the
      algorithms behind the API.
@@ -1042,7 +1042,7 @@ follow:
   support a native tile control on the platform — today: wishlist / favourite buttons on
   Viskan / Streamline (`window.viskan`, `#Streamline` root) — its absence from HR tiles is by
   design: record ACCEPTED with the platform named, at every breakpoint, and keep it off the fix
-  list (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan-streamline/README.md`).
+  list (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan/README.md`).
 - **Same domain, second feature → reuse and reconcile.** When another feature's report for
   this domain already exists (search ↔ recoms share the product tile), diff its
   native-baseline facts against yours before saving. A contradiction (one report says native
@@ -1371,7 +1371,7 @@ the hang to that session's emulated identity.)
 
 **Record `lastModified` for every design/config in scope — at read time, and again at report
 time.** Capture each in-scope key's `lastModified` (from `search_listConfigs` /
-`recoms_listDesigns` / `recoms_listBoxes`) in the report's coordinates, and
+`recoms_listDesigns` / `recoms_list`) in the report's coordinates, and
 re-check just before saving: a timestamp that moved mid-run means the code pass may describe
 superseded code — re-read the changed design and say so. The timestamps also date the report
 against later edits (real case, 2026-07: all six of a domain's designs were edited the day

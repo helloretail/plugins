@@ -1,9 +1,9 @@
 ---
 source: field
-verified: 2026-09-15
+verified: 2026-09-23
 ---
 
-# Viskan / Streamline — Add to cart
+# Viskan — Add to cart
 
 Platform-specific ATC binding for Hello Retail tiles on Viskan. Viskan exposes a small JavaScript
 cart API on `window.viskan.cart`. Going through this API — instead of calling backend endpoints
@@ -12,7 +12,11 @@ directly — keeps the on-page cart in sync and shows error messages to the shop
 **Detection:** `window.viskan.cart` global present (see also `window._streamline` / `window.v12` in
 [README.md](./README.md)).
 
-**Why this matters here more than elsewhere:** the HR overlay is injected outside `#Streamline`, so
+**Storefronts:** `window.viskan.cart` exists on both Streamline and NG (see [README.md](./README.md)
+→ Which storefront is it?). The API below is documented from Streamline; whether NG's version
+behaves identically has not been verified.
+
+**Why this matters here more than elsewhere (Streamline):** the HR overlay is injected outside `#Streamline`, so
 Viskan's delegated click handlers never fire for it (see [README.md](./README.md) → DOM
 architecture). The cart API sidesteps that entirely — it is a direct call, not an event that has to
 bubble to Viskan's root.
@@ -269,7 +273,7 @@ See `${CLAUDE_PLUGIN_ROOT}/skills/recom-developer/references/add-to-cart-js.md`.
 ---
 
 **Related:**
-- Platform install nuance — [Viskan / Streamline overview](./README.md)
+- Platform install nuance — [Viskan overview](./README.md)
 - Feeds — [feeds.md](./feeds.md)
 - Cross-platform binding rules — [../add-to-cart.md](../add-to-cart.md)
 
@@ -279,3 +283,4 @@ See `${CLAUDE_PLUGIN_ROOT}/skills/recom-developer/references/add-to-cart-js.md`.
 
 ## Timeline
 - 2026-08-27: Page created from Viskan's `window.viskan.cart` documentation.
+- 2026-09-23: Noted that `window.viskan.cart` also exists on NG; parity with Streamline unverified.

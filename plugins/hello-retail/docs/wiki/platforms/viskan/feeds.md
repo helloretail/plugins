@@ -3,7 +3,7 @@ source: field
 verified: 2026-09-15
 ---
 
-# Viskan / Streamline — Feeds
+# Viskan — Feeds
 
 Feed setup notes for Viskan customers. Read alongside the `feed-setup` skill, which owns the
 general V2 feed-creation flow.
@@ -54,7 +54,7 @@ work in the dashboard.
 ---
 
 **Related:**
-- Platform install nuance — [Viskan / Streamline overview](./README.md)
+- Platform install nuance — [Viskan overview](./README.md)
 - Add to cart — [add-to-cart.md](./add-to-cart.md)
 - Feed setup flow — `${CLAUDE_PLUGIN_ROOT}/skills/feed-setup/SKILL.md`
 

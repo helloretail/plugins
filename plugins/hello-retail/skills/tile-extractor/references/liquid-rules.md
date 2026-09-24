@@ -133,40 +133,43 @@ should add. Never invent the value.
 {% endif %}
 ```
 
-### Labels & badges — ALWAYS inline the native `padding` + `margin` (overlay-reset killer)
+### Labels & badges — copy them verbatim
 
-The HR Search overlay ships a universal reset on every descendant:
+Badges, ribbons, discount chips and stock labels are copied exactly like every other element: same
+element, same classes, same inline style. Do not add computed padding or margins to them.
 
-```css
-.hr-overlay-search * { padding-inline-start: 0; margin-block-start: 0; margin-block-end: 0; }
-```
+The Search overlay used to ship a universal reset (`.hr-overlay-search * { padding-inline-start: 0;
+margin-block-start: 0; margin-block-end: 0 }`) that squashed copied badges, and this file once told
+you to inline every badge's computed spacing as a workaround. The `search-developer` shell now
+deletes that reset in every design, and Recom and Pages never had it — so the workaround is gone. If
+a badge still looks squashed in the visual check, that is a shell-side rule to report under
+SHELL CSS NOTES, never an inline style to add.
 
-It zeroes **padding-left** and **vertical margins** on every theme element — so any badge/label
-that relies on class CSS for its inset (sale tag, discount/savings %, "new", "out of stock", outlet)
-renders with its text jammed against the left edge and its top margin gone. This is a **same-specificity**
-collision (`.hr-overlay-search *` vs the theme's single-class rule), and the overlay CSS loads **after**
-the theme stylesheet, so it wins even on live embedded search where the theme CSS *is* present. Class
-CSS cannot reliably beat it.
+### Fixed texts — copied as they appear, `{% input %}` blocks for Recom
 
-**Fix: read the native computed `padding` + `margin` (`getComputedStyle`) and reproduce them as an
-inline `style` on every label/badge element.** Inline styles (specificity 1,0,0,0) always win. Keep the
-class list verbatim (Output Rule #10) — the inline style is *added*, the classes stay.
+Static words inside the tile ("Add to cart", "Sold out", "From", a unit label, a delivery text)
+are copied exactly as the surveyed page shows them, in that page's language — never translated by
+hand, never taken from a list (Output Rule 16).
+
+- `target = search` or `pages`: keep the words. One design serves one domain and language; when the
+  design is copied to another market, the copy gets its translations.
+- `target = recom`: the same design is reused across domains, so every fixed text becomes a dashboard
+  input like the headline, and the native value goes under TEXT INPUTS for the operator to fill per
+  domain. `{% input %}` has no default-value syntax; the words live in the dashboard field.
 
 ```liquid
-{% if product.isOnSale %}
-  <div class="grid-product__tag grid-product__tag--sale" style="padding:6px 8px;margin:5px 0 0;">OFERTA</div>
+<button type="submit" class="product-card__add" onclick="hrq.push(['trackClick','{{ product.trackingCode }}'])">
+  {% input add_to_cart_label %}
+</button>
+{% if product.inStock == false %}
+  <span class="product-card__badge product-card__badge--soldout">{% input sold_out_label %}</span>
 {% endif %}
-...
-<span class="grid-product__price--savings" style="padding:2px 5px;">- {{ discount_pct }}%</span>
 ```
 
-Do this for **every** corner badge, ribbon, pill, or discount chip you reproduce — not just the sale tag.
-Use the real computed values per element; don't guess a single padding for all of them.
-
-> Note: the `search-developer` shell skill now also **deletes** that reset block from `resultStyles`
-> per design (until it's pulled from the base template), so on live embedded/overlay the theme's own
-> class CSS already restores label padding. Keep the inline styles anyway — they're a zero-cost fallback
-> that keeps labels correct if the reset is ever reinstated or the theme rule is parent-scoped/missing.
+Name inputs in snake_case after the role (`add_to_cart_label`, `sold_out_label`, `from_label`), not
+after the current wording, so the same design reads correctly on every domain. In the bind-by-table
+flow these come from the diff snippet's `FIXED_TEXTS` setting (`survey-snippets.md` → MULTI-TILE
+DIFF): each listed text becomes an `[INPUT:name]` token that the script turns into `{% input name %}`.
 
 ### JSON parse — ALWAYS `jsonParse`, NEVER `parse_json`
 
