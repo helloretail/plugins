@@ -21,7 +21,7 @@ This applies to every skill that builds a customer design on top of a default de
 
 | Surface | Foundation (read-only by default) | Where your work goes |
 |---|---|---|
-| Search | `search.css` HR scaffold rules + the `{# text/color/boolean … #}` parameter block; everything in `search.liquid` outside the `{{ TILE_BODY }}` slot (`captured_filters`, `hr-results`, banner branch, content branch, `hr-close`); the `search.js` scaffold (`open_overlay`/`close_overlay`/`fix_links`/render functions) | The `{{ TILE_BODY }}` slot, parameter **values**, the sanctioned `resultStyles` edits, and selector/interactivity wiring appended in `search.js` |
+| Search | `search.css` HR scaffold rules + the `{# text/color/boolean … #}` parameter block; everything in `search.liquid` outside the tile slot (the `{% else %}` branch of the banner check) (`captured_filters`, `hr-results`, banner branch, content branch, `hr-close`); the `search.js` scaffold (`open_overlay`/`close_overlay`/`fix_links`/render functions) | The `{{ TILE_BODY }}` slot, parameter **values**, the sanctioned `resultStyles` edits, and selector/interactivity wiring appended in `search.js` |
 | Recommendations | `recom.css` scaffold; the swiper scaffold + init structure in `recom.liquid`; the banner branch | The `{{ TILE_BODY }}` slot, `breakpoints`/version/`loop` tuning, the `afterInit` hook, delegated handlers |
 | Triggered emails / newsletter | The parameter block, the section skeleton (which sections exist, related-products, `{% break %}`, voucher, `cart_url`), and the variable names | Styling of the existing sections and the product-tile content — restyle, don't restructure |
 
