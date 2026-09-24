@@ -55,6 +55,24 @@ additional search terms.
 Updating steps is a **full replacement** — read the current list first and send every field of
 every step back, or the ones left out are lost.
 
+## Making a field searchable
+
+A step can only weight the fields in `availableStepFields`: on the engines seen so far,
+`productNumber`, `title`, `keywords`, `description`, `brand` and `hierarchies`. No `extraData`
+field is among them. Indexing an `extraData` field with `dataFields_updateProductFieldsIndexing`
+makes it usable for filtering and sorting, not searchable.
+
+So when a customer wants shoppers to find products by a value the engine doesn't match on
+(supplier article numbers, MPNs, EANs, variant SKUs), the change belongs in the **feed**:
+append the values to `keywords` in the transformation code. The engine already searches
+`keywords`, so no engine write is needed. That matters, because an engine write goes live
+immediately for every search surface on the site.
+
+The same gap hides variant numbers. A feed that turns each platform product into one Hello
+Retail product often maps only the main variant's SKU into `keywords`. Searching for any other
+variant's SKU then returns nothing, and nobody notices until a customer asks. Map every
+variant's number, not just the main one's.
+
 ## Boosts, elevates and excludes
 
 Two scopes, and picking the wrong one is the usual cause of "this boost did nothing here":

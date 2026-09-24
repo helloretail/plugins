@@ -8,6 +8,14 @@ Format: `JSON`, `itemsPath: items`
 below. Start from it rather than writing a mapping from scratch, and edit only the four
 marked spots.
 
+**Two feed helpers — set up only the V2 one.** Everything in this file describes
+`…/shopify/V2/products.py`. The older `…/shopify/products.py` (no `V2/`) calls a different
+Shopify API, so both the data it returns and its structure differ. Never create a feed on it,
+but some existing customers still run one. Recognise it by the URL, or by a transform that
+reads `main_variant`, `presentment_prices` and `variants_sellable`, and read
+[Legacy feed helper](#legacy-feed-helper) before editing it. Code does not port between the
+two.
+
 ---
 
 ## Feed URL parameters
@@ -625,6 +633,58 @@ function transform(product:any): TransformationResult {
 	};
 }
 ```
+
+---
+
+## Legacy feed helper
+
+`feed-helper.addwish.com/shopify/products.py`, with no `V2/`. Do not set up new feeds on it.
+When you edit an existing one, map against the shape below, not the V2 payload this file
+otherwise describes. Moving a customer to V2 is its own change: new URL, new transform.
+
+What is known about the payload, from working customer transforms (`itemsPath: root`) plus a
+captured metafield entry. The raw feed is not fetchable from operator machines, so ask the
+operator for a sample before relying on a field not listed here:
+
+| Field | What it is |
+|---|---|
+| `id` | Shopify product ID — the usual `productNumber` |
+| `main_variant` | One variant object: `id` is the variant ID (the `?variant=` in the storefront URL), `product_id` repeats `product.id`, `sku`, `inventory_item_id` (Shopify-internal, never shown to anyone), `created_at`, `presentment_prices[]` |
+| `main_variant.presentment_prices[0].price.amount` / `.compare_at_price.amount` | Price and old price in the feed's `currency=` |
+| `variants[]` | Every variant of the product, each with `sku` and `metafields` — present even with `extract_variants=false` |
+| `variants_sellable[]` | Read by existing transforms as `inStock: variants_sellable.length > 0`; shape not inspected |
+| `metafields` | Product-level metafields, keyed as below |
+| `translations` | `title_<locale>`, `handle_<locale>`, `body_html_<locale>`, each an object with `value` |
+| `hierarchies`, `hierarchies_<locale>` | Category paths |
+
+**Metafields are keyed `<namespace>_<key>`**, not by key alone as in V2:
+
+```json
+"mm-google-shopping_mpn": {
+  "id": "…",
+  "key": "mpn",
+  "value": "…",
+  "type": "single_line_text_field",
+  "namespace": "mm-google-shopping"
+}
+```
+
+So the supplier article number the Google & YouTube app stores per variant is
+`variant.metafields?.["mm-google-shopping_mpn"]?.value`, and a product-level custom field is
+`product.metafields?.custom_<key>?.value`.
+
+To make every variant's SKU and MPN searchable, write them into `keywords`, the field the
+search engine matches on
+(`${CLAUDE_PLUGIN_ROOT}/docs/wiki/features/search/search-relevance.md` → *Making a field
+searchable*):
+
+```js
+keywords: product.variants?.flatMap(variant => [variant.sku, variant.metafields?.["mm-google-shopping_mpn"]?.value]).join(" "),
+```
+
+Legacy transforms often put `product.id`, `main_variant.id`, `main_variant.product_id` and
+`inventory_item_id` into `keywords` as well. Nobody searches Shopify's internal IDs, and the
+product ID is already matched through `productNumber`, so they can be dropped.
 
 ---
 
