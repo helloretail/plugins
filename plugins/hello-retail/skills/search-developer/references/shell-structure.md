@@ -71,7 +71,7 @@ Every variant's `resultTemplate` has the same slot structure inside `{% capture 
 
 **Your work is exclusively inside the `{% else %}` branch, and `scripts/splice-tile.mjs` does it.** The script parses the Liquid, finds the banner check's `{% else %}` inside the product loop, and replaces the branch's whole content — the default `<a class="hr-search-overlay-product-link">…</a>` and everything inside it — with the tile body; it also puts the container hooks on every `hr-products-container` and the cell hooks on the `hr-search-overlay-product` cell. Nothing of the default tile survives in a pushed design, and the customer's root is the direct child of `.hr-search-overlay-product` (Search keeps no Hello Retail wrapper around the tile). `--show` prints the branch before anything is written; the script refuses to write while a token is unbound or the Liquid would end up unbalanced. **Never touch the banner branch** (`{% if product.isBanner … %}`).
 
-Each variant's `search.css` has one slot: `{{ CUSTOM_STYLING_BLOCK }}`. **Leave it empty** — the skill does not author tile CSS (the tile's classes are preserved verbatim, so the customer's theme CSS styles it). The only CSS the skill emits is the TILE FILL rule below (and header-match overrides if the operator opted in — see `branding-and-header.md`).
+A Search design has **no CSS slot** — older copies carried a `{{ CUSTOM_STYLING_BLOCK }}` token, which stays empty where it still exists. The skill does not author tile CSS (the tile's classes are preserved verbatim, so the customer's theme CSS styles it). The only CSS the skill emits is the TILE FILL rule below (and header-match overrides if the operator opted in — see `branding-and-header.md`).
 
 **Outside the for-loop** (filters, captured_filters, hr-results, content blog branch, hr-close, animations): don't touch — the base template handles all of it. The sanctioned edits are listed at the top of this file; the two that apply to every build are parent-scope mirroring (container and cell) and the TILE FILL rule, both below.
 
@@ -208,7 +208,7 @@ The base template centers text at **two** levels: the overlay root rule (`.hr-ov
 
 ## Remove the overlay reset block (temporary — until Hello Retail removes it from the default design)
 
-The desktop designs (embedded and overlay — the mobile design has none) ship a universal reset near the top of `resultStyles`:
+The embedded design still ships a universal reset near the top of `resultStyles` (older overlay copies did too; the current overlay files and the mobile design have none — when the block is absent this step is a no-op):
 
 ```css
 .hr-overlay-search * {
@@ -222,7 +222,7 @@ It zeroes **padding-left** and **vertical margins** on *every* descendant of the
 
 - **What to remove:** exactly the four lines above (the `.hr-overlay-search * { … }` rule with those three properties). Leave the surrounding `/* CSS Resets */` comment header in place — harmless.
 - **Heads-up — it also normalized HR's own chrome.** That reset wasn't tile-specific; it also stripped default UA margins/padding from HR's own `<ul>` filter lists, `<p>`/`<h2>` titles, and the results header. After removing it, **QA the overlay chrome** (filters, header, result subtitle) for reintroduced default spacing. If chrome regresses, the safer fallback is to *scope* the reset to exclude the tile subtree instead of deleting it — but default to deletion and verify.
-- **Known casualty — the content-feed heading (field-confirmed, store-SE-6 2026-07).** The content column's `h2.hr-title` wrapper has **no margin rule of its own** (only its inner `.hr-content-header` div is styled), so once the reset is gone the UA `h2` margin pushes "Categories"/"Brands" ~27px below the "Products" heading. The wiki's desktop-overlay files ship the fix; the design the MCP attaches does not yet, so add it per design when it is missing:
+- **Known casualty — the content-feed heading (field-confirmed, store-SE-6 2026-07).** The content column's `h2.hr-title` wrapper has **no margin rule of its own** (only its inner `.hr-content-header` div is styled), so once the reset is gone the UA `h2` margin pushes "Categories"/"Brands" ~27px below the "Products" heading. No default design ships the fix yet, so add it per design once the reset is gone:
 
   ```css
   .hr-overlay-search .hr-results .hr-content .hr-title { margin: 0; }

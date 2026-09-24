@@ -30,7 +30,7 @@ The per-customer tile replaces the **whole content of the `{% else %}` branch** 
 
 > ⚠️ **Extend, never rewrite.** `resultStyles` is ~1,300 lines and most of it styles chrome you don't see while building — filters, filter dropdowns, selected-filter counts, the price range slider, sorting, the results header, the content column, animations. A reworked stylesheet passes a first screenshot with the filter styling already destroyed. Override with higher specificity, and ask the operator before altering the foundation: [foundation-rules.md](../foundation-rules.md).
 
-> ⚠️ **Before you ship:** `CUSTOM_STYLING_BLOCK` stays empty. What the tile needs from the theme is restored by mirroring its parent hooks onto `hr-products-container` and the cell, plus the shell's sanctioned edits — never by rules that re-create the tile's look. Then put one HR tile next to a native tile and judge by eye: [cheat-sheets/search/general.md → _Tile fidelity_](../../cheat-sheets/search/general.md).
+> ⚠️ **Before you ship:** write no CSS for the tile (a Search design has no CSS slot; an older copy's `CUSTOM_STYLING_BLOCK` token stays empty). What the tile needs from the theme is restored by mirroring its parent hooks onto `hr-products-container` and the cell, plus the shell's sanctioned edits — never by rules that re-create the tile's look. Then put one HR tile next to a native tile and judge by eye: [cheat-sheets/search/general.md → _Tile fidelity_](../../cheat-sheets/search/general.md).
 
 ## Related
 

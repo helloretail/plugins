@@ -81,13 +81,13 @@ The team uses **the same base files for every customer regardless of platform**.
 {% endfor %}
 ```
 
-`search.css` contains one slot: `{{ CUSTOM_STYLING_BLOCK }}`, placed above the HR scaffold styles. **It stays empty.** The theme styles the copied tile; what the theme cannot reach is restored by mirroring the tile's parent hooks onto `hr-products-container` (rule 6) and by the shell's sanctioned edits (`search-developer` → `shell-structure.md`). Tile CSS in this block is the pattern the verbatim pipeline retired.
+A Search design has **no CSS slot** (older copies carried a `{{ CUSTOM_STYLING_BLOCK }}` token; neither the designs the MCP attaches nor the current overlay files do). The theme styles the copied tile; what the theme cannot reach is restored by mirroring the tile's parent hooks onto `hr-products-container` (rule 6) and by the shell's sanctioned edits — never by CSS written for the tile.
 
 **That branch is the only place per-customer markup goes.** Everything around it — banner branch, filters, captured_filters, hr-results, content blog branch, hr-close, animations, breakpoints — stays untouched across all customers.
 
 ## Editing rules
 
-1. **Keep the anchors** in the files the wiki still keeps: the default tile in the `{% else %}` branch and the `{{ CUSTOM_STYLING_BLOCK }}` slot (Search), the `{{ TILE_BODY }}` and `{{ CUSTOM_STYLING_BLOCK }}` slots (Recoms). Never add a marker comment to a Search file — it ends up in pushed designs.
+1. **Keep the anchors** in the files the wiki still keeps: the default tile in the `{% else %}` branch (Search), the `{{ TILE_BODY }}` and `{{ CUSTOM_STYLING_BLOCK }}` slots (Recoms). Never add a marker comment to a Search file — it ends up in pushed designs.
 2. **Don't touch the banner branch.** Banners are HR Retail Media markup and have their own conventions. The base handles them correctly out of the box.
 3. **Don't substitute customer-specific values in the defaults.** Token defaults should be neutral (`#232324` not a brand color, `240px` not 300). Operators override per customer in the dashboard.
 4. **Don't add per-customer extension markup.** Amasty Labels, Timesact Pre-order ribbons, Dawn `<details>` collision workarounds — those are per-customer and live in the customer's design, not in the base.
@@ -98,7 +98,7 @@ The team uses **the same base files for every customer regardless of platform**.
 
 Hard-won from real onboardings. The reusable pieces live in the [cheat sheets](../cheat-sheets/README.md) and the [platform pages](../platforms/platforms.md).
 
-- **HR centers tile text.** The base rule `.hr-overlay-search { text-align: center }` cascades into every tile; native category tiles are usually left-aligned. Adding the customer's scoping ancestor to `.hr-products-container` (rule 6) normally pulls in the theme's own `text-align` and fixes it. If the theme has no such rule, the shell sets the surveyed alignment on its TILE FILL rule (the tile skill's ALIGNMENT line) — never a tile rule in `CUSTOM_STYLING_BLOCK`.
+- **HR centers tile text.** The base rule `.hr-overlay-search { text-align: center }` cascades into every tile; native category tiles are usually left-aligned. Adding the customer's scoping ancestor to `.hr-products-container` (rule 6) normally pulls in the theme's own `text-align` and fixes it. If the theme has no such rule, the shell sets the surveyed alignment on its TILE FILL rule (the tile skill's ALIGNMENT line) — never a CSS rule written for the tile.
 - **Restore the theme's reach, never author CSS for the tile.** Restoring the theme's own scoped rules (rule 6) is the fix; a rule that re-creates the tile's look on Hello Retail or customer classes is the retired pattern. A difference that neither the copy nor a hook explains is reported to the shell, which owns the sanctioned edits.
 - **`<li>` tiles need `list-style-type: none`.** If the customer's tile root is an `<li>` (Dawn-style grids), it renders inside HR's `<div>` container, not a `<ul>`, so the browser shows a bullet. The tile skill's bind script adds inline `style="list-style-type:none;"` on the `<li>`.
 - **Collapsing a per-card image carousel breaks the image box.** When a tile's image area is a theme-JS slider (Swiper, `global-variant-slider`, etc.) that won't init in the overlay, and you reduce it to a static `<img>` (+ hover), the theme's square-ratio and `img{position:absolute;width/height:100%}` fill rules are often scoped to the `.swiper-slide`/container structure you removed. Restore the square box with inline `style="padding-bottom:100%;"` on the `.media` wrapper; the image-fill rule usually returns once the scoping ancestor is on `.hr-products-container` (rule 6).
@@ -109,7 +109,7 @@ Hard-won from real onboardings. The reusable pieces live in the [cheat sheets](.
 2. Extract the three fields to files (`resultTemplate.liquid`, `resultStyles.css`, `initializationCode.js`) in the session scratch folder and work on disk — the payload is too large to hold in context.
 3. Survey the customer's category-page tile (sample 6-12 tiles from the pagination grid, avoiding 3rd-party recom widgets) to identify variations: sale, sold-out, badges, swatches, brand label, ATC form, etc.
 4. Replace the whole `{% else %}` branch content — the default tile element and everything inside it — with the tile body from `tile-extractor` (the customer's card copied as real HTML with the product values bound by table): `node "<search-developer>/scripts/splice-tile.mjs" --liquid resultTemplate.liquid --tile tile.liquid --out resultTemplate.liquid`.
-5. Leave `{{ CUSTOM_STYLING_BLOCK }}` empty; apply only the shell's sanctioned edits (parent hooks on the container, TILE FILL, `product_tile_width`, the reset deletion).
+5. Write no CSS for the tile; apply only the shell's sanctioned edits (parent hooks on the container and the cell, TILE FILL, `product_tile_width`, the reset deletion where the design still has the block).
 6. Push the three files' contents with `search_updateDesign` once the operator approved the diff; publishing stays a dashboard step.
 
 The JS field keeps the design's own scaffold; only the customer's selectors and feature flags change.
