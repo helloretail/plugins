@@ -49,7 +49,7 @@ A Recommendations design is a **product tile** sitting inside a **swiper-slider 
 | `locale` *(infer)* | `da`, `de`, `es` | Infer from `<html lang>` / visible copy; confirm via `website_getInfo`. Pass it to the tile skill — it localizes the tile copy. |
 | `customer-slug` *(optional)* | `acme` | For labelling; derive from domain if absent. |
 
-If any **required** input is missing, ask before generating — don't proceed with placeholders. You do **not** ask for `platform` (it's inferred — see `references/add-to-cart-js.md`). If a read or push errors, report it once and stop — don't loop.
+If any **required** input is missing, ask before generating — don't proceed with placeholders. You do **not** ask for `platform` (it's inferred — see `references/add-to-cart-js.md`). **Once the platform is known to be Starweb** (from the card, or `tile-extractor`'s PLATFORM section), ask the operator: *does the shop have customer-unique prices, several currencies, or other price quirks?* Don't assume the answer. Yes → the tile's price block uses the markup in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/dynamic-price-handler.md` and the slider calls the handler from `afterInit` and `slideChange` (*Recommendations* on that page; share `afterInit` with the `quickShop.init()` ATC call). No → prices as usual, no handler. If a read or push errors, report it once and stop — don't loop.
 
 > **Feed fields are fetched, not pasted.** With a `website-uuid`, the tile skill calls `productData_get` to read real product fields (≤5 products) for variable substitution — the operator no longer pastes feed rows. Only when no `website-uuid` is available does the operator supply rows by hand.
 
