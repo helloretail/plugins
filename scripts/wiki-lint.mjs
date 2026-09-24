@@ -81,6 +81,7 @@ const DOMAIN_ALLOWLIST = [
   "woocommerce.com", "wordpress.org", "shopware.com", "dandomain.dk", "lightspeedhq.com",
   "webshopapp.com", "starweb.se", "bigcommerce.com", "viskan.se", "wikinggruppen.se",
   "centra.com", "prestashop.com",
+  "hr.sw-test.se", // Hello Retail's own Starweb test shop, used with Starweb when troubleshooting
   // email, marketing, review and payment vendors
   "klaviyo.com", "mailchimp.com", "activecampaign.com", "hubspot.com", "apsis.com",
   "heyloyalty.com", "ubivox.com", "sleeknote.com", "lipscore.com", "trustpilot.com",
