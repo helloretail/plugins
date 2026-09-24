@@ -6,13 +6,13 @@ description: >
   pages_getDesign, pages_updateDesign, pages_updateDesignFilters,
   pages_updateDesignSorting, pages_createDesign, pages_copyDesign). Use when someone
   wants to create, customize, splice a product tile into, or configure filters/sorting
-  on a Hello Retail Pages design. Also owns the PAGE CONFIGS — the individual pages:
-  which products a page selects (product filters), how they are ordered (product and
-  personalized boosts), out-of-stock handling, and which design a page renders with. So
-  also "which products show on this category page", "pin/boost products on a Pages
-  category", "create a brand page", "copy this page to another website". Draft-only:
-  publishing is a My Hello Retail dashboard step. Sibling of search-developer /
-  recom-developer; the tile body comes from tile-extractor.
+  on a Pages design. Also owns the PAGE CONFIGS: which products a page selects, their
+  boosts, out-of-stock handling and design — "which products show on this category
+  page", "pin/boost products on a Pages category", "create a brand page", "copy this
+  page to another website". Also sets up Pages for API use, where the customer's frontend
+  renders the products ("Pages via API", "headless Pages", "Pages config for API use").
+  Draft-only: publishing is a My Hello Retail dashboard step. Sibling of search-developer
+  / recom-developer; the tile body comes from tile-extractor.
 ---
 
 # Hello Retail — Pages Design Development
@@ -70,7 +70,10 @@ every write lands in DRAFT and a human publishes in My Hello Retail.
   ALL, NONE) + `valueType`: `LITERAL` compares against a `value` stored in the config;
   `INPUT` compares against a value the page's embed script supplies at render time,
   keyed by the field name — that is how one config serves a whole set of categories, so
-  do NOT convert an INPUT filter to LITERAL to "fix" a page.
+  do NOT convert an INPUT filter to LITERAL to "fix" a page. An INPUT filter makes its
+  value **mandatory**: every request that doesn't send that field fails. Never add one
+  on your own initiative, and on an API integration whose caller scopes the page itself
+  the config has no product conditions at all (see *API (JSON) workflow*).
 - `pages_getConfigProductBoosts` / `pages_updateConfigProductBoosts` — ordering.
   `productBoosts` are field+value+boost; `personalizedBoosts` are field+boost against
   the visitor's affinity. Pass only the list you are changing; each list given is
@@ -88,9 +91,21 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
 
 ## Workflow
 
+0. **Establish the integration mode before anything else.** Pages ships in three modes
+   (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/features/pages/pages.md`): client-side JS render,
+   API with an HTML response, API with a JSON response. Take it from the operator, the
+   platform's wiki page (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/`; some platforms
+   run Pages through the API only), or the on-site widget label **"Pages (API)"**. Not
+   settled → ask; never assume.
+   - **Client-side** or **API-HTML** → Steps 1–8 below. Hello Retail renders the markup
+     in both, so the template, tile and grid work applies.
+   - **API-JSON** → the customer's frontend renders the products; follow *API (JSON)
+     workflow* instead. Steps 2–4f and 7 do not apply there.
+
 1. **Select the design.** `pages_listDesigns`; prefer the editable company design whose
    name carries the site URL/domain. Archived → `pages_copyDesign` first, then work on
-   the copy. Nothing suitable → `pages_createDesign` (name: `<domain> — Pages`).
+   the copy. Nothing suitable → `pages_createDesign` (name: `<domain>`; no "Pages" in
+   the name, a Pages design only exists in Pages).
 2. **Read it ONCE.** `pages_getDesign` — the fetched design IS the foundation.
    **Extend, never rewrite the foundation:** chrome, CSS, and JS outside the slots you
    are sanctioned to touch must survive byte-identical. Learn the template's variable
@@ -248,11 +263,53 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
 8. **Hand-off record.** Run `customer-handoff` (`../customer-handoff/SKILL.md`; record mode, stage `pages`; mandatory — do not ask whether to, do not skip) so the design keys, filters/sorting decisions and any
    workaround land in the customer's living hand-off document under `output/handoffs/` (local for now).
 
+## API (JSON) workflow
+
+The caller (the customer's backend or frontend) requests `/serve/pages/{key}` with
+`format: json` and draws the products itself. Hello Retail's side is configuration only.
+
+1. **Design.** As Step 1; a new one is named `<domain> (API)`. Leave the
+   templates exactly as created: nothing of them is rendered, so no tile, grid, hover or
+   currency work, and no `pages_updateDesign` template writes.
+2. **Index every field the caller filters or sorts on.** Design filters, sorting and the
+   caller's `params.filters` only work on fields with `searchIndexed: true`
+   (`dataFields_getProductFields`). Turn on every `ALLOWED` field that is needed in ONE
+   `dataFields_updateProductFieldsIndexing` call — any change schedules a full re-index.
+   The platform's wiki page may fix the set (e.g. a platform whose storefront maps
+   numeric ids to labels: index every `*_id` field).
+3. **Filters & sorting.** Write them as in Step 5 (full replacement, read back).
+   - **Filters:** the platform convention or the operator's list — never filters of your
+     own choosing. Titles follow the platform page when it sets them (the caller may key
+     on the title).
+   - **Sorting:** mirror the sort options the storefront already offers (read them from
+     the live category page), e.g. lowest/highest price → `price`, newest/oldest →
+     `created`.
+4. **Page config — no product conditions by default.** A caller that scopes the page
+   itself sends the field it needs in `params.filters`; that works on any indexed field
+   without a matching INPUT filter. So:
+   - leave `productFilters` empty;
+   - add an INPUT filter only when the operator confirms the caller sends that exact
+     field on **every** request (an INPUT filter's value is mandatory; see *Page
+     configs*);
+   - add a LITERAL filter only for a fixed rule the operator asks for.
+
+   Out-of-stock handling, product score boost and boosts are the operator's call. Report
+   personalized boosts on a field the catalog leaves empty (e.g. `hierarchies`) as having
+   no effect.
+5. **Read-back verify** the facets, the indexing state and the config with its product
+   filters; same 3-strike rule as Step 6.
+6. **QA.** No rendered pass: `pages-qa` skips API-based Pages. Instead, list for the
+   operator what the first live calls must confirm: with API logging on
+   (`apiLog_setLogging`, then `apiLog_getEntries` for the `pages` endpoint) the
+   `params.filters` keys the caller actually sends, each of them indexed.
+7. **Hand-off record.** As Step 8.
+
 ## Integration awareness (affects what "perfect" means)
 
 Pages ships in three modes — client-side JS render, API-HTML, API-JSON
-(`${CLAUDE_PLUGIN_ROOT}/docs/wiki/features/pages/pages.md`). Design work targets the rendered output either
-way, but on SEO-sensitive stores the API-HTML mode is the default recommendation —
+(`${CLAUDE_PLUGIN_ROOT}/docs/wiki/features/pages/pages.md`). In client-side and API-HTML
+mode design work targets the rendered output; in API-JSON mode nothing of the design is
+rendered (*API (JSON) workflow*). On SEO-sensitive stores the API-HTML mode is the default recommendation —
 note the store's mode in your report. REST request shapes and tracking events (page-view,
 click, `hello_retail_id` bootstrap) are in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/pages/general.md`.
 
@@ -264,5 +321,7 @@ click, `hello_retail_id` bootstrap) are in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/chea
 - Tile body verbatim from the tile skill; no invented classes; no `hr-product` boilerplate
   where the design's own wrapper differs.
 - Settings from real fields + live tool schema — never from memory.
+- Integration mode first (Step 0). API-JSON: no template edits, no product conditions
+  unless the operator confirms the caller always sends that field.
 - Platform guides exist for Shopify and DanDomain Classic Pages setups — read them
   before touching those platforms (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/features/pages/pages.md` → guides).
