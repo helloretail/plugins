@@ -32,6 +32,7 @@ Platform-specific implementation snippets live in each platform's folder, one fi
 
 - **Add to cart:** [shopify](./shopify/add-to-cart.md) · [dandomain / lightspeed](./dandomain/add-to-cart.md) · [magento 2](./magento/add-to-cart.md) · [shopware](./shopware/add-to-cart.md) · [starweb](./starweb/add-to-cart.md) · [bigcommerce](./bigcommerce/add-to-cart.md) · [viskan](./viskan/add-to-cart.md) · [wikinggruppen](./wikinggruppen/README.md)
 - **Feeds:** [viskan](./viskan/feeds.md)
+- **Multi-currency and customer-unique prices:** [starweb (`dynamicPriceHandler`)](./starweb/dynamic-price-handler.md)
 - **Rating / reviews:** [shopify (Loox)](./shopify/rating.md) · [dandomain (rateit)](./dandomain/rating.md) · [lightspeed (rateit)](./lightspeed/rating.md) · [magento 2 (native)](./magento/rating.md) · Search tiles on any platform: [Lipscore](../features/search/lipscore-ratings.md)
 - **Swatches:** [magento 2](./magento/swatches.md)
 - **Wishlist:** [shopify (Wishlist King)](./shopify/wishlist.md) · [lightspeed](./lightspeed/wishlist.md)
