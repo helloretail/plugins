@@ -19,12 +19,12 @@ domains yet missed on two others in the same period.
    attribution rule), route it to the base-template owners' sub-block, and keep it out of the
    onboarding's defect counts — the onboarding didn't introduce it.
 3. **POST-QA — log new template-level finds back here.** When a run's attribution check traces
-   a defect to the shared base (identical code in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/` or an untouched
-   `standard: true` design), add an entry: defect, feature(s), how to verify, date + first
+   a defect to the shared base (identical code in the design a fresh `search_createConfig` attaches, in
+   `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/`, or in an untouched `standard: true` design), add an entry: defect, feature(s), how to verify, date + first
    domain class observed. Generic content only — **no customer SKUs, prices, or per-customer
    code** (the no-customer-data rule); per-site reproduction status lives in the per-customer report
    under gitignored `QA/`, never in this file. An entry is **retired** (moved to the Retired
-   section, never deleted) when the base-template fix ships.
+   section, never deleted) when the fix ships — upstream in Hello Retail's default design, or in the wiki files for the variants it still keeps.
 
 ---
 

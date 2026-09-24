@@ -35,10 +35,10 @@ Requests arrive in three places only: a `Layout:` line on the card, the operator
 The recipe is **always the first attempt** — verified or derived, apply it verbatim. The Step 17b rendered check for that recipe (list at the end of this file) is the **QA gate**. Pass → done (plus capture-back if the recipe is marked). Fail → do **not** tweak values by feel and do **not** report "couldn't be done": run this loop.
 
 1. **Diagnose with evidence, not by eye.** Record what failed in measurable terms: the computed style that didn't apply (`getComputedStyle(el).<prop>` before/after), the element that wasn't found (`querySelector` → `null`), the console error, or the DOM structure that differs from what the recipe assumes (dump `outerHTML` of the element, 300 chars). This evidence goes into the report whatever happens next.
-2. **Read the base for that variant first.** `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/search/<variant>/` — grep the failing selector / class / token in `search.css`, `search.liquid`, `search.js` and read the rules and handlers around it. Most failures are a base rule with higher specificity or `!important`, a wrapper the recipe didn't expect, or a handler that re-renders / closes what you added. Fix the recipe's assumption, not the base (foundation rule: append, never rewrite).
+2. **Read the design first.** Grep the failing selector / class / token in the extracted `resultStyles.css`, `resultTemplate.liquid` and `initializationCode.js` (`references/mcp-flow.md` → *Work on disk*; for the overlay also the wiki's `desktop-overlay` files) and read the rules and handlers around it. Most failures are a base rule with higher specificity or `!important`, a wrapper the recipe didn't expect, or a handler that re-renders / closes what you added. Fix the recipe's assumption, not the base (foundation rule: append, never rewrite).
 3. **Then the rest of the knowledge base, in this order:** the other `references/*.md` of this skill → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/search/*.md` (platform-agnostic first, then the platform file) → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/onboarding/search-templates.md`. Use Grep on the failing class name and on the behaviour ("sticky", "re-render", "dropdown"), not on the recipe's ID.
 4. **A shipped implementation beats everything.** If the field log below names a site that ships this option, ask the operator for that site's `website-uuid` and read its LIVE design with `search_getDesign` — one MCP call, no browser archaeology. Diff the relevant rules against the recipe.
-5. **Only then the internet.** `WebSearch` / `WebFetch` for the **generic mechanism**, never for the customer: e.g. "position sticky not working inside overflow auto flex child", "CSS grid subgrid alignment two containers". Trusted sources only — MDN, web.dev, the CSS/HTML specs, caniuse — and every technique found is checked against the base template (step 2) before it is applied. Never paste code from a forum answer unread; never send customer URLs, keys or design code to a search engine.
+5. **Only then the internet.** `WebSearch` / `WebFetch` for the **generic mechanism**, never for the customer: e.g. "position sticky not working inside overflow auto flex child", "CSS grid subgrid alignment two containers". Trusted sources only — MDN, web.dev, the CSS/HTML specs, caniuse — and every technique found is checked against the design (step 2) before it is applied. Never paste code from a forum answer unread; never send customer URLs, keys or design code to a search engine.
 6. **Apply the alternative additively and re-run the same QA gate.** The foundation rule still holds (append with higher specificity, value edits, the sanctioned Liquid moves only). The operator's intent is fixed: if filters-left fails, the alternative is a working filters-left — not "sticky filters instead" — unless the operator agrees to the change. **Cap: two alternatives.** After the second failed re-check, stop and hand it to the operator with the evidence from step 1, what you tried, and the additive options that remain (MISSING DATA / approval item). Never push an unverified alternative and never leave the failed first attempt in the draft.
 7. **Capture-back, both ways.** A working alternative is proposed in the hand-off as an edit to this file — as the new recipe, or as a variant keyed on the condition that broke the first one (theme, platform, variant) — with a field-log row saying which site failed the first recipe and why. A loop that ends without a solution is logged too (site, variant, symptom, what was tried), so the next build starts from that instead of from zero.
 
@@ -53,7 +53,7 @@ Measured on store-SE-1: panel top 138px (= the site header), `.hr-results` 762px
 
 **The filter re-render model (L7, L8).** Every filter interaction calls `load_more_results(false)`, which **removes and rebuilds the whole `.hr-results`** — filter bar included. Anything you add to the filter DOM (buttons, inputs, classes, `dataset` flags) is gone after each click, and every open dropdown closes. So: (1) JS additions run from the **render hook** below on every render and must be idempotent; (2) expanded/collapsed state that must survive a click lives either in module scope or is re-derived from the DOM (the platform marks a chosen option with class `selected` on its element and `input:checked`); (3) the base binds the dropdown toggle to a click **anywhere on the filter `<li>`** (`this.classList.toggle("active")`, overlay `search.js:300` / embedded `:319`) — any control you place inside a dropdown must `stopPropagation()` on click or the dropdown closes under the visitor. Verified live on store-SE-1 2026-09-07.
 
-**The render hook.** Both L7 and L8 are called from one place: immediately **after the existing `sortFilters();` call at the end of the `yield_template` callback** inside `load_more_results` (`desktop-overlay/search.js:334`, `desktop-embedded/search.js:355` — grep `sortFilters();` in `initializationCode`, it occurs once as a call). The module-level `overlay` variable is in scope there. Calling after `sortFilters()` means your `nth-of-type` counts the **sorted** order.
+**The render hook.** Both L7 and L8 are called from one place: immediately **after the existing `sortFilters();` call at the end of the `yield_template` callback** inside `load_more_results` (`desktop-overlay/search.js:334`, the embedded design's `initializationCode` — grep `sortFilters();` in `initializationCode`, it occurs once as a call). The module-level `overlay` variable is in scope there. Calling after `sortFilters()` means your `nth-of-type` counts the **sorted** order.
 
 ```js
 			sortFilters();
@@ -63,7 +63,7 @@ Measured on store-SE-1: panel top 138px (= the site header), `.hr-results` 762px
 
 ## L1 — Filters in the left column, above the content feed · **derived — not rendered; verify on first use**
 
-Base: `{{ captured_filters }}` renders inside `.hr-products` (`desktop-overlay/search.liquid:440`, `desktop-embedded/search.liquid:393`), and `.hr-content` exists only under `{% unless initRender %}{% if content.size > 0 %}` (`overlay:349–351`, `embedded:302–304`) — with no content feed the column is not in the DOM, so a naive move makes the filters disappear. The recipe wraps both in a new `aside.hr-sidebar` that always renders in the results state. This is a structural Liquid edit: **show the move in the diff and get approval before pushing** (foundation rule).
+Base: `{{ captured_filters }}` renders inside `.hr-products` (grep `{{ captured_filters }}` in `resultTemplate`), and `.hr-content` exists only under `{% unless initRender %}{% if content.size > 0 %}` (grep `hr-content` in `resultTemplate`) — with no content feed the column is not in the DOM, so a naive move makes the filters disappear. The recipe wraps both in a new `aside.hr-sidebar` that always renders in the results state. This is a structural Liquid edit: **show the move in the diff and get approval before pushing** (foundation rule).
 
 `resultTemplate`, both desktop variants the same — two edits:
 
@@ -223,7 +223,7 @@ store-SE-1: 138 → `calc(100vh - 138px - 80px)`. Take the ≥1200px value; the 
 
 Only applies when L1 is **not** applied.
 
-**Base default: the filters already track the tiles.** The filter `<ul>` shares the products grid rule — `.hr-products-container, .aw-full-search-results__filter-wrapper { display: grid; grid-template-columns: repeat(auto-fill, minmax({{ product_tile_width }}px, 1fr)); gap: 5px }` (`desktop-overlay/search.css:608`, `desktop-embedded/search.css:524`). For "match the tile width" write **nothing** unless (a) applies.
+**Base default: the filters already track the tiles.** The filter `<ul>` shares the products grid rule — `.hr-products-container, .aw-full-search-results__filter-wrapper { display: grid; grid-template-columns: repeat(auto-fill, minmax({{ product_tile_width }}px, 1fr)); gap: 5px }` (`desktop-overlay/search.css:608`, the embedded design's `resultStyles`). For "match the tile width" write **nothing** unless (a) applies.
 
 **(a) The products grid got the fixed-column override** (`references/shell-structure.md` → *FIXED column counts*) · **derived**. That override is products-only by design, so the filters fall out of alignment. If the operator wants them aligned again, append the same columns and gap for the filter `<ul>`, at the same breakpoint and with the same numbers you used for the products (the example assumes the reference's 4 → 3 example):
 
@@ -266,11 +266,11 @@ store-SE-1 ships the same mechanism with `min-width: unset` / dropdown `250px` (
 
 Two different requests — apply the one the operator named:
 
-**Toggle — show / hide the count line.** `{# boolean show_products_results_text = true #}` in **`resultStyles`** (`desktop-overlay/search.css:61`, `desktop-embedded/search.css:55`) gates `.hr-products-text { display: none }`. `true` (base) shows the dynamic line, `false` hides it. Value edit only. The line is `result_subtitle` (`$query$` / `$totalResults$` / `$contentType$`), localized in Step 12 — "dynamic results title = yes" is the base default and needs nothing.
+**Toggle — show / hide the count line.** `{# boolean show_products_results_text = true #}` in **`resultStyles`** (grep it in `resultStyles`) gates `.hr-products-text { display: none }`. `true` (base) shows the dynamic line, `false` hides it. Value edit only. The line is `result_subtitle` (`$query$` / `$totalResults$` / `$contentType$`), localized in Step 12 — "dynamic results title = yes" is the base default and needs nothing.
 
 **Headline — the "Products" title becomes the result sentence** (store-SE-1). Three steps, both desktop variants the same:
 
-1. In `resultTemplate`, find the two non-initial headings with `grep -n "<h2 class='hr-products-header'>{{ text_product"` — exactly two hits (`desktop-overlay/search.liquid:414, 427` → `{{ text_products_title }}`; `desktop-embedded/search.liquid:367, 380` → `{{ text_product_title }}`). Never touch `hr-initial-content-header`.
+1. In `resultTemplate`, find the two non-initial headings with `grep -n "<h2 class='hr-products-header'>{{ text_product"` — exactly two hits (`desktop-overlay/search.liquid:414, 427` → `{{ text_products_title }}`; the embedded design's `resultTemplate` → `{{ text_product_title }}`). Never touch `hr-initial-content-header`.
 2. Replace the title token in both with the subtitle expression (`text_products` exists in both variants, `overlay:55` / `embedded:37`):
 
 ```liquid
@@ -441,7 +441,7 @@ All four are value edits on declarations the base already has; the map, defaults
 </div>
 ```
 
-`resultStyles`, appended. Both tokens exist in `mobile-overlay/search.css` (`filter_button_background_color`, `filter_button_border_radius_px`):
+`resultStyles`, appended. Both tokens exist in the mobile design's `resultStyles` (`filter_button_background_color`, `filter_button_border_radius_px`):
 
 ```css
 .hr-overlay-search .hr-nav.hr-nav-inline {
