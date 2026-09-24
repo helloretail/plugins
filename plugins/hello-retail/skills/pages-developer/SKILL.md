@@ -119,6 +119,14 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    converted tile into the per-product slot of `templateHtml` only; keep the design's
    own product-loop wrapper element the way recom keeps `.hr-product`.
 
+   **Starweb shops:** once the platform is known to be Starweb (tile-extractor's
+   PLATFORM section), ask the operator whether the shop has customer-unique prices,
+   several currencies, or other price quirks — don't assume the answer. Yes → the
+   tile's price block uses the markup in
+   `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/dynamic-price-handler.md` and the
+   design JS calls the handler once products have rendered (*Search and Pages* on that
+   page). No → prices as usual, no handler.
+
    **SEO microdata is part of the foundation — never remove it.** The default tile
    wrapper (`aw-infinite-search-results__item hr-product`, `itemscope`
    `itemtype="http://schema.org/Product"`) opens with a schema.org block: the
