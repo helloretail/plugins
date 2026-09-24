@@ -46,7 +46,7 @@ scripts/changelog.mjs             collects `changelog.d/` fragments, rolls them 
 scripts/changelog-lint.mjs        release-note gate: fragment format, `## Unreleased` left alone   (copy)
 scripts/wiki-lint.mjs             docs/wiki gate: provenance frontmatter, links, orphans, customer data  (copy)
 .github/workflows/ci.yml          validate · markdown lint · wiki lint · shellcheck · secret scan · version preview  (copy)
-.github/workflows/release.yml     on main: bump → collect+roll changelog → commit → tag → GitHub Release  (copy; adapt the marketplace name in the release body)
+.github/workflows/release.yml     on main: bump → collect+roll changelog → release PR; on its merge: tag → GitHub Release  (copy; adapt the marketplace name in the release body)
 .github/CODEOWNERS                who reviews what                                         (adapt)
 .github/dependabot.yml            monthly grouped updates for actions and npm tooling      (copy)
 .github/pull_request_template.md  the PR checklist                                         (copy)
@@ -377,18 +377,21 @@ for the people running it:
 
 ## 8. Versioning, changelog and release
 
-The merge to `main` is the publish step. Claude Code installs straight from the repository over
-git, so nothing may land on `main` that fails CI.
+Merging the release pull request is the publish step: Claude Code updates a plugin when its
+`version` changes, and only that PR changes it. Everything on `main` goes out with the next
+release, so nothing may land on `main` that fails CI. Nothing writes to `main` directly — the
+workflow needs no token beyond its own `GITHUB_TOKEN`.
 
 | Step | Who | What happens |
 |---|---|---|
 | PR title | you | Conventional Commits: `fix:` → patch, `feat:` → minor, `feat!:` or a `BREAKING CHANGE` footer → major. `[bump minor]` / `[bump major]` in the title also work. The "Version bump preview" check shows the result. |
-| Changelog | you | Every PR touching `plugins/<plugin>/` adds its bullets under `## Unreleased` in that plugin's `CHANGELOG.md`, in the same session as the change. Root-only PRs (README, CI, scripts) add nothing. |
+| Changelog | you | Every PR touching `plugins/<plugin>/` adds a new fragment file under that plugin's `changelog.d/`, in the same session as the change. Root-only PRs (README, CI, scripts) add nothing. |
 | Squash-merge | reviewer | The merge commit title is what the bump script reads. |
 | Bump | `release.yml` | `bump-version.mjs` raises `plugin.json` → `version` for each plugin the range touched, unless the PR already changed it by hand (a manual bump wins). |
-| Roll | `release.yml` | `changelog.mjs roll` renames `## Unreleased` to `## <version> — <date>` and leaves a fresh empty `## Unreleased` above it. An empty section releases as "Maintenance release — no user-visible changes." |
-| Commit | `release.yml` | Bump and rolled changelog are committed to `main` with `[skip ci]`. |
-| Tag + release | `release.yml` | Tag `<plugin>-v<version>`, GitHub Release whose body is that version's changelog section plus the install reminder. |
+| Roll | `release.yml` | `changelog.mjs collect` folds the fragments in, `roll` turns them into `## <version> — <date>` and leaves a fresh empty `## Unreleased` above it. An empty section releases as "Maintenance release — no user-visible changes." |
+| Release PR | `release.yml` | Bump and rolled changelog are force-pushed to `release/next` and opened as one `chore(release): …` pull request, rebuilt from the current `main` after every merge. It shows no checks: GitHub runs no workflows for a PR opened with `GITHUB_TOKEN`. |
+| Merge the release PR | reviewer | The release. One approval, like any PR. |
+| Tag + release | `release.yml` | On that merge: tag `<plugin>-v<version>`, GitHub Release whose body is that version's changelog section plus the install reminder. |
 
 Changelog entries are written for whoever installs the plugin: skill name in backticks first,
 then what is different in behaviour, two sentences at most. Not paths, not diffs, not process.
@@ -425,9 +428,10 @@ mkdir -p "plugins/$name/.claude-plugin" "plugins/$name/skills" "plugins/$name/do
 
    Remove it afterwards (`claude plugin marketplace remove <marketplace-name>`) and restore the
    git-sourced marketplace, or you will quietly stop receiving releases.
-10. Open a PR titled `feat: add <plugin-name> plugin`, with the changelog entry under
-    `## Unreleased`. Squash-merge when CI is green; the Release workflow tags
-    `<plugin-name>-v<version>` and publishes it.
+10. Open a PR titled `feat: add <plugin-name> plugin`, with its release note as a fragment in
+    `changelog.d/`. Squash-merge when CI is green; the Release workflow then opens a
+    `chore(release): …` pull request, and merging that tags `<plugin-name>-v<version>` and
+    publishes it.
 
 ## 10. Checklist — starting a new marketplace repository from this root
 
@@ -444,7 +448,8 @@ mkdir -p "plugins/$name/.claude-plugin" "plugins/$name/skills" "plugins/$name/do
 7. For a private repository, document the SSH marketplace source and the `autoUpdate` flag in
    the README exactly as this repo's README does — without them installs silently freeze at the
    first version.
-8. Add a `RELEASE_TOKEN` secret (fine-grained PAT with `contents: write`) once `main` is
-   protected; until then the workflow falls back to `GITHUB_TOKEN`.
+8. Settings → Actions → General → Workflow permissions: allow GitHub Actions to create pull
+   requests. The Release workflow opens the release PR with its own `GITHUB_TOKEN`; no secret is
+   needed, and a ruleset protecting `main` needs no bypass for it.
 9. Run `npm ci && npm run check` on the empty marketplace, then add the first plugin with the
    checklist in section 9.
