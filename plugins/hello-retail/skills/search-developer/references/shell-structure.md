@@ -63,14 +63,13 @@ Each variant's `search.liquid` has the same slot structure inside `{% capture re
         </a>
       </div>
     {% else %}
-      {% comment %} TILE_BODY — the customer's tile replaces this whole default tile element; the shell removes this comment when it assembles the design {% endcomment %}
       <a class="hr-search-overlay-product-link" href="{{ product.url }}">… the base's default tile …</a>
     {% endif %}
   </div>
 {% endfor %}
 ```
 
-**Your work is exclusively inside the `{% else %}` branch.** The tile body from `tile-extractor` **replaces the whole default tile element** — the `<a class="hr-search-overlay-product-link">…</a>` and everything in it — and the marker comment is deleted: neither survives in a pushed design, and the customer's root is the direct child of `.hr-search-overlay-product`. Search keeps no Hello Retail wrapper around the tile (Recom keeps `.hr-product`, Pages its microdata wrapper); never keep the default tile's skeleton and style it, never wrap the customer's markup in a Hello Retail element. **Never touch the banner branch** (`{% if product.isBanner … %}`).
+**Your work is exclusively inside the `{% else %}` branch.** The tile body from `tile-extractor` **replaces the whole default tile element** — the `<a class="hr-search-overlay-product-link">…</a>` and everything in it: nothing of it survives in a pushed design (there is no placeholder or marker comment to look for — the branch itself is the slot), and the customer's root is the direct child of `.hr-search-overlay-product`. Search keeps no Hello Retail wrapper around the tile (Recom keeps `.hr-product`, Pages its microdata wrapper); never keep the default tile's skeleton and style it, never wrap the customer's markup in a Hello Retail element. **Never touch the banner branch** (`{% if product.isBanner … %}`).
 
 Each variant's `search.css` has one slot: `{{ CUSTOM_STYLING_BLOCK }}`. **Leave it empty** — the skill does not author tile CSS (the tile's classes are preserved verbatim, so the customer's theme CSS styles it). The only CSS the skill emits is the TILE FILL rule below (and header-match overrides if the operator opted in — see `branding-and-header.md`).
 

@@ -51,7 +51,7 @@ The team uses **the same base files for every customer regardless of platform**.
 
 ## The slot model
 
-`search.liquid` has one place per-customer markup goes: the **`{% else %}` branch of the banner check** within `{% for product in product_list %}`. The base files carry the platform's default tile there, preceded by a marker comment (`{% comment %} TILE_BODY … {% endcomment %}`) so the spot is unmistakable. The customer's tile — produced by `tile-extractor` — **replaces the whole default tile element**, `<a class="hr-search-overlay-product-link">…</a>` included, and the shell removes the marker comment when it assembles the design: neither the comment nor the default tile survives in a pushed design.
+`search.liquid` has one place per-customer markup goes: the **`{% else %}` branch of the banner check** within `{% for product in product_list %}`. The base files carry the platform's default tile there and nothing else — no placeholder, no marker comment (one was tried and retired: it kept leaking into pushed designs). The customer's tile — produced by `tile-extractor` — **replaces the whole default tile element**, `<a class="hr-search-overlay-product-link">…</a>` included: nothing of the default tile survives in a pushed design.
 
 ```liquid
 {% for product in product_list %}
@@ -77,7 +77,7 @@ The team uses **the same base files for every customer regardless of platform**.
 
 ## Editing rules
 
-1. **Keep the anchors.** The `TILE_BODY` marker comment and the `{{ CUSTOM_STYLING_BLOCK }}` slot must remain — they're the per-customer anchor points.
+1. **Keep the anchors.** The default tile in the `{% else %}` branch and the `{{ CUSTOM_STYLING_BLOCK }}` slot must remain — they're the per-customer anchor points. Never add a marker comment to a Search file: it ends up in pushed designs.
 2. **Don't touch the banner branch.** Banners are HR Retail Media markup and have their own conventions. The base handles them correctly out of the box.
 3. **Don't substitute customer-specific values in the defaults.** Token defaults should be neutral (`#232324` not a brand color, `240px` not 300). Operators override per customer in the dashboard.
 4. **Don't add per-customer extension markup.** Amasty Labels, Timesact Pre-order ribbons, Dawn `<details>` collision workarounds — those are per-customer and live in the customer's design, not in the base.
@@ -98,7 +98,7 @@ Hard-won from real onboardings. The reusable pieces live in the [cheat sheets](.
 1. Pick the right base for the layout (today: `search/desktop-overlay/`).
 2. Copy `search.liquid` + `search.css` + `search.js` as the starting point for the customer's design.
 3. Survey the customer's category-page tile (sample 6-12 tiles from the pagination grid, avoiding 3rd-party recom widgets) to identify variations: sale, sold-out, badges, swatches, brand label, ATC form, etc.
-4. Replace the default tile element in the `{% else %}` branch (the `TILE_BODY` marker comment shows where; remove the comment too) with the tile body from `tile-extractor` — the customer's card copied as real HTML with the product values bound by table.
+4. Replace the whole content of the `{% else %}` branch of the banner check — the default tile element — with the tile body from `tile-extractor` — the customer's card copied as real HTML with the product values bound by table.
 5. Leave `{{ CUSTOM_STYLING_BLOCK }}` empty; apply only the shell's sanctioned edits (parent hooks on the container, TILE FILL, `product_tile_width`, the reset deletion).
 6. Paste the modified Liquid + CSS + JS into the HR dashboard HTML + CSS + JS sections for the customer's design.
 

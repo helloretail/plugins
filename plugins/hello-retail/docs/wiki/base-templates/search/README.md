@@ -28,7 +28,7 @@ Each variant lives in its own folder with `search.js`, `search.liquid`, `search.
 
 > ⚠️ **Before you ship:** `CUSTOM_STYLING_BLOCK` stays empty. Keeping the customer's tile classes does **not** by itself guarantee their theme CSS reaches the tile inside the overlay — the theme often styles via a grid ancestor the overlay doesn't reproduce, and the base `search.css` centres and sizes things its own way. The answer is never tile CSS: mirror the tile skill's PARENT HOOKS onto the container, apply the sanctioned shell edits (TILE FILL with the surveyed alignment, `product_tile_width`, the reset deletion), and put the rendered tile next to the native one before calling it done. Method + checklist: [cheat-sheets/search/general.md → _Tile fidelity_](../../cheat-sheets/search/general.md).
 
-The per-customer tile replaces the **whole default tile element** in the `{% else %}` branch of the product loop — the base files carry a `TILE_BODY` marker comment there. The shell removes the comment when it assembles the design; neither the comment nor the default tile survives in a pushed design.
+The per-customer tile replaces the **whole default tile element** in the `{% else %}` branch of the product loop — the `<a class="hr-search-overlay-product-link">…</a>` and everything inside it. There is no placeholder or marker comment to look for, and nothing of the default tile survives in a pushed design.
 
 ## Related
 
