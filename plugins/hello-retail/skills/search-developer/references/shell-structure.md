@@ -63,14 +63,13 @@ Every variant's `resultTemplate` has the same slot structure inside `{% capture 
         </a>
       </div>
     {% else %}
-      {# the overlay's wiki files carry a TILE_BODY marker comment here; designs read from the MCP do not #}
       <a class="hr-search-overlay-product-link" href="{{ product.url }}">… the design's default tile …</a>
     {% endif %}
   </div>
 {% endfor %}
 ```
 
-**Your work is exclusively inside the `{% else %}` branch, and `scripts/splice-tile.mjs` does it.** The script parses the Liquid, finds the banner check's `{% else %}` inside the product loop, and replaces the branch's whole content — the default `<a class="hr-search-overlay-product-link">…</a>` and, in the overlay files, the marker comment — with the tile body; it also puts the container hooks on every `hr-products-container` and the cell hooks on the `hr-search-overlay-product` cell. Neither the default tile nor a marker survives in a pushed design, and the customer's root is the direct child of `.hr-search-overlay-product` (Search keeps no Hello Retail wrapper around the tile). `--show` prints the branch before anything is written; the script refuses to write while a token is unbound or the Liquid would end up unbalanced. **Never touch the banner branch** (`{% if product.isBanner … %}`).
+**Your work is exclusively inside the `{% else %}` branch, and `scripts/splice-tile.mjs` does it.** The script parses the Liquid, finds the banner check's `{% else %}` inside the product loop, and replaces the branch's whole content — the default `<a class="hr-search-overlay-product-link">…</a>` and everything inside it — with the tile body; it also puts the container hooks on every `hr-products-container` and the cell hooks on the `hr-search-overlay-product` cell. Nothing of the default tile survives in a pushed design, and the customer's root is the direct child of `.hr-search-overlay-product` (Search keeps no Hello Retail wrapper around the tile). `--show` prints the branch before anything is written; the script refuses to write while a token is unbound or the Liquid would end up unbalanced. **Never touch the banner branch** (`{% if product.isBanner … %}`).
 
 Each variant's `search.css` has one slot: `{{ CUSTOM_STYLING_BLOCK }}`. **Leave it empty** — the skill does not author tile CSS (the tile's classes are preserved verbatim, so the customer's theme CSS styles it). The only CSS the skill emits is the TILE FILL rule below (and header-match overrides if the operator opted in — see `branding-and-header.md`).
 

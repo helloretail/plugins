@@ -82,7 +82,7 @@ function activate() {
 		open_overlay();
 		return false;
 	}
-	
+
 	overlay = ui_overlay_vanilla.create({
 		'class': "hr-overlay-search",
 		show: function(overlay) {
@@ -94,7 +94,7 @@ function activate() {
 			}
 		},
 	});
-	
+
 	loading_indicator = document.createElement("div");
 	loading_indicator.innerHTML = '<div class="hr-loading-indicator"><div class="hr-loading-indicator-alt"></div></div>';
 	loading_indicator = loading_indicator.querySelector(".hr-loading-indicator");
@@ -105,7 +105,7 @@ function activate() {
 		id: config_id,
 		return_filters: false
 	});
-	
+
 	searcher.initial_render(function(template) {
 		searcher.return_filters = true;
 		ui_utility.hide(loading_indicator);
@@ -115,19 +115,19 @@ function activate() {
 		handle_skip_content();
 		var input_field = overlay.querySelector(overlay_input_selector);
 		input_field.focus();
-		
+
 		var debounced_load_more = ui_utility.debounce(function(new_search_term) {
 			if (searcher.search_term != new_search_term) {
 				searcher.search_term = new_search_term;
 				load_more_results(false);
 			}
 		}, search_interval);
-		
+
 		input_field.addEventListener("input", function(event) {
 			var new_search_term = event.target.value.trim();
 			debounced_load_more(new_search_term);
 		});
-		
+
 		input_field.addEventListener("keyup", function(event) {
 			var new_search_term = input_field.value.trim();
 			if (event.keyCode === 13) {
@@ -135,14 +135,14 @@ function activate() {
 				search_redirects.match_and_go(new_search_term, key);
 			}
 		});
-		
+
 		input_field.addEventListener("keydown", function(event) {
 			if (event.key === "Enter") {
 				// Prevent submit
 				event.preventDefault();
 			}
 		});
-		
+
 		// Restore state
 		var first_trigger_input = Array.from(triggers).find((trigger) => trigger.tagName === "INPUT");
 		var saved_search_term = storage.get_or_default("search_term", first_trigger_input ? first_trigger_input.value : "");
@@ -168,18 +168,18 @@ function activate() {
 			});
 			closed = false;
 		}
-		
+
 		// Close button.
 		overlay.querySelector(".hr-nav button.hr-close-btn").addEventListener("click", function() {
 			close_overlay();
 		});
-		
+
 		if (close_on_backdrop_click) {
 			var initialTarget;
 			overlay.addEventListener("mousedown", function(e) {
 				initialTarget = e.target;
 			});
-			
+
 			overlay.addEventListener("click", function(e) {
 				if (initialTarget !== e.target) return;
 				if (e.target.classList.contains("hr-results-container") ||
@@ -191,15 +191,15 @@ function activate() {
 			});
 		}
 	});
-	
+
 	function load_more_results(append, callback) {
 		loading_more = true;
 		ui_utility.show(loading_indicator);
-		
+
 		for (var engine in engine_options) {
 			searcher[engine + "_count"] = append && engine != "product" ? 0 : engine_options[engine].current_count;
 		}
-		
+
 		var current_search_instance_filters = searcher.filters;
 		preselected_filters.forEach(function(filter) {
 			if (searcher.filters.indexOf(filter) === -1) {
@@ -207,7 +207,7 @@ function activate() {
 			}
 		});
 		searcher.filters = current_search_instance_filters;
-		
+
 		searcher.yield_template(function(template, state) {
 			storage.put("search_term", state.search_term ? state.search_term : undefined);
 			// Remove filters from state so we don't show them in the url.
@@ -227,7 +227,7 @@ function activate() {
 				document.querySelector(".hr-results").remove();
 				var results = template(".hr-results");
 				overlay.append(results);
-				
+
 				var redirects_container = overlay.querySelector(".hr-redirects-container");
 				var redirect = search_redirects.match(searcher.search_term, key);
 				if (redirect) {
@@ -237,7 +237,7 @@ function activate() {
 				} else {
 					ui_utility.hide(redirects_container);
 				}
-				
+
 				var filters = overlay.querySelectorAll(".hr-filters .aw-filter__single-wrapper");
 				filters.forEach(function(filter) {
 					ui_utility.register_filter(
@@ -249,7 +249,7 @@ function activate() {
 							{ rangeSliderDecimals: 0 },
 					);
 				});
-				
+
 				document.querySelectorAll(".hr-filter-selected-tag").forEach(function(filter_tag) {
 					filter_tag.addEventListener("click", function() {
 						var filter_type = this.dataset.filter;
@@ -261,7 +261,7 @@ function activate() {
 						}
 					});
 				});
-				
+
 				var clear_filters_btn = document.querySelector("#hr-filter-selected-tag-reset");
 				if (clear_filters_btn) {
 					clear_filters_btn.addEventListener("click", function() {
@@ -270,7 +270,7 @@ function activate() {
 						load_more_results(false);
 					});
 				}
-				
+
 				overlay.addEventListener("click", function(event) {
 					var dropdowns = this.querySelectorAll(".aw-filter__single-wrapper");
 					dropdowns.forEach(function(dropdown) {
@@ -279,7 +279,7 @@ function activate() {
 						}
 					});
 				});
-				
+
 				document.querySelectorAll(".aw-filter__single-wrapper").forEach(function(single_wrapper) {
 					single_wrapper.addEventListener("click", function() {
 						var prev_sibling = this.previousElementSibling;
@@ -300,7 +300,7 @@ function activate() {
 						this.classList.toggle("active");
 					});
 				});
-				
+
 				var last_y_pos = 0;
 				overlay.querySelector(".hr-results").addEventListener(
 						"scroll",
@@ -322,7 +322,7 @@ function activate() {
 				);
 				focusElement("#hr-search input");
 			}
-			
+
 			ui_utility.fix_links(overlay, "ps");
 			handle_live_update();
 			handle_skip_content();
@@ -334,7 +334,7 @@ function activate() {
 			sortFilters();
 		});
 	}
-	
+
 	function close_overlay() {
 		if (!debouncing) {
 			debouncing = true;
@@ -356,7 +356,7 @@ function activate() {
 			}
 		}
 	}
-	
+
 	function _close(reset) {
 		if (reset) searcher.return_filters = true;
 		overlay.close();
@@ -364,7 +364,7 @@ function activate() {
 		closed = true;
 		debouncing = false;
 	}
-	
+
 	function open_overlay() {
 		overlay.open();
 		setTimeout(function() { focusElement(overlay_input_selector); }, 50);
@@ -376,7 +376,7 @@ function activate() {
 		});
 		closed = false;
 	}
-	
+
 	function handle_live_update() {
 		const headerElement = document.querySelector(".hr-products .hr-products-text");
 		const resultElement = document.querySelector("#hr-search-result");
@@ -391,18 +391,18 @@ function activate() {
 			}
 		}, 500);
 	}
-	
+
 	function handle_skip_content() {
 		// handle visibility logic
 		const skipToProducts = document.querySelectorAll(".skip-content");
-		
+
 		const allOverlayContents = document.querySelectorAll(".hr-search-overlay-content");
 		const hrProducts = document.querySelector("#hr-products");
-		
+
 		if (!hrProducts) {
 			return;
 		}
-		
+
 		const outsideHrProducts = Array.from(allOverlayContents).filter((el) => !hrProducts.contains(el));
 		const enableButton = outsideHrProducts.length > 0;
 
@@ -435,7 +435,7 @@ function activate() {
 			});
 		}
 	}
-	
+
 	return false;
 }
 
@@ -448,7 +448,7 @@ function sortFilters() {
 			sortFilter(filterList || filterTagList);
 		});
 	}
-	
+
 	// Custom filter for sizes
 	if (size_selector) {
 		const sizeFilter = document.querySelector(size_selector);
@@ -461,7 +461,7 @@ function sortFilter(filterElement) {
 	try {
 		if (!filterElement) return false;
 		const values = Array.from(filterElement.children);
-		
+
 		// Sort filter values alphabetically
 		values.sort((a, b) => {
 			const titleA = a.querySelector(".aw-filter-tag-title").textContent.toLowerCase();
@@ -471,12 +471,12 @@ function sortFilter(filterElement) {
 				sensitivity: "base",
 			});
 		});
-		
+
 		// Remove existing values
 		while (filterElement.firstChild) {
 			filterElement.removeChild(filterElement.firstChild);
 		}
-		
+
 		// Reinsert sorted values and recursively sort their children
 		values.forEach((value) => {
 			filterElement.appendChild(value);

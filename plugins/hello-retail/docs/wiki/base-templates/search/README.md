@@ -26,7 +26,7 @@ Where a Search build starts, per variant. Two of the three variants come from th
 
 ## The slot
 
-The per-customer tile replaces the **whole content of the `{% else %}` branch** of the banner check inside `{% for product in product_list %}` — the default `<a class="hr-search-overlay-product-link">…</a>` and, in the overlay files, the `TILE_BODY` marker comment in front of it. Neither survives in a pushed design. The `search-developer` skill's `scripts/splice-tile.mjs` finds that branch by parsing the Liquid, so a design read from the MCP and the overlay files splice the same way.
+The per-customer tile replaces the **whole content of the `{% else %}` branch** of the banner check inside `{% for product in product_list %}` — the default `<a class="hr-search-overlay-product-link">…</a>` and everything inside it. There is no placeholder or marker comment to look for, and nothing of the default tile survives in a pushed design. The `search-developer` skill's `scripts/splice-tile.mjs` finds that branch by parsing the Liquid, so a design read from the MCP and the overlay files splice the same way.
 
 > ⚠️ **Extend, never rewrite.** `resultStyles` is ~1,300 lines and most of it styles chrome you don't see while building — filters, filter dropdowns, selected-filter counts, the price range slider, sorting, the results header, the content column, animations. A reworked stylesheet passes a first screenshot with the filter styling already destroyed. Override with higher specificity, and ask the operator before altering the foundation: [foundation-rules.md](../foundation-rules.md).
 
