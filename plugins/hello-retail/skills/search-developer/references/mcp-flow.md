@@ -23,7 +23,7 @@ This is the **only** flow this skill uses. It needs a `website-uuid` — given b
 
 | MCP field | This skill's file | Notes |
 |---|---|---|
-| `resultTemplate` | `search.liquid` | HTML/Liquid results. Holds the product loop whose non-banner default tile the tile skill's body replaces (the base marks the spot with a `TILE_BODY` comment that never reaches a pushed design) + the shell. |
+| `resultTemplate` | `search.liquid` | HTML/Liquid results. Holds the product loop whose non-banner default tile the tile skill's body replaces (no placeholder marks the spot: the slot is the `{% else %}` branch of the banner check) + the shell. |
 | `resultStyles` | `search.css` | Keep `CUSTOM_STYLING_BLOCK` empty; only the TILE FILL rule (and header-match overrides, if opted in) is appended. |
 | `initializationCode` | `search.js` | `trigger_selector` + add-to-cart wiring. |
 | `inputTemplate` | **not produced by this skill** | We wire a `trigger_selector` to the customer's own input. Leave `inputTemplate` out of the update unless the operator explicitly asks for it. |
