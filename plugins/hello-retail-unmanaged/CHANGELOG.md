@@ -10,6 +10,13 @@ fragments into the version it publishes.
 
 ## Unreleased
 
+## 1.0.1 — 2026-09-23
+
+### Fixed
+
+- `recommendations-api` names the current tool for listing a website's recommendations when
+  checking whether a box exists to reference by `key`.
+
 ## 1.0.0 — 2026-09-18
 
 ### Added
