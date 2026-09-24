@@ -1,6 +1,6 @@
 ---
 source: field
-verified: 2026-09-23
+verified: 2026-09-24
 ---
 
 # Viskan
@@ -51,7 +51,7 @@ different handling for anything Hello Retail renders into the page.
 
 With API integration Viskan calls Hello Retail and renders the products itself, so there is no HR
 tile to build or QA. Hello Retail's side is the configuration: indexed fields, design filters and
-sorting, and the page config.
+sorting, and the page or search config.
 
 ---
 
@@ -64,7 +64,11 @@ them as `extraData.*_id` / `extraDataList.*_id` fields (e.g. `attr1_id`, `attr2_
 - **Index every field whose name ends in `_id`** for search filtering and sorting
   (`dataFields_updateProductFieldsIndexing`, one batched call). A field that isn't indexed can't be
   used as a filter, neither as a design filter nor in a Pages request's `params.filters`.
-- Fields ending in something else (e.g. `attr1_id_group`) are not part of the rule.
+- **NG only: also `extraDataList.categoryUUID`.** NG identifies categories by UUID as well; the
+  v3 feed carries it per category (`product.categories[].categoryUUID`), and the feed transform
+  maps it as a list: `categoryUUID: product.categories.map(c => c.categoryUUID)`. Index it with
+  the `_id` fields. Not part of the Streamline setup.
+- Other fields ending in something else (e.g. `attr1_id_group`) are not part of the rule.
 
 ---
 
@@ -74,7 +78,8 @@ them as `extraData.*_id` / `extraDataList.*_id` fields (e.g. `attr1_id`, `attr2_
 
 - **Filters:** every `_id` field as a `LIST` filter, **titled with the bare field name**
   (`extraDataList.cat_id` → `cat_id`, not `extraDataList.cat_id`), plus `price` as a `RANGE`
-  filter. No other filters.
+  filter. On NG, add `extraDataList.categoryUUID` as a `LIST` filter titled `categoryUUID`.
+  No other filters.
 - **Sorting:** match the storefront's own sort options. On NG these are configured in Viskan's
   product-list component (e.g. `PRICE_ASC` / `PRICE_DESC`, `PUBLISHED_ASC` / `PUBLISHED_DESC`),
   which map to `price` and `created` ascending/descending.
@@ -83,6 +88,24 @@ them as `extraData.*_id` / `extraDataList.*_id` fields (e.g. `attr1_id`, `attr2_
 by sending any field it needs in `params.filters`; it does not use `extraDataList.categoryIds`.
 Don't add an `INPUT` product filter "for the category": an `INPUT` filter makes its value mandatory,
 so every request that doesn't send that field fails.
+
+
+---
+
+## Search (API)
+
+Applies when a Viskan storefront calls the Search API itself (NG may do this; Streamline almost
+always runs managed Search).
+
+- **Config without a design:** create it with `search_createConfig` and target `NONE`. The input
+  template, initialisation code, result template and styles all stay empty. The config's `key` is
+  what Viskan sends on every request.
+- **Filters and sorting:** the same as the Pages design, in the same order and with the same
+  titles. Search filters take no type; it follows from the field.
+- **Category engine:** attach one when the customer provides a category feed; without a category
+  feed, leave it out.
+- **Publishing:** the Search API only serves a LIVE config, so nothing is returned until the config
+  is published in My Hello Retail. Leave any existing managed (script) search configs as they are.
 
 ---
 
@@ -248,3 +271,5 @@ Product URL pattern: `/[lang]/artikel/[slug]?attr1_id=[colorId]`
 ## Timeline
 - 2026-09-23: Merged Streamline and NG into one page; added the NG signals, the integration model
   per feature, the `_id` field rule and the Pages (API) setup.
+- 2026-09-24: NG adds `extraDataList.categoryUUID` to the indexed fields and the Pages filters;
+  added the Search (API) setup.
