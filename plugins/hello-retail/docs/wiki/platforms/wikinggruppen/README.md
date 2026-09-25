@@ -130,7 +130,7 @@ Any element that relies on `padding-left` (e.g. badges, icon buttons) will lose 
 
 `initializationCode` in the HR Search dashboard is the **full ~500-line search initialization script** (not a small config block). It contains all overlay setup, event binding, filter handling, and scroll-to-load logic.
 
-**Always read the existing code via `search_getDesign` before pushing.** Append custom code at the end — never replace the field from scratch unless you are intentionally rebuilding the whole design. The base template is at `docs/wiki/base-templates/search/desktop-overlay/search.js`.
+**Always read the existing code via `search_getDesign` before pushing.** Append custom code at the end — never replace the field from scratch unless you are intentionally rebuilding the whole design. The base is the design `search_createConfig` attaches — the wiki keeps no copy of it.
 
 ---
 

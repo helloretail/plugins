@@ -25,7 +25,7 @@ The platform defaults are the source of truth for **what fresh customers start w
 
 For every customer, you'll do some subset of these:
 
-1. **Pick the right starting template.** Embedded and mobile: the design `search_createConfig` attaches to the new config. Desktop overlay: the wiki's `base-templates/search/desktop-overlay/` files, pushed over a created `DESKTOP` config. If the customer already has a similar implementation on another site, copy that as a starting point instead.
+1. **Pick the right starting template.** The design `search_createConfig` attaches to the new config — `desktopDesign` `OVERLAY` or `EMBEDDED` picks the desktop variant. If the customer already has a similar implementation on another site, copy that as a starting point instead.
 2. **Tune the inputs block** (the `{# text ... #}`, `{# boolean ... #}`, `{# color ... #}`, `{# choice (...) ... #}` declarations at the top). These become the editable form in the design editor — surface anything you want the customer to change later.
 3. **Replace placeholders.** Look for `{% comment %}` blocks. The current notable ones:
    - `BANNER_SIZE_NAME_PLACEHOLDER` in all three Search Liquid templates → swap with the Retail Media banner size the customer's design actually uses.

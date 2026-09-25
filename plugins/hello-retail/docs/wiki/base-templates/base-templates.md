@@ -6,7 +6,7 @@ source: index
 
 > The **canonical starting files** D&TS works from when onboarding a new Hello Retail customer. One set of files for every platform. Edit in place when team conventions change — new customers inherit your edits.
 
-Two sources, one rule. For **Search embedded and mobile**, the starting design is the one Hello Retail attaches when the config is created through the MCP (`search_createConfig`, target `DESKTOP` / `MOBILE` / `BOTH`); the wiki keeps no copy of those files, because a copy drifts from the platform. For the **Search desktop overlay**, Recommendations, Newsletter and Triggered Emails, the files below are still the starting point. Whichever the source, the foundation is extended, never rewritten.
+Two sources, one rule. For **Search** — desktop overlay, desktop embedded and mobile — the starting design is the one Hello Retail attaches when the config is created through the MCP (`search_createConfig`, target `DESKTOP` / `MOBILE` / `BOTH`, with `desktopDesign` `OVERLAY` / `EMBEDDED` on desktop); the wiki keeps no copy of those files, because a copy drifts from the platform. For Recommendations, Newsletter and Triggered Emails, the files below are the starting point. Whichever the source, the foundation is extended, never rewritten.
 
 > ⚠️ **Building a per-customer design? Read [foundation-rules.md](./foundation-rules.md) first.** The base CSS/Liquid/JS foundation is **not** rewritten per customer — you extend it with higher-specificity overrides, and you ask the operator for approval before altering it. The *Editing rules* below are about changing the **base itself**, which is a different job.
 
@@ -14,13 +14,8 @@ Two sources, one rule. For **Search embedded and mobile**, the starting design i
 
 ```
 base-templates/
-├── search/                             ← Search layouts
-│   ├── desktop-overlay/                Desktop full-screen overlay (default)
-│   │   ├── search.liquid              Base Liquid — same for every platform
-│   │   ├── search.css                 Base CSS — same for every platform
-│   │   └── search.js                  Base JS — same for every platform
-│   ├── desktop-embedded/               no wiki copy — `search_createConfig(target=DESKTOP)` attaches this design
-│   └── mobile-overlay/                 no wiki copy — `search_createConfig(target=MOBILE)` attaches this design
+├── search/                             ← Search: no design files — every variant comes from the MCP (see search/README.md)
+│   └── README.md                       which create call attaches which variant
 ├── recoms/                             ← Recommendations layouts (see recoms/README.md)
 │   └── slider/                         Swiper slider recom box (default)
 │       ├── recom.liquid              Base Liquid — same for every platform
@@ -37,11 +32,11 @@ base-templates/
 
 | Variant | Source | How a build gets it |
 |---|---|---|
-| desktop-embedded | the design `search_createConfig(target=DESKTOP)` attaches | create the config, `search_getDesign` it, edit in place |
+| desktop-overlay | the design `search_createConfig(target=DESKTOP, desktopDesign=OVERLAY)` attaches | create the config, `search_getDesign` it, edit in place |
+| desktop-embedded | the design `search_createConfig(target=DESKTOP, desktopDesign=EMBEDDED)` attaches | same |
 | mobile-overlay | the design `search_createConfig(target=MOBILE)` attaches | same |
-| desktop-overlay | `search/desktop-overlay/` in this folder | create a `DESKTOP` config, then push all three fields from these files (`search_updateDesign`); there is no overlay target |
 
-The MCP's `type` label reads "Overlay search" for all three; only the config *name* tells them apart ("Embedded overlay", "Overlay search mobile"). Ask product engineering for an overlay create target before retiring the last folder.
+The MCP's `type` label reads "Overlay search" for all three; only the config *name* tells them apart. The team renames each created config to `Desktop`, `Embedded Desktop` or `Mobile` — the on-site widget prints the type in front, so it reads "Overlay search - Desktop".
 
 ## Two email surfaces — different deliverables
 
@@ -81,17 +76,17 @@ The team uses **the same base files for every customer regardless of platform**.
 {% endfor %}
 ```
 
-A Search design has **no CSS slot** (older copies carried a `{{ CUSTOM_STYLING_BLOCK }}` token; neither the designs the MCP attaches nor the current overlay files do). The theme styles the copied tile; what the theme cannot reach is restored by mirroring the tile's parent hooks onto `hr-products-container` (rule 6) and by the shell's sanctioned edits — never by CSS written for the tile.
+A Search design has **no CSS slot** (older copies carried a `{{ CUSTOM_STYLING_BLOCK }}` token; the designs the MCP attaches have none). The theme styles the copied tile; what the theme cannot reach is restored by mirroring the tile's parent hooks onto `hr-products-container` (rule 6) and by the shell's sanctioned edits — never by CSS written for the tile.
 
 **That branch is the only place per-customer markup goes.** Everything around it — banner branch, filters, captured_filters, hr-results, content blog branch, hr-close, animations, breakpoints — stays untouched across all customers.
 
 ## Editing rules
 
-1. **Keep the anchors** in the files the wiki still keeps: the default tile in the `{% else %}` branch (Search), the `{{ TILE_BODY }}` and `{{ CUSTOM_STYLING_BLOCK }}` slots (Recoms). Never add a marker comment to a Search file — it ends up in pushed designs.
+1. **Keep the anchors** in the files the wiki keeps: the `{{ TILE_BODY }}` and `{{ CUSTOM_STYLING_BLOCK }}` slots (Recoms). The wiki keeps no Search files — never add one here, and never add a marker comment to a Search design: it ends up in pushed designs.
 2. **Don't touch the banner branch.** Banners are HR Retail Media markup and have their own conventions. The base handles them correctly out of the box.
 3. **Don't substitute customer-specific values in the defaults.** Token defaults should be neutral (`#232324` not a brand color, `240px` not 300). Operators override per customer in the dashboard.
 4. **Don't add per-customer extension markup.** Amasty Labels, Timesact Pre-order ribbons, Dawn `<details>` collision workarounds — those are per-customer and live in the customer's design, not in the base.
-5. **Mirror the platform defaults** in the files the wiki still keeps. If Hello Retail's default desktop overlay changes structurally upstream, propagate the change to `search/desktop-overlay/`. The embedded and mobile designs have no wiki copy to keep in sync — that is the point of reading them from the MCP.
+5. **Mirror the platform defaults** in the files the wiki keeps. No Search design has a wiki copy to keep in sync — that is the point of reading them from the MCP.
 6. **Scope the tile to the customer's CSS via the container — never a wrapper inside the loop.** Customer themes usually scope their card CSS under a section-level ancestor (e.g. `.collection-product`, `.products-grid`, `.collection`). In the overlay that ancestor is absent, so those rules don't match and the tile loses styling. **Fix: add the ancestor class to `.hr-products-container`** (the loop's parent — there are usually two occurrences, the `initialContent` branch and the `else` branch), e.g. `<div class='hr-products-container collection-product' …>`. Do **not** wrap the tile in that class inside `{% for %}` — a per-tile wrapper drags in the theme's section width/grid and shrinks every tile (observed: 290px → 192px). This is the one sanctioned edit outside the two slots.
 
 ## Tile styling gotchas
@@ -105,7 +100,7 @@ Hard-won from real onboardings. The reusable pieces live in the [cheat sheets](.
 
 ## How operators use these
 
-1. Get the starting design. Embedded or mobile: create the config through the MCP (`search_createConfig`) and read the attached design with `search_getDesign`. Desktop overlay: create a `DESKTOP` config and use `search/desktop-overlay/` as the build base — all three fields get replaced on push.
+1. Get the starting design: create the config through the MCP (`search_createConfig`, passing `desktopDesign` `OVERLAY` or `EMBEDDED` on desktop) and read the attached design with `search_getDesign`.
 2. Extract the three fields to files (`resultTemplate.liquid`, `resultStyles.css`, `initializationCode.js`) in the session scratch folder and work on disk — the payload is too large to hold in context.
 3. Survey the customer's category-page tile (sample 6-12 tiles from the pagination grid, avoiding 3rd-party recom widgets) to identify variations: sale, sold-out, badges, swatches, brand label, ATC form, etc.
 4. Replace the whole `{% else %}` branch content — the default tile element and everything inside it — with the tile body from `tile-extractor` (the customer's card copied as real HTML with the product values bound by table): `node "<search-developer>/scripts/splice-tile.mjs" --liquid resultTemplate.liquid --tile tile.liquid --out resultTemplate.liquid`.

@@ -24,7 +24,7 @@ domains yet missed on two others in the same period.
    domain class observed. Generic content only — **no customer SKUs, prices, or per-customer
    code** (the no-customer-data rule); per-site reproduction status lives in the per-customer report
    under gitignored `QA/`, never in this file. An entry is **retired** (moved to the Retired
-   section, never deleted) when the fix ships — upstream in Hello Retail's default design, or in the wiki files for the variants it still keeps.
+   section, never deleted) when the fix ships — upstream in Hello Retail's default design (Search), or in the wiki's base files (Recommendations and emails).
 
 ---
 

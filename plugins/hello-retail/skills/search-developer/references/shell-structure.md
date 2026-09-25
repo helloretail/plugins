@@ -22,23 +22,23 @@ These are config tokens / CSS rules in `resultStyles`, not `search.js` wiring. F
 
 ## The three variants
 
-There are three Search variants. Two start from the design the MCP attaches when the config is created; only the overlay still has files in the wiki:
+There are three Search variants. Each starts from the design the MCP attaches when the config is created — the wiki keeps no copy of any of them:
 
 | Variant | Source | When to use |
 |---|---|---|
-| **desktop-overlay** | wiki files — `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/search/desktop-overlay/` (no MCP target: create a `DESKTOP` config, then push all three fields from these files) | Default. Full-screen overlay triggered by clicking any `input[type='search']`. Auto-deactivates below 992 px. |
-| **desktop-embedded** | the design `search_createConfig(target=DESKTOP)` attaches — read it with `search_getDesign`; there is no wiki copy | Results render inline inside a page container, not full-screen. |
-| **mobile-overlay** | the design `search_createConfig(target=MOBILE)` attaches — read it with `search_getDesign`; there is no wiki copy | Mobile-only overlay with tabbed categories/products. The desktop JS bails at 992 px (`return;`), so mobile **always requires** its own design — pair it with whichever desktop variant is used. |
+| **desktop-overlay** | the design `search_createConfig(target=DESKTOP, desktopDesign=OVERLAY)` attaches — read it with `search_getDesign` | Default. Full-screen overlay triggered by clicking any `input[type='search']`. Auto-deactivates below 992 px. |
+| **desktop-embedded** | the design `search_createConfig(target=DESKTOP, desktopDesign=EMBEDDED)` attaches — read it with `search_getDesign` | Results render inline inside a page container, not full-screen. |
+| **mobile-overlay** | the design `search_createConfig(target=MOBILE)` attaches — read it with `search_getDesign` | Mobile-only overlay with tabbed categories/products. The desktop JS bails at 992 px (`return;`), so mobile **always requires** its own design — pair it with whichever desktop variant is used. |
 
-Every design has the same three fields — `resultTemplate` (Liquid), `resultStyles` (CSS), `initializationCode` (JS); the overlay's wiki files are those three under the names `search.liquid` / `search.css` / `search.js`.
+Every design has the same three fields — `resultTemplate` (Liquid), `resultStyles` (CSS), `initializationCode` (JS). Where this skill says `search.liquid` / `search.css` / `search.js`, it means those three fields.
 
 ## Picking the variant — infer, don't default to "all"
 
 When the operator doesn't specify a variant, do NOT generate all three (or even two). Infer from available signals in this priority order:
 
-0. **Core-intake search type** (SKILL.md → *Core intake*, Q1: Embedded / Overlay) — Overlay → `desktop-overlay`, Embedded → `desktop-embedded`. This is *the* signal when the config is being **created** (no `search-key` given — a new config has no telling name yet). Note that a created `DESKTOP` config always carries HR's embedded design; for an Overlay build the base is `desktop-overlay/` and all three fields are replaced (SKILL.md Step 2b).
-1. **MCP config name** (from `search_getDesign` or `search_listConfigs`) — name contains "mobile" → `mobile-overlay`; "embedded" → `desktop-embedded`; "overlay" / "overlay search" → `desktop-overlay`. Strongest signal when a `search-key` was given.
-2. **MCP config type** (from `search_listConfigs`) — "Overlay search" → `desktop-overlay` (or `mobile-overlay` if name says mobile); "Full search" → `desktop-embedded`; "Instant search" → this skill doesn't handle instant, redirect.
+0. **Core-intake search type** (SKILL.md → *Core intake*, Q1: Embedded / Overlay) — Overlay → `desktop-overlay`, Embedded → `desktop-embedded`. This is *the* signal when the config is being **created** (no `search-key` given — a new config has no telling name yet), and it is passed to the create call as `desktopDesign` (`OVERLAY` / `EMBEDDED`), so the attached design is already the right variant (SKILL.md Step 2b).
+1. **MCP config name** (from `search_getDesign` or `search_listConfigs`) — strongest signal when a `search-key` was given. The names this skill gives the configs it creates are exact: `Mobile` → `mobile-overlay`, `Embedded Desktop` → `desktop-embedded`, `Desktop` → `desktop-overlay` (SKILL.md Step 2b). Any other name is a hint only: "mobile" → `mobile-overlay`; otherwise go to 2 — older configs carry names like "Embedded overlay" that do not reliably say which design they hold.
+2. **The design itself** (from `search_getDesign`) — when the name is not one of the three above: `product_grid_layout` declared in `resultTemplate` → `mobile-overlay`; `placement_selector` in `initializationCode` → `desktop-embedded`; neither → `desktop-overlay`. The config `type` is never a variant signal: embedded, overlay and mobile configs all report "Overlay search". Only "Instant search" matters — this skill doesn't handle instant, redirect.
 3. **Operator's explicit request** — "desktop", "mobile", "embedded", etc.
 4. **If signals conflict or are absent** — ask one specific question: "The config is named *X*. Should I generate `desktop-overlay`, `desktop-embedded`, or `mobile-overlay`?" and stop.
 
@@ -208,7 +208,7 @@ The base template centers text at **two** levels: the overlay root rule (`.hr-ov
 
 ## Remove the overlay reset block (temporary — until Hello Retail removes it from the default design)
 
-The embedded design still ships a universal reset near the top of `resultStyles` (older overlay copies did too; the current overlay files and the mobile design have none — when the block is absent this step is a no-op):
+The embedded and overlay designs ship a universal reset near the top of `resultStyles` (the mobile design has none — when the block is absent this step is a no-op):
 
 ```css
 .hr-overlay-search * {
@@ -229,7 +229,7 @@ It zeroes **padding-left** and **vertical margins** on *every* descendant of the
   ```
 
 - **Re-run the chrome QA after later search-data changes.** Chrome that isn't configured yet isn't in the DOM to check — link content especially: a design QA'd before `search_updateLinkContent` never rendered the content column, so heading regressions like the one above only surface after the content feed is added. Any later change that adds new chrome (link content, redirects, initial content) re-triggers the chrome QA.
-- **Why temporary:** the goal is to have Hello Retail remove this block from the default desktop designs (product engineering owns them) and to drop it from the wiki's `desktop-overlay` files. Until that lands, strip it per design here. Once it is gone upstream, this step is a no-op.
+- **Why temporary:** the goal is to have Hello Retail remove this block from the default desktop designs (product engineering owns them). Until that lands, strip it per design here. Once it is gone upstream, this step is a no-op.
 
 ## Tile gutter padding — strip it when it's grid-gutter, keep it when it's card chrome
 

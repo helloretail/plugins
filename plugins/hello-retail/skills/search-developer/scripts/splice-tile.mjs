@@ -225,7 +225,7 @@ if (hooks.length) {
 // ---------------------------------------------------------------------------------------------
 const after = checkBalance(out);
 if (after) fail(`the Liquid is not balanced after the splice — the tile body opens or closes a block it should not: ${after}`);
-// an early copy of the overlay files carried a TILE_BODY marker comment; one outside the slot means this is not a design the script understands
+// early copies of the wiki's Search files carried a TILE_BODY marker comment; one outside the slot means this is not a design the script understands
 if (/TILE_BODY/.test(out)) fail("a TILE_BODY marker survived outside the slot — the design is not one this script understands");
 
 writeFileSync(outPath, out);

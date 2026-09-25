@@ -10,7 +10,8 @@ This is the **only** flow this skill uses. It needs a `website-uuid` — given b
 |---|---|
 | `website_getInfo(websiteUuid)` | Language + currency — confirm locale / price-format expectations instead of guessing from `<html lang>`. |
 | `search_listConfigs(websiteUuid)` | List the website's search configs. Each has a stable `key`, a `type` (Full / Instant / Overlay / Other), a `state` (LIVE / REVIEW), and a `draft` flag. Match the config `type` to the variant you're editing; confirm the pick with the operator. |
-| `search_createConfig(websiteUuid, target)` | Create a search config **with HR's best-practice design attached** — `DESKTOP` (embedded desktop design), `MOBILE`, `BOTH` (two configs), `NONE` (bare, API-only — never for this skill). Lands as a draft (INTERNAL_REVIEW for supervisors, REVIEW otherwise); cannot publish. Only when no `search-key` was given **and** no config of the requested type exists — see *Create path*. |
+| `search_createConfig(websiteUuid, target, desktopDesign)` | Create a search config **with HR's best-practice design attached** — `DESKTOP` (with `desktopDesign` `OVERLAY` or `EMBEDDED`; embedded when omitted), `MOBILE`, `BOTH` (two configs; `desktopDesign` picks the desktop one), `NONE` (bare, API-only — never for this skill). Lands as a draft (INTERNAL_REVIEW for supervisors, REVIEW otherwise); cannot publish. Only when no `search-key` was given **and** no config of the requested type exists — see *Create path*. |
+| `search_renameConfig(websiteUuid, key, name)` | Rename a config (the dashboard label; the `key` never changes). Used once per config **this build created**, to give it its variant name — see *Create path* step 3. Never on an existing config: on a LIVE config it forks a draft. |
 | `search_getDesign(websiteUuid, key)` | Read the current design fields for the named config **regardless of state** (LIVE / REVIEW / internal review / archived) — **don't gate the read on state, just read it.** Read before editing so you modify the customer's real design in place. The payload is large (tens of KB) and **spills to a file — never ingest it whole** (see Preconditions section 3). |
 | `search_updateDesign(websiteUuid, key, …)` | Write design fields. Edits the existing draft, or forks a fresh draft from LIVE. Partial — omitted fields are left unchanged. **Always leaves the config in REVIEW; it cannot publish.** |
 | `search_getFilters` / `search_updateFilters` | Filters config (Step 13b). Full replacement — read first. See `references/search-data-config.md`. |
@@ -41,32 +42,43 @@ This is the **only** flow this skill uses. It needs a `website-uuid` — given b
 
 A fresh onboarding often arrives as a `website-uuid` alone — the customer has no search yet. Don't ask for a key; resolve it:
 
-1. `search_listConfigs(website-uuid)`. Configs for the device in scope already exist → list them (key, `type`, `state`, last modified) and ask in round 1: use one of these, or create new? A chosen desktop config's `type` also settles embedded vs overlay (Overlay search ↔ overlay; Full search ↔ embedded). **Never create a duplicate silently.**
-2. Nothing matches → announce it in one line ("no desktop search config exists — creating a DESKTOP draft") and call `search_createConfig(website-uuid, target)`:
+1. `search_listConfigs(website-uuid)`. Configs for the device in scope already exist → list them (key, `type`, `state`, last modified) and ask in round 1: use one of these, or create new? A chosen desktop config's name also settles embedded vs overlay (`references/shell-structure.md` → *Variant detection*) — its `type` does not. **Never create a duplicate silently.**
+2. Nothing matches → announce it in one line ("no desktop search config exists — creating a desktop overlay draft") and call `search_createConfig(website-uuid, target, desktopDesign)`:
 
-   | Scope | `target` | Result |
+   | Scope | `target` | `desktopDesign` | Result |
+   |---|---|---|---|
+   | desktop overlay | `DESKTOP` | `OVERLAY` | one config, HR's best-practice desktop overlay design attached — the overlay base |
+   | desktop embedded | `DESKTOP` | `EMBEDDED` | one config, HR's best-practice embedded design attached — the embedded base |
+   | mobile | `MOBILE` | omit | one config, mobile design attached — the mobile base |
+   | desktop + mobile | `BOTH` | `OVERLAY` / `EMBEDDED` | two configs — desktop and mobile are separate per-device configs that coexist at runtime |
+   | — | `NONE` | omit | bare config, no design — for API-only frontends; **never for this skill** |
+
+   **Always pass `desktopDesign` on a desktop target** — omitted, the tool attaches the embedded design, and an overlay build would start from the wrong base. The wiki keeps no copy of any of these designs: the attached design is the base for every variant. The new config lands as a **draft** (INTERNAL_REVIEW for supervisor accounts, REVIEW for other users); the tool cannot publish. Re-run `search_listConfigs` to read the new `key`, `type` and `state` — that key is the `search-key` for every later call, and all three go in the report's *Config* block.
+3. **Name what you created.** The tool's default names ("Overlay search desktop", "Embedded overlay", "Overlay search mobile") are not the team's, and every config's `type` is "Overlay search" — which the on-site widget prints in front of the name, so a name that repeats it reads "Overlay search - Overlay Search - Desktop". Rename each created config with `search_renameConfig(website-uuid, key, name)` right after the create:
+
+   | Variant | Name | Widget shows |
    |---|---|---|
-   | desktop build (the default) | `DESKTOP` | one config, HR's best-practice **embedded** desktop design attached — this design is the embedded base; the wiki keeps no copy |
-   | mobile build | `MOBILE` | one config, mobile design attached — the mobile base; the wiki keeps no copy |
-   | operator explicitly wants both | `BOTH` | two configs — desktop and mobile are separate per-device configs that coexist at runtime |
-   | — | `NONE` | bare config, no design — for API-only frontends; **never for this skill** |
+   | `desktop-overlay` | `Desktop` | Overlay search - Desktop |
+   | `desktop-embedded` | `Embedded Desktop` | Overlay search - Embedded Desktop |
+   | `mobile-overlay` | `Mobile` | Overlay search - Mobile |
 
-   The new config lands as a **draft** (INTERNAL_REVIEW for supervisor accounts, REVIEW for other users); the tool cannot publish. Re-run `search_listConfigs` to read the new `key`, `type` and `state` — that key is the `search-key` for every later call, and all three go in the report's *Config* block.
-3. **Overlay builds:** there is no overlay target. The created `DESKTOP` config carries the embedded design, so the build base is `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/search/desktop-overlay/` — the one variant the wiki still keeps files for — and the push replaces all three design fields (`resultTemplate`, `resultStyles`, `initializationCode`). Still `search_getDesign` the created design first so the diff is against it. Verified 2026-09-23 on an internal test website: 72 KB in one `search_updateDesign` call, read back byte-identical; the config keeps its name ("Embedded overlay") and its `type` ("Overlay search" — the label the whole overlay family shares, so it never tells embedded from overlay; only the name does). Rendering on a storefront is still unverified.
+   On `BOTH` the create call returns two configs; tell them apart by the default name it returned. The new name goes in the report's *Config* block, and it is what `references/shell-structure.md` → *Variant detection* reads on every later build. Rename only configs created in this build, never an existing one — a rename on a LIVE config forks a draft of it (verified 2026-09-25 on an internal test website: the rename applies at once to an INTERNAL_REVIEW config and returns the new name).
 4. One create per build. A create error → report it once and stop; don't retry in a loop, don't fall back to "create it in the dashboard".
 
-**Never** create when a `search-key` was supplied, when the operator chose an existing config, or before core-intake Q0 (scope) is answered — the target depends on scope only; embedded vs overlay does not change it (both are `DESKTOP`), which is why that question waits for round 2. Q2's `availableFields` menu (`search_getFilters` / `search_getSorting`) needs the key, so it is read **after** this step.
+Verified 2026-09-25 on an internal PrestaShop test website: one config per variant created this way (`MOBILE`; `DESKTOP` + `OVERLAY`; `DESKTOP` + `EMBEDDED`), `trigger_selector` pointed at the theme's input, and each opened on the storefront with results.
+
+**Never** create when a `search-key` was supplied, when the operator chose an existing config, or before core-intake Q0 + Q1 (scope, and embedded or overlay on desktop) are answered — the call takes both, which is why they are asked together in round 1. Q2's `availableFields` menu (`search_getFilters` / `search_getSorting`) needs the key, so it is read **after** this step.
 
 ## Preconditions — get these right, or the flow stalls
 
 Skip them and you either thrash on an oversized result or loop on a failed call — the **"keeps thinking" / never-returns** failure.
 
-1. **Reading: just read the named config — do NOT gate on state.** Call `search_getDesign(website-uuid, search-key)` for whatever config the operator named, **regardless of its state** (LIVE, REVIEW, internal review, archived). Do not branch on `state`/`draft` to decide *whether* to read, and never refuse to read a non-LIVE config. The only safety net is error handling, not a state filter: if the call returns an outright error (or the config has no stored design), **say so once and proceed** from the team base template + the surveyed tile — never silently retry the same call in a loop.
+1. **Reading: just read the named config — do NOT gate on state.** Call `search_getDesign(website-uuid, search-key)` for whatever config the operator named, **regardless of its state** (LIVE, REVIEW, internal review, archived). Do not branch on `state`/`draft` to decide *whether* to read, and never refuse to read a non-LIVE config. The only safety net is error handling, not a state filter: if the call returns an outright error (or the config has no stored design), **say so once and stop** — the wiki keeps no copy of any Search design, so there is no base to build from until the read works; never silently retry the same call in a loop.
 
 2. **Updating: push only after explicit operator approval of the diff.** If a push errors, report it once and stop — don't loop. `search_updateDesign` always leaves the config in REVIEW and cannot publish.
 
 3. **`search_getDesign` returns a large payload — never read it whole.** A real design (`resultTemplate` + `initializationCode` + `resultStyles`) runs tens of KB and **will exceed the tool-result limit and spill to a file** (`Error: result (… characters) exceeds maximum allowed tokens. Output saved to <file>`). Do not try to hold or diff the whole design inline — that is the stall. Instead:
-   - **Work on disk.** Extract the three fields to files in the session scratch folder — `jq -r .resultTemplate <spilled> > resultTemplate.liquid`, `jq -r .resultStyles <spilled> > resultStyles.css`, `jq -r .initializationCode <spilled> > initializationCode.js` — and keep an untouched copy of each for the diff. These files are the base: for embedded and mobile there is no wiki copy of the design.
+   - **Work on disk.** Extract the three fields to files in the session scratch folder — `jq -r .resultTemplate <spilled> > resultTemplate.liquid`, `jq -r .resultStyles <spilled> > resultStyles.css`, `jq -r .initializationCode <spilled> > initializationCode.js` — and keep an untouched copy of each for the diff. These files are the base: there is no wiki copy of any Search design.
    - **Edit only the regions this skill owns, with tools that leave the rest byte-identical:** `scripts/splice-tile.mjs` for the tile slot and the hooks; targeted `sed` / `python` replacements (or a subagent) for the `trigger_selector` / `placement_selector` lines, the cart function and its `fix_links` call-sites, the branding and `{# text … #}` tokens, the reset block and the appended CSS. Never regenerate a field from memory or from a template held in context.
    - **Diff each file against its untouched copy** — that diff is what the operator approves (Step 16) — and push the files' contents as the field values. The whole design never needs to be in context: read the diff, not the file.
 
