@@ -126,7 +126,10 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    pagination derives `totalPages` from `totalResults` at 24 per page. Config tokens
    (`{# text … #}` / `{# choice … #}`): `product_title_single/multiple`,
    `filters_title`, `sorting_title`, `clear_button_text`, `filter_search_text`,
-   `filter_position` — value-swaps only, never rename/add/delete.
+   `filter_position` — value-swaps only, never rename or delete. New customer-specific
+   inputs go in their own section below the last token, never between them:
+   `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Adding
+   customer-specific inputs*.
 3. **Tile body.** Comes from `tile-extractor`, started as a background subagent with
    `target surface = pages`; read its RESPONSE FORMAT sections by name (`../tile-extractor/SKILL.md`):
    **FIDELITY** (every state PASS or fully classified before the splice — a shell-side item becomes
