@@ -3,6 +3,9 @@
 - `search-developer` checks a tile's hover image by comparing where both images render and
   whether the link around them is `display: block`, not only whether the hover image fades in.
   It previously passed a hover image that faded in correctly but sat far below the main image.
+- `search-developer` reads price, badge and button text from a tile inside the search overlay,
+  never from the HR debug widget's panel — the panel shows preview tiles of other designs, which
+  previously produced a false price-format PASS.
 
 ### Fixed
 
