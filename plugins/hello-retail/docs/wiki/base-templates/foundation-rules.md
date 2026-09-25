@@ -68,10 +68,31 @@ Some requests can't be done additively — the base rule is `!important`, the re
 
 Edits already sanctioned by a skill (documented in its `references/`) don't need this — they *are* the approved deviations, e.g. Search's reset-block removal, TILE FILL rule, `product_tile_width` match, gutter-padding strip, `text-align` removal, fixed-column grid override, and the self-contained tile CSS block on CSS-in-JS storefronts. Everything outside those lists needs approval.
 
+## Comments in the code you add
+
+This applies to everything a skill writes: Liquid, CSS and JS in a design, and feed transforms. The base's own comments stay as they are.
+
+- **No comment by default.** If the code is basically obvious, write none. Don't restate what a line does, narrate the steps, or say where a value came from.
+- **Comment only what a reader would otherwise get wrong**: a value that looks like a bug but is deliberate, a workaround for a theme or browser quirk, a dependency the code doesn't show.
+- **Keep it to one short line: "Doing X because Y."** That covers almost every case. Two lines at most; anything longer belongs in the hand-off or the PR, not the code.
+
+```js
+// Don't:
+// This function loops through every product tile on the page, reads the data-id from
+// the link, collects the IDs into an array and calls the quick-shop endpoint, because
+// the product feed does not include labels, so we have to fetch them separately.
+
+// Do:
+// Labels aren't in the feed, so fetch them from the storefront.
+```
+
+The tile Liquid from `tile-extractor` stays comment-free, per that skill's own rule.
+
 ## Self-check before you show the diff
 
 - [ ] **Diff against the base, not just against your intent.** Every base selector/rule/function present before your edit is still present, byte-identical unless it's on the sanctioned list.
 - [ ] Your changes read as **additions at the end** plus token-value changes — not as a rewritten file.
+- [ ] Every comment you added is one short line explaining something non-obvious ("Doing X because Y"); no narration, no restating the code.
 - [ ] Any customer-specific inputs sit in their own English-named `{# section … #}`, one empty line below the last base declaration, with English role-based names.
 - [ ] **No chrome CSS deleted:** filters, filter dropdowns, selected-filter counts, range slider, sorting, results header/subtitle, content column, close button, animations, mobile tabs, breakpoints.
 - [ ] **Rendered chrome QA** with filters and sorting actually configured: open a filter dropdown, select a value, check the count badge and clear-filters button, drag the price slider, switch sorting. Filter markup renders from `captured_filters` + JS, so an unconfigured design never shows it — configure first, then look.

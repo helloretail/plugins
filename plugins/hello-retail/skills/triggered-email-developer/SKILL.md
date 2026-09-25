@@ -235,6 +235,8 @@ customer-specific decision are recorded in the customer's living hand-off docume
   design. If the request can't be met without altering that foundation, **ask the operator
   for approval first** (name what has to change and why). →
   `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md`
+- **Comments you add are one short line**, only where the code isn't obvious ("doing X
+  because Y"); never explain what the markup plainly does.
 - It's a **live HTML email**, not an image → tables, `role="presentation"`, MSO
   ghost tables, `bgcolor`, and **fully inline styles**. Never depend on a `<style>`
   block or the shell's helper classes.

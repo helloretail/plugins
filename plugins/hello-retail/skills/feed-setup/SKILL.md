@@ -54,8 +54,8 @@ Go through every field in the feed and decide where it belongs:
 - **`extraDataNumber`** — numeric values for filtering and sorting
 - **`extraDataList`** — arrays of strings for multi-value filtering
 
-If a field's purpose is unclear, make a reasonable call and leave a comment in the code
-explaining what it is. Only stop and ask the user if you genuinely cannot determine the
+If a field's purpose is unclear, make a reasonable call and leave a one-line comment saying
+what you assumed. Only stop and ask the user if you genuinely cannot determine the
 right mapping.
 
 ### Step 3 — Write the transformation code
@@ -279,7 +279,7 @@ and edit it without breaking anything.
 - **Helpers are small and named clearly** — `ensureArray`, `getAttributeValues`, `getFeatureValue`
 - **Field access is direct** — `product.title`, not `getText(product['title'])`
 - **One field per line** in the return object, aligned with spaces
-- **Inline comments** on fields that aren't self-explanatory
+- **Inline comments** only on fields that aren't self-explanatory: one short line, "doing X because Y". No comments restating what a field plainly does
 - **`extraDataList` attributes section** includes a commented example so the next person
   knows how to add more
 - **No spread operators**, no automapping, no dynamic key construction — *except* where a
@@ -363,4 +363,4 @@ Read the relevant file before writing transformation code:
 - **Starweb** → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/feeds.md` — map `price` from the default price list's `activePriceExVat` plus VAT (`usedVatRate`), falling back to `specialPriceIncVat`; the page has the `getActivePrice` helper. `specialPriceIncVat` alone misses scheduled prices. Check which price list is the default (usually `1`).
 
 If the platform is unknown, inspect the feed structure and infer the patterns from what
-you see. Document your findings in a comment at the top of the transform.
+you see. Note what you inferred in one or two short lines at the top of the transform.

@@ -725,6 +725,8 @@ click, `hello_retail_id` bootstrap) are in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/chea
 
 - Draft-only; publishing is a human dashboard step. Never publish/archive/delete.
 - Extend, never rewrite: foundation survives byte-identical outside sanctioned edits.
+- Comments you add: one short line, only where the code isn't obvious ("doing X because Y").
+  `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Comments in the code you add*.
 - Read-back verify every write; 3 strikes → NOT applied.
 - Tile body verbatim from the tile skill; no invented classes; no Hello Retail class inside
   the tile; no `hr-product` boilerplate where the design's own wrapper differs. A difference
