@@ -508,7 +508,8 @@ a parameter, and a newsletter tile has no banner slot.)
 ## Keep comments minimal
 
 Add comments only where they genuinely help (a short header, a non-obvious
-branch).
+branch), and keep each to one short line: "doing X because Y". Never explain what the
+markup plainly does.
 
 ---
 
