@@ -30,14 +30,9 @@ For every customer, you'll do some subset of these:
 3. **Replace placeholders.** Look for `{% comment %}` blocks. The current notable ones:
    - `BANNER_SIZE_NAME_PLACEHOLDER` in all three Search Liquid templates → swap with the Retail Media banner size the customer's design actually uses.
    - `header_logo_url` default → customer's logo CDN URL.
-4. **Re-skin the product tile.** This is the bit that takes the most time. The tile lives inside `{% for product in products.results %}`. Match the customer's existing category-page tile shape:
-   - Image aspect ratio + container size
-   - Title placement
-   - Price layout (sale vs regular)
-   - Brand / category labels
-   - Quick-add / wishlist actions (platform-specific)
-5. **Mirror the same tile in `initialContent`** (the suggestions panel before the user types). Search-result tile and initial-content tile drift apart easily — keep them aligned.
-6. **CSS pass.** Override colors, spacing, and typography. Don't rename `.hr-*` / `.aw-*` classes — JS binds to them.
+4. **Copy the product tile.** This used to be the bit that took the most time, and it is now the `tile-extractor` skill's job: it copies the customer's category-page card as real HTML, binds the product values by table, and checks the result next to the native tile before handing it over. The copy **replaces the whole default tile element** in the `{% else %}` branch of `{% for product in product_list %}` (there is no placeholder to look for: the branch itself is the slot). Do not re-skin the default tile to look like the customer's — that leaves Hello Retail markup restyled with CSS, which breaks the moment the theme changes and is the pattern the team retired.
+5. **Mirror the same tile in `initialContent`** (the suggestions panel before the user types). The base templates render both from one loop; if the design you edit has two, keep them identical.
+6. **CSS pass — shell only.** Branding, header, filters, and the sanctioned tile-fill and width tokens (`search-developer` → `shell-structure.md`). No CSS on the tile: what the tile needs from the theme is restored by mirroring its parent hooks onto `hr-products-container`, never by rules keyed on `.hr-*` or on the customer's classes. Don't rename `.hr-*` / `.aw-*` shell classes — JS binds to them.
 7. **Test on real data** with Product Lookup + a real search query before launch.
 
 ## The fields you have on `product`
@@ -59,6 +54,7 @@ Full field list at [Website's Indexed product fields](https://support.helloretai
 
 - [ ] Inputs block reflects what the customer is allowed to change later in Supervisor.
 - [ ] All `PLACEHOLDER` strings replaced (grep the template).
+- [ ] Tile is the customer's copied markup: no Hello Retail tile class inside it, no tile rules in the CSS; rendered next to the native tile on desktop and mobile.
 - [ ] Tile renders correctly with sale + non-sale products.
 - [ ] Initial content tile matches the search-result tile.
 - [ ] `product.isBanner` branch tested if Retail Media is in scope.

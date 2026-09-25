@@ -5,7 +5,7 @@ verified: 2026-09-15
 
 # Add to cart — cross-platform rules
 
-How to wire Hello Retail's cart forms (`.aw-buy-form`, `.hr-form` and the platform equivalents) into each ecommerce platform's cart. **Cross-cutting**: the same recipe serves Search overlay results, Recommendation sliders and Pages, because all three render products from the same tile.
+How to wire the add-to-cart form inside a Hello Retail tile into each ecommerce platform's cart. The form is the **shop's own**, copied into the tile by `tile-extractor` (no Hello Retail form or class inside the tile — its Output Rule 15); the surface then binds it. **Cross-cutting**: the same recipe serves Search overlay results, Recommendation sliders and Pages, because all three render products from the same tile. Older designs still carry Hello Retail form classes (`.aw-buy-form`, `.hr-form`); the selectors below name the shop's own form first and the legacy class after it.
 
 This is the single most platform-dependent part of an HR install — each platform has its own cart API, its own form-binding mechanism and its own quirks. The platform pages hold the code; this page holds what is common: how to tell which platform you are on, which hook to bind from per surface, and the selector / API each platform uses.
 
@@ -13,7 +13,7 @@ This is the single most platform-dependent part of an HR install — each platfo
 
 | Platform | Page | Mechanism |
 | --- | --- | --- |
-| Shopify | [shopify/add-to-cart.md](./shopify/add-to-cart.md) | `POST /cart/add.js`; HR `.hr-form` submit or a theme `js-product-form` mirror; Quick View re-init |
+| Shopify | [shopify/add-to-cart.md](./shopify/add-to-cart.md) | `POST /cart/add.js`; the theme's `<product-form>` / `form.js-product-form` copied into the tile, delegated submit; Quick View re-init |
 | Magento 2 (Luma / Hyvä) | [magento/add-to-cart.md](./magento/add-to-cart.md) | `uenc` + `form_key` injection, `mage/mage` or `x-magento-init` binding, swatch renderer for configurables |
 | Shopware 6 | [shopware/add-to-cart.md](./shopware/add-to-cart.md) | `PluginManager.initializePlugins` over `form.buy-widget` |
 | Starweb | [starweb/add-to-cart.md](./starweb/add-to-cart.md) | `quickShop.init()` |
@@ -26,8 +26,8 @@ This is the single most platform-dependent part of an HR install — each platfo
 
 | Platform | Cart API | Form / trigger selector | Init pattern |
 | --- | --- | --- | --- |
-| Shopify | `POST /cart/add.js` (JSON) | `.hr-form` | submit listener, `fetch`, dispatch the theme's cart-change event |
-| Magento | form POST to `/checkout/cart/add/...` with `uenc` | `.aw-buy-form` or `[data-role=tocart-form]` | `mage('catalogAddToCart')` or `x-magento-init` + `catalogAddToCart` (Luma); plain POST (Hyvä) |
+| Shopify | `POST /cart/add.js` (form-encoded) | `form.js-product-form` (the copied theme form; legacy designs: `.hr-form`) | delegated `submit`, `fetch`, cart-section refresh + the theme's cart-change event |
+| Magento | form POST to `/checkout/cart/add/...` with `uenc` | `[data-role=tocart-form]` (the copied theme form; legacy designs: `.aw-buy-form`) | `mage('catalogAddToCart')` or `x-magento-init` + `catalogAddToCart` (Luma); plain POST (Hyvä) |
 | Shopware | Shopware `PluginManager` | `form.buy-widget[data-add-to-cart="true"]` | `PluginManager.initializePlugins(selector, formEl)`, once per form |
 | Starweb | `quickShop` module | (handled internally by `quickShop`) | `quickShop.init()` |
 | Viskan (Streamline / NG) | `window.viskan.cart` JS API (`add(plu, qty)`, `get()`) | `.hr-cta-button` buy button + `.hr-qty-container` stepper | delegated `click` on `document`, `await window.viskan.cart.add(...)`, then a state sweep; fires GA4 events itself |
@@ -68,8 +68,8 @@ The per-platform cart **call** is the same regardless of surface. What differs i
 The cart call itself is identical across surfaces (e.g. Shopify = `POST /cart/add.js`; see each platform page). Only the wrapper differs:
 
 ```js
-// Search wrapper — guarded forEach, re-run after each fix_links()
-document.querySelectorAll(".hr-overlay-search .hr-form").forEach(function (form) {
+// Search wrapper — guarded forEach, re-run after each fix_links(); the selector is the shop's own form
+document.querySelectorAll(".hr-overlay-search form.js-product-form").forEach(function (form) {
     if (form.dataset.hrBound) return;          // idempotent
     form.dataset.hrBound = "true";
     form.addEventListener("submit", onSubmit); // onSubmit = the platform cart call
@@ -78,8 +78,11 @@ document.querySelectorAll(".hr-overlay-search .hr-form").forEach(function (form)
 
 ```js
 // Recom wrapper — delegated, clone-safe (loop: true)
-$(document).on("submit", "#hello-retail-{{ key }} .hr-form", onSubmit);
+$(document).on("submit", "#hello-retail-{{ key }} form.js-product-form", onSubmit);
 ```
+
+Before binding anything, click a rendered tile's button for real: custom elements (`<product-form>`,
+`is="…"`) and themes with their own rebind logic often work with no code from us.
 
 ## Related
 
@@ -91,3 +94,4 @@ $(document).on("submit", "#hello-retail-{{ key }} .hr-form", onSubmit);
 ## Timeline
 - 2026-05-21: Category created to consolidate cross-cutting cart-integration patterns.
 - 2026-09-14: Moved here from `cheat-sheets/add-to-cart/README.md` to sit with the platform pages; the per-platform cheat-sheet copies were merged into `platforms/<platform>/add-to-cart.md`. Corrected the Viskan row — the recipe is a delegated click handler with a stepper, not an `.hr-form` submit binding — and added the DanDomain, BigCommerce and Wikinggruppen rows.
+- 2026-09-23: The tile carries the shop's own form, never a Hello Retail one; selectors now name the copied theme form first and the legacy `.hr-form` / `.aw-buy-form` classes only for reading older designs.
