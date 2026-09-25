@@ -25,7 +25,7 @@ Answer Hello Retail questions **wiki-first** from the bundled copy at `${CLAUDE_
 | Acronym / jargon | `glossary/glossary.md` |
 | Platform-specific install nuance | `platforms/platforms.md` |
 | Reusable code snippets (feature × platform) | `cheat-sheets/` |
-| Search base files (Liquid/CSS/JS) | `base-templates/base-templates.md` |
+| Where a Search design (Liquid/CSS/JS) comes from — Hello Retail's system supplies it when a new search is created; the wiki keeps no copy | `base-templates/search/README.md` |
 | Why does search return these products? Boosts, synonyms, query rules | `features/search/search-relevance.md` |
 | Is my change live yet? What needs a re-index? | `onboarding/when-changes-go-live.md` |
 | Who changed this config? Why is the integration failing or slow? | `support-knowledge/diagnostics.md` |
