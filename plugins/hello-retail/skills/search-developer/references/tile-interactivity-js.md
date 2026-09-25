@@ -58,10 +58,10 @@ only works if `window.QuickAddModal` (or whatever global/function you're checkin
 
 HR re-renders the product grid on every search, filter change, and infinite-scroll append. Each render ends with a call to **`fix_links`** — that is the "tiles are now in the DOM" signal you hook into:
 
-| Variant | `fix_links` call-sites (base files) |
+| Variant | `fix_links` call-sites (`initializationCode` of the attached design; line numbers approximate — grep `fix_links(`) |
 |---|---|
-| desktop-overlay | initial render (~L113) + end of `load_more_results` (~L326) |
-| desktop-embedded | initial render (~L121) + end of `load_more_results` (~L345) |
+| desktop-overlay | initial render (~L113) + end of `load_more_results` (~L330) |
+| desktop-embedded | initial render (~L121) + end of `load_more_results` (~L349) |
 | mobile-overlay | initial render (~L182) + end of `load_more_results` (~L497) — note it's `ui_utility_vanilla.fix_links` |
 
 So, two steps:

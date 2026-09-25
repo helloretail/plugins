@@ -60,23 +60,23 @@ Replace the `trigger_selector` line in **every variant** the operator asked you 
 For example, for a Shopify Dawn customer with a header predictive-search input plus a separate mobile drawer input:
 
 ```js
-// desktop-overlay/search.js
+// desktop-overlay initializationCode
 /* text */ var trigger_selector = "header predictive-search input[type='search']";
 
-// desktop-embedded/search.js  (if requested)
+// desktop-embedded initializationCode  (if requested)
 /* text */ var trigger_selector = "header predictive-search input[type='search']";
 
-// mobile-overlay/search.js
+// mobile-overlay initializationCode
 /* text */ var trigger_selector = "header predictive-search input[type='search'], .mobile-nav input[type='search']";
 ```
 
 For a Magento Luma customer:
 
 ```js
-// desktop-overlay/search.js
+// desktop-overlay initializationCode
 /* text */ var trigger_selector = "#search_mini_form input#search";
 
-// mobile-overlay/search.js
+// mobile-overlay initializationCode
 /* text */ var trigger_selector = "#search_mini_form input#search, .nav-sections-item-content input#search";
 ```
 
