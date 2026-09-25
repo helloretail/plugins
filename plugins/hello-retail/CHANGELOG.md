@@ -10,6 +10,134 @@ fragments into the version it publishes.
 
 ## Unreleased
 
+## 1.21.0 — 2026-09-25
+
+### Changed
+
+- `search-developer` and `pages-developer` put any inputs they add for a customer (e.g. an editable tile text) in their own English-named section below the base template's inputs, with English names, so customer additions are easy to tell apart from the base.
+
+## 1.20.0 — 2026-09-25
+
+### Added
+
+- `tile-extractor` now checks its own work before handing the tile over: for every surveyed state it renders a preview with the shop's own values, places it beside the shop's tile with the parent hooks applied, screenshots the pair on desktop and at phone width, and judges it by eye. Every difference is classified as a markup deviation to fix, a parent hook to report, or a shell-side rule to report; writing CSS is never an option. The verdicts come back in a new FIDELITY response section.
+
+### Changed
+
+- `search-qa`, `recom-qa` and `pages-qa` now fail a tile that is a Hello Retail skeleton restyled to look like the shop's card, a Hello Retail wrapper or class inside the tile, or a Hello Retail form in place of the shop's own form, even when it looks right.
+- `hello-retail-knowledge` answers tile-styling questions from the rewritten "Tile fidelity" page: the copy is the fix, parent hooks restore the theme's reach, shells make only their sanctioned edits, and the computed-style diff is a diagnostic rather than a source of CSS. The Lightspeed parity block and the Shopify option that placed a Hello Retail form inside the tile are retired.
+- The Search base templates and the knowledge base say exactly where the customer's tile goes: it replaces the whole default tile element in the else branch of the banner check, with no placeholder or marker to look for. The recom base stylesheet's slot comment now says the slot stays empty.
+- `recom-developer` asks the tile skill for `target surface = recom`, so fixed texts such as "Add to cart" arrive as `{% input %}` blocks that become dashboard fields, and the hand-off lists them for the operator to fill per domain. It consumes the tile skill's FIDELITY section and cell-level hooks, binds Shopify's copied theme form instead of a Hello Retail form, and checks the pushed tile by eye next to the shop's own tile on desktop and at phone width.
+- `pages-developer` consumes the tile skill's FIDELITY section and cell-level hooks, keeps the design's own wrapper as the cell, and checks the pushed tile by eye next to the shop's own tile before QA.
+- `search-developer` replaces the base design's whole default tile element with the customer's copied tile, so no Hello Retail tile markup reaches a pushed design. It also mirrors the tile skill's cell-level hooks onto the result cell, scope classes only.
+- `search-developer` verifies the pushed tile by eye next to the shop's own tile on desktop and at phone width. A difference goes back to the tile skill, becomes a mirrored hook, or is a sanctioned shell edit or the theme's own rule restated, never a CSS rule that re-creates the look. The computed-style diff is a diagnostic only, and a blocked stylesheet is fetched to read the rule.
+- `search-developer` consumes the tile skill's FIDELITY, BINDINGS and TEXT INPUTS sections, appends a copy of the customer's CSS only on a proven non-global-CSS shop after the operator answered the global-CSS question, and binds Shopify's copied theme form instead of a Hello Retail form.
+
+## 1.19.0 — 2026-09-25
+
+### Added
+
+- `recom-developer` checks whether the shop's own sliders scroll with the mouse wheel and, if they do, asks whether to enable the same on the Hello Retail recoms. On a yes it applies the team method: Swiper 11.2.8, the `swiper` root class and `mousewheel: true`, mirroring the shop's `forceToAxis` setting.
+- `recom-qa` checks that the recom box scrolls with the mouse wheel when the shop's own slider does, and reports a mismatch as a warning for the operator to decide.
+
+### Fixed
+
+- `recom-developer` and the base recom template pin Swiper `"11.2.8"`, the Swiper 11 build Hello Retail serves, instead of `"11.2.10"`, which it does not.
+
+## 1.18.0 — 2026-09-25
+
+### Added
+
+- `hello-retail-knowledge` now covers Starweb product feeds: `price` comes from `activePriceExVat` (the price in force, including scheduled prices) instead of `specialPriceIncVat`, with a ready V2 helper and the V1 selector.
+- `hello-retail-knowledge` now explains how to show Starweb product labels and boost variants on Hello Retail tiles, which the feed doesn't carry, with a script that fetches them from the shop for Search, Recommendations and Pages.
+
+### Changed
+
+- `feed-setup` maps `price` on Starweb feeds from `activePriceExVat`, so scheduled prices show up correctly.
+- `feed-migration` moves Starweb V1 price lines that read only `specialPriceIncVat` to `activePriceExVat`, and says so in its summary.
+- `tile-extractor` no longer reports Starweb labels as missing feed data. It checks which of Starweb's storefront endpoints the shop has, and hands over only the matching labels and boost-variant code for the surface being built.
+
+## 1.17.0 — 2026-09-24
+
+### Added
+
+- `pages-developer` sets up Pages for API use, where the customer's own frontend renders the products. It indexes the fields the caller filters on, configures design filters and sorting to match the storefront, and leaves the page config without product conditions, with no template work.
+
+### Changed
+
+- `pages-developer` establishes the integration mode (client-side, API with HTML, API with JSON) before touching a design, and warns that an INPUT product filter makes its value mandatory, so requests that don't send that field fail.
+- `pages-developer` names new designs after the domain alone (`<domain>`, or `<domain> (API)` for API setups), without "Pages", since a Pages design only exists in Pages.
+- `hello-retail-knowledge` and the skills that read the Viskan platform notes now include `categoryUUID` for Viskan NG shops: the feed maps it, it gets indexed with the `_id` fields, and it is added as a filter. Streamline shops are unchanged.
+- `hello-retail-knowledge` describes the Search setup for Viskan shops that call the Search API themselves: a config without a design, the same filters and sorting as Pages, and a category engine when a category feed exists.
+
+## 1.16.0 — 2026-09-24
+
+### Added
+
+- `hello-retail-knowledge` now answers how to show multi-currency and customer-unique prices on Starweb shops with Starweb's `dynamicPriceHandler25`: why to use it over the older default `dynamicPriceHandler`, getting Starweb to activate it, the tile price markup, the SKU feed mapping, where to call it in Search, Recommendations and Pages, and how to report handler rendering bugs to Starweb using the Starweb test shop.
+
+### Changed
+
+- `search-developer`, `recom-developer` and `pages-developer` now ask, on Starweb shops, whether the shop has customer-unique prices, several currencies or other price quirks. A yes builds the tile prices on Starweb's dynamicPriceHandler; a no keeps prices as usual.
+- `tile-extractor` flags the same question on Starweb shops when the calling skill hasn't answered it, and builds prices as usual until it is.
+
+## 1.15.2 — 2026-09-24
+
+### Added
+
+- `feed-setup`'s Shopify reference now covers the legacy feed helper (`shopify/products.py`, no
+  `V2/`): how to recognise it, its payload shape, and its `<namespace>_<key>` metafield keys.
+  It also says plainly that new feeds are set up only on V2.
+- The search relevance wiki page explains how to make a value searchable. Only the fields in
+  `availableStepFields` can be weighted, and `extraData` is not one of them, so values like
+  MPNs, EANs and variant SKUs go into `keywords` through the feed.
+
+### Changed
+
+- `support-debugging`'s capability matrix says how to test a search query: send it to
+  `serve/search` from the storefront page. Replaying `partnerSearch` returns only the design
+  shell, and a shop's `/search` page may not be Hello Retail's.
+
+## 1.15.1 — 2026-09-23
+
+### Changed
+
+- `hello-retail-knowledge` and every skill that reads the Viskan platform notes now use one Viskan page that covers both storefronts, Streamline and NG (Next.js). It says how to tell the two apart, which features are API integrations on each, and how to set up Pages for API use.
+- `tile-extractor` tells the two Viskan storefronts apart: `window.viskan` means Viskan, and `window._streamline` decides Streamline versus NG. NG shops were previously not recognised as Viskan at all.
+- `customer-handoff` records Viskan as one platform with the flavour `Streamline` or `NG`, instead of the single value `Viskan Streamline`.
+
+## 1.15.0 — 2026-09-23
+
+### Added
+
+- `tile-extractor` builds the Liquid by substitution instead of hand-editing the copied HTML. It diffs two normal tiles and the sale, sold-out and badge tiles to find which values are dynamic and which markup is a state branch, emits a tokenised skeleton, and a bundled script fills in the mapping table and refuses to produce a template while a token is unbound or an element was added or removed. The table is returned as a new BINDINGS section.
+
+### Changed
+
+- `tile-extractor` running in the background may now write its working files to the session scratch folder; it still writes nothing into the repository or the plugin.
+
+## 1.14.0 — 2026-09-23
+
+### Changed
+
+- `tile-extractor` no longer allows anything of Hello Retail inside the tile: no `hr-*` class, no Hello Retail form or wrapper. The customer's card replaces the base design's default tile element, and the only addition is the cart-tracking call on the buy button. Shopify tiles copy the shop's own add-to-cart form; the older Hello Retail form option is retired.
+- `tile-extractor` copies badges verbatim again and no longer adds inline padding to them, because the Search shell deletes the overlay reset that made it necessary.
+- `tile-extractor` treats shops whose CSS is not global (CSS-in-JS) differently: it proves it with two checks, asks the operator whether the customer can make the CSS global, and only then copies the customer's own rules into the CSS block instead of reconstructing styles.
+- `tile-extractor` binds every image candidate, including `<picture>` sources, to the feed image and asks whether the customer can supply sized images when the native tile serves several sizes. It keeps custom elements as they are, normalises the few classes that mean "not loaded yet", and checks the mobile markup, reporting a JavaScript-swapped mobile DOM instead of building a second tile.
+- `tile-extractor` copies fixed texts as they appear on the surveyed page. For Recom designs each fixed text becomes a dashboard input, listed under a new TEXT INPUTS response section.
+
+### Removed
+
+- `tile-extractor` no longer accepts `newsletter` as a target surface; newsletter and triggered-email tiles are a separate feature with their own skills.
+
+## 1.13.0 — 2026-09-23
+
+### Changed
+
+- `tile-extractor` now copies the customer's tile as real HTML on Playwright instead of rebuilding it from a list of nodes, so the markup it hands over is byte-faithful. The node walk remains only for the Claude in Chrome fallback.
+- `tile-extractor` removes attributes injected by browser extensions and security tools by provenance, using a known list plus anything stamped on nearly every element of the page, and reports what it removed. Attributes the site authored are never touched.
+- `tile-extractor` picks the product card as the tile root and drops the customer's grid cell, strips width and position classes from the root because the shell owns the width, and keeps an `<li>` root as an `<li>` with the bullet hidden inline.
+
 ## 1.12.3 — 2026-09-23
 
 Maintenance release — no user-visible changes.

@@ -1,13 +1,13 @@
 ---
 source: field
-verified: 2026-09-15
+verified: 2026-09-25
 ---
 
 # Foundation rules — extend the base, never rewrite it
 
 > **The rule:** unless the operator explicitly tells you to, **do not rewrite the existing CSS, Liquid/HTML, or JS foundation** of a base template. Add on top of it. If the request genuinely can't be satisfied without altering the foundation, **stop and ask the operator for approval first** — name what has to change and why, and offer the additive alternative.
 
-This applies to every skill that builds a customer design on top of a default design — whether that design comes from the MCP (every Search variant via `search_createConfig`, Recommendations standard designs via `recoms_listDesigns`) or from the files kept in `docs/wiki/base-templates/` — `search-developer`, `recom-developer`, `triggered-email-developer`, `newsletter-developer` — and to the per-customer designs those skills push back through the `hello-retail` MCP.
+This applies to every skill that builds a customer design on top of a default design — whether that design comes from the MCP (every Search variant via `search_createConfig`, Recommendations standard designs via `recoms_listDesigns`) or from the files kept in `docs/wiki/base-templates/` — `search-developer`, `pages-developer`, `recom-developer`, `triggered-email-developer`, `newsletter-developer` — and to the per-customer designs those skills push back through the `hello-retail` MCP.
 
 ## Why
 
@@ -21,11 +21,32 @@ This applies to every skill that builds a customer design on top of a default de
 
 | Surface | Foundation (read-only by default) | Where your work goes |
 |---|---|---|
-| Search | `search.css` HR scaffold rules + the `{# text/color/boolean … #}` parameter block; everything in `search.liquid` outside the tile slot (the `{% else %}` branch of the banner check) (`captured_filters`, `hr-results`, banner branch, content branch, `hr-close`); the `search.js` scaffold (`open_overlay`/`close_overlay`/`fix_links`/render functions) | The tile slot (the whole `{% else %}` branch, replaced by the customer's tile), parameter **values**, the sanctioned `resultStyles` edits, and selector/interactivity wiring appended in `search.js` |
+| Search | `search.css` HR scaffold rules + the `{# text/color/boolean … #}` parameter block; everything in `search.liquid` outside the tile slot (the `{% else %}` branch of the banner check) (`captured_filters`, `hr-results`, banner branch, content branch, `hr-close`); the `search.js` scaffold (`open_overlay`/`close_overlay`/`fix_links`/render functions) | The tile slot (the whole `{% else %}` branch, replaced by the customer's tile), parameter **values**, new customer inputs in their own section ([below](#adding-customer-specific-inputs)), the sanctioned `resultStyles` edits, and selector/interactivity wiring appended in `search.js` |
 | Recommendations | `recom.css` scaffold; the swiper scaffold + init structure in `recom.liquid`; the banner branch | The `{{ TILE_BODY }}` slot, `breakpoints`/version/`loop` tuning, the `afterInit` hook, delegated handlers |
 | Triggered emails / newsletter | The parameter block, the section skeleton (which sections exist, related-products, `{% break %}`, voucher, `cart_url`), and the variable names | Styling of the existing sections and the product-tile content — restyle, don't restructure |
 
 Parameter **tokens** are foundation; parameter **values** are yours. Change `{# text product_tile_width = "214" #}` to `"290"` — never rename or delete the token.
+
+## Adding customer-specific inputs
+
+A customer design sometimes needs inputs the base doesn't have. For example, when replicating a shop's tile you may make an element's text editable in the design editor. Search and Pages declare their inputs as `{# text/boolean/color/number/choice … #}` lines. Keep new ones apart from the base's:
+
+1. **Put them in a new section** directly below the **last** base declaration, in the field that uses them (`resultTemplate` for markup, `resultStyles` for CSS). Leave **one empty line** between the last base declaration and the new `{# section … #}` line, so anyone can see where the base ends and the customer additions begin.
+2. **Name the section after its context**, in English, written like the base's own sections (`General`, `Colors`, `Texts`): `{# section Product tile #}`, `{# section Campaign banner #}`. One section per context; add to it rather than opening a second one for the same thing.
+3. **Name each input after its role, in English and snake_case**: what the element is, not what it currently says, e.g. `tile_badge_new_text`, `tile_usp_text`, `tile_sold_out_label`. The **value** is the customer's own text in the shop's language; only the name is English. Check the name isn't already declared anywhere in the design.
+4. **Never mix them into the base block.** Don't insert customer inputs between base declarations, and don't move base declarations into your section.
+
+```liquid
+{# boolean product_grid_layout = false #}
+
+{# section Product tile #}
+{# text tile_badge_new_text = "Nyhet" #}
+{# text tile_usp_text = "Fri frakt" #}
+```
+
+JavaScript can't read these inputs. When a script needs one, render it into a `data-*` attribute on a wrapper element and read it from there (`search-developer` → `references/layout-options.md` has a worked example).
+
+Recommendation designs are different: fixed texts become inline `{% input … %}` blocks in the tile, not a declarations block, so this section doesn't apply to them.
 
 ## How to extend instead
 
@@ -51,6 +72,7 @@ Edits already sanctioned by a skill (documented in its `references/`) don't need
 
 - [ ] **Diff against the base, not just against your intent.** Every base selector/rule/function present before your edit is still present, byte-identical unless it's on the sanctioned list.
 - [ ] Your changes read as **additions at the end** plus token-value changes — not as a rewritten file.
+- [ ] Any customer-specific inputs sit in their own English-named `{# section … #}`, one empty line below the last base declaration, with English role-based names.
 - [ ] **No chrome CSS deleted:** filters, filter dropdowns, selected-filter counts, range slider, sorting, results header/subtitle, content column, close button, animations, mobile tabs, breakpoints.
 - [ ] **Rendered chrome QA** with filters and sorting actually configured: open a filter dropdown, select a value, check the count badge and clear-filters button, drag the price slider, switch sorting. Filter markup renders from `captured_filters` + JS, so an unconfigured design never shows it — configure first, then look.
 - [ ] Any foundation change that survived is one the operator explicitly approved, and the diff says so.

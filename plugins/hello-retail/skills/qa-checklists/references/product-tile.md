@@ -341,7 +341,7 @@ functionality instead: click-through, PDP-price parity, CTA/ATC, translations
   not support wishlist / favourite buttons on Viskan; HR tiles ship without the native star by
   design even though every native tile carries one. "Missing / not set up" is ACCEPTED there
   (platform named), never FAIL/WARN, and the rest of this block is N/A. →
-  `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan-streamline/README.md`
+  `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan/README.md`
 - [ ] Missing / not set up
 - [ ] Not working (our tiles don't remember products that have been added to the wishlist)
 - [ ] Tooltip: text is not shown in our tiles

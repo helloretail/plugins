@@ -359,7 +359,8 @@ Read the relevant file before writing transformation code:
 - **WooCommerce** (`?feed=hello_retail_feed`) → `references/woocommerce.md`
 - **PrestaShop** (`/modules/addwish/productfeed.php`) → `references/prestashop.md`
 - **Shopify** (`feed-helper.addwish.com/shopify/V2/products.py`) → `references/shopify.md`
-- **Viskan / Streamline** (v1 / v2 / v3 product feeds) → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan-streamline/feeds.md` — feed **parameters** only, no transform template. Read it before building: v3 takes `countryId` / `languageId` that Viskan or the customer has to provide, plus `splitByAttribute1` (`true` = each colour is its own product), `includeRelatedArticles` and `includeRootCategories`; **v3 pagination starts on page 1 while v1/v2 start on page 0**.
+- **Viskan / Streamline** (v1 / v2 / v3 product feeds) → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan/feeds.md` — feed **parameters** only, no transform template. Read it before building: v3 takes `countryId` / `languageId` that Viskan or the customer has to provide, plus `splitByAttribute1` (`true` = each colour is its own product), `includeRelatedArticles` and `includeRootCategories`; **v3 pagination starts on page 1 while v1/v2 start on page 0**.
+- **Starweb** → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/feeds.md` — map `price` from the default price list's `activePriceExVat` plus VAT (`usedVatRate`), falling back to `specialPriceIncVat`; the page has the `getActivePrice` helper. `specialPriceIncVat` alone misses scheduled prices. Check which price list is the default (usually `1`).
 
 If the platform is unknown, inspect the feed structure and infer the patterns from what
 you see. Document your findings in a comment at the top of the transform.
