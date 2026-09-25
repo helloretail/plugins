@@ -10,6 +10,23 @@ fragments into the version it publishes.
 
 ## Unreleased
 
+## 1.20.0 — 2026-09-25
+
+### Added
+
+- `tile-extractor` now checks its own work before handing the tile over: for every surveyed state it renders a preview with the shop's own values, places it beside the shop's tile with the parent hooks applied, screenshots the pair on desktop and at phone width, and judges it by eye. Every difference is classified as a markup deviation to fix, a parent hook to report, or a shell-side rule to report; writing CSS is never an option. The verdicts come back in a new FIDELITY response section.
+
+### Changed
+
+- `search-qa`, `recom-qa` and `pages-qa` now fail a tile that is a Hello Retail skeleton restyled to look like the shop's card, a Hello Retail wrapper or class inside the tile, or a Hello Retail form in place of the shop's own form, even when it looks right.
+- `hello-retail-knowledge` answers tile-styling questions from the rewritten "Tile fidelity" page: the copy is the fix, parent hooks restore the theme's reach, shells make only their sanctioned edits, and the computed-style diff is a diagnostic rather than a source of CSS. The Lightspeed parity block and the Shopify option that placed a Hello Retail form inside the tile are retired.
+- The Search base templates and the knowledge base say exactly where the customer's tile goes: it replaces the whole default tile element in the else branch of the banner check, with no placeholder or marker to look for. The recom base stylesheet's slot comment now says the slot stays empty.
+- `recom-developer` asks the tile skill for `target surface = recom`, so fixed texts such as "Add to cart" arrive as `{% input %}` blocks that become dashboard fields, and the hand-off lists them for the operator to fill per domain. It consumes the tile skill's FIDELITY section and cell-level hooks, binds Shopify's copied theme form instead of a Hello Retail form, and checks the pushed tile by eye next to the shop's own tile on desktop and at phone width.
+- `pages-developer` consumes the tile skill's FIDELITY section and cell-level hooks, keeps the design's own wrapper as the cell, and checks the pushed tile by eye next to the shop's own tile before QA.
+- `search-developer` replaces the base design's whole default tile element with the customer's copied tile, so no Hello Retail tile markup reaches a pushed design. It also mirrors the tile skill's cell-level hooks onto the result cell, scope classes only.
+- `search-developer` verifies the pushed tile by eye next to the shop's own tile on desktop and at phone width. A difference goes back to the tile skill, becomes a mirrored hook, or is a sanctioned shell edit or the theme's own rule restated, never a CSS rule that re-creates the look. The computed-style diff is a diagnostic only, and a blocked stylesheet is fetched to read the rule.
+- `search-developer` consumes the tile skill's FIDELITY, BINDINGS and TEXT INPUTS sections, appends a copy of the customer's CSS only on a proven non-global-CSS shop after the operator answered the global-CSS question, and binds Shopify's copied theme form instead of a Hello Retail form.
+
 ## 1.19.0 — 2026-09-25
 
 ### Added
