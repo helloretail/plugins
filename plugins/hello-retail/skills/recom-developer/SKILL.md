@@ -86,6 +86,7 @@ Also survey the **box-shell context** on the page type the box will live on (the
 - **Content width** — how sibling sections constrain their width. Usually a theme container utility class (max-width + responsive padding); note its class name — you reuse it on `#hello-retail-{{ key }}` in Step 4 so the box aligns with the page instead of rendering full-bleed.
 - **Section headings** — the theme's native section-heading classes/computed size, for the box `<h2>`.
 - **Native carousel nav at mobile widths** — most themes hide carousel arrows below a breakpoint and rely on swipe; note the breakpoint so your arrows match. → `references/slider-structure.md`
+- **Mouse-wheel scroll on the shop's own sliders** — on the homepage / a PDP, run the detection snippet: does any customer slider scroll sideways with the mouse wheel (Swiper / Splide `mousewheel` on)? **If yes, ask the operator whether to enable it on the HR recoms too**, before Step 4 — never enable it unasked. If no, don't ask. → `references/slider-structure.md` → *Mouse-wheel scroll*
 
 ### Step 3 — Get the product tile from the tile skill
 
@@ -97,6 +98,7 @@ Using the base template (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/recoms/
 
 - **Slot placement** — drop the tile into the non-banner `{{ TILE_BODY }}` slot, **inside** the base's existing `<div class="hr-product">` (generate the *contents*, not a second wrapper). Never touch the banner branch. → **`references/slider-structure.md`**
 - **Swiper init** — keep the `_.util.swiper_slider(...)` scaffold; tune only `breakpoints` / version / `loop` if the tile width demands it, and add the `on: { afterInit }` ATC hook. → **`references/slider-structure.md`**
+- **Mouse-wheel scroll** — only if the operator said yes in Step 2: Swiper version ≥ 11 (`"11.2.10"`), root class `swiper-container` → `swiper`, and `mousewheel: true` (or `{ forceToAxis: true }` when the customer's slider has it). → `references/slider-structure.md` → *Mouse-wheel scroll*
 - **Add-to-cart JS wiring** — define the platform cart function, triggered from `afterInit` (clones exist by then) and/or via delegated handlers; scoped to the slider root, idempotent. → **`references/add-to-cart-js.md`**
 - **Banner** — replace `BANNER_SIZE_NAME_PLACEHOLDER` with `banner-size-name` if supplied; else leave it and flag in MISSING DATA. Never edit the banner markup.
 - **Box-shell parity** — apply the Step 2 shell findings: add the theme's content-width container class to `#hello-retail-{{ key }}` (the box must align with sibling sections, never full-bleed unless the page is), and give the `<h2>` headline the theme's native section-heading classes so it matches the page's other section titles. → `references/slider-structure.md`
@@ -181,6 +183,7 @@ Report, then a diff — never full files unprompted (unless in the no-MCP inline
 - Platform: <Shopify | Magento | …> (inferred from <signal>)
 - Locale: <locale> (confirmed via website_getInfo) → tile copy localized by the tile skill
 - Banner size: <name supplied → substituted | NOT supplied — placeholder left, see MISSING DATA>
+- Mouse-wheel scroll: <not on the shop's sliders | on (<slider>) — operator said yes → enabled | operator said no>
 
 ### Variations detected
 - (carried from the tile skill: sale, sold-out, swatches, hover image, ratings, ATC …)
@@ -203,7 +206,7 @@ Then **wait for explicit approval** → push (Step 7) → remind the operator to
 4. **Never write to `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/`** — team-canonical.
 5. **Never touch the banner branch** (`{% if product.isBanner == true %}`) — Retail Media markup. Edit only the non-banner `{{ TILE_BODY }}` slot, inside the existing `<div class="hr-product">`. → `references/slider-structure.md`
 6. **`{{ CUSTOM_STYLING_BLOCK }}` stays empty** — the slider is injected into the live page, so the customer's theme CSS styles the tile. Flag genuine styling gaps in NOTES; don't author CSS. Two narrow exceptions: (a) a **complete native card tile** may require removing the base `.hr-product` wrapper/rule and setting `spaceBetween` — scaffold cleanup, not tile CSS; (b) **theme rules that provably can't reach the slider** because they're ancestor-scoped (`.main-products-grid …`) or media-scoped may be **restated verbatim, rescoped to `#hello-retail-{{ key }}`** — copy the values from the theme or the site's Search design, never invent them. → `references/slider-structure.md`
-7. **Leave the swiper scaffold + init untouched** except intentional `breakpoints` / version / `loop` tuning and the `on: { afterInit }` ATC hook. → `references/slider-structure.md`
+7. **Leave the swiper scaffold + init untouched** except intentional `breakpoints` / version / `loop` tuning, the `on: { afterInit }` ATC hook, and — only after the operator said yes — mouse-wheel scroll (`mousewheel: true`, Swiper 11, root class `swiper`). → `references/slider-structure.md`
 8. **Slider clones slides (`loop: true`).** Swatch/ATC click handlers **delegate from `document`**; form-level ATC init runs from `afterInit`, scoped + idempotent. Never rely on unique `id`s inside the tile. → `references/slider-structure.md`, `references/add-to-cart-js.md`
 9. **Wire add-to-cart for the inferred platform** — Shopify / Magento / Shopware / Starweb. Undocumented platform → leave the form unbound, note in MISSING DATA. → `references/add-to-cart-js.md`
 10. **Tile survey: Playwright MCP (Claude in Chrome is the fallback when Playwright isn't available) — never `WebFetch`/`curl`.** If no browser MCP is available, ask the operator to paste the tile HTML from DevTools. Use the canonical pagination grid, never a recom widget or existing HR slider.
@@ -228,6 +231,7 @@ Then **wait for explicit approval** → push (Step 7) → remind the operator to
 
 - [ ] **Foundation intact.** `templateCode` / `templateStyles` modified **in place** — not regenerated, reformatted, or reordered; no base rule, scaffold element, or parameter token deleted or renamed. Any foundation change was explicitly approved by the operator and is called out in the diff. → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md`
 - [ ] Swiper scaffold + init untouched except intentional `breakpoints` / version / `loop` tuning and the `on: { afterInit }` ATC hook.
+- [ ] Shop's own sliders checked for mouse-wheel scroll; if on, the operator was asked. `mousewheel` added only on a yes — with Swiper ≥ 11 and root class `swiper`, called out in the diff, and checked by wheel on the rendered draft.
 - [ ] Swatch/ATC click handlers delegated from `document`; form-level ATC init runs from `afterInit`, scoped to the slider root, idempotent (`data-*` guard). Unsupported platform: form emitted, cart left unbound, MISSING DATA line.
 - [ ] `BANNER_SIZE_NAME_PLACEHOLDER` substituted or flagged. `{{ CUSTOM_STYLING_BLOCK }}` empty — any CSS added falls under a Hard-rule-6 exception (scoping workaround with values copied from theme/Search, or native-card scaffold cleanup) and is called out in the diff.
 - [ ] Box-shell parity applied: theme container class on `#hello-retail-{{ key }}`, native section-heading classes on the `<h2>`, arrows match native carousel behaviour at mobile widths.

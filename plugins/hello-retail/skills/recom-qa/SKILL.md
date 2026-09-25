@@ -798,6 +798,9 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       automation's drag tool (e.g. Playwright `browser_drag` across the slider) — when no
       drag/touch emulation is available, record SKIPPED → operator device check, never
       silently omit
+- [ ] **Mouse-wheel scroll matches the shop** — if the shop's own slider scrolls sideways with
+      the mouse wheel, hover the HR box and scroll: it moves too when the design has
+      `mousewheel` on; when it doesn't, WARN → operator decision (mirroring it is opt-in), never FAIL
 - [ ] **Loop** — loops correctly, or stops cleanly at the ends if loop is off
 - [ ] **No empty slide at end** — last page fills completely
 - [ ] **Inter-tile gap matches native** — the gap comes from EITHER the scaffold `.hr-product`

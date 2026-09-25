@@ -63,7 +63,7 @@ Keep the `_.util.swiper_slider(...)` call. You may adjust:
 - **`breakpoints`** — slides-per-view per width. Swiper breakpoints are **min-width**: the top-level `slidesPerView` governs the smallest range, then each breakpoint overrides upward. Confirm tiles-per-view against the **storefront's own category-grid column count** rather than guessing, and prefer real device widths. Sensible default: base `slidesPerView: 2` (0–767), `768 → 3`, `1024 → 4`. Fractional values (`2.33`, `5.5`) are the standard way to match a storefront scroll-carousel's partial "peek" tile — measure the native carousel (container width ÷ tile pitch), not the paginated grid, when the box replaces a carousel;
 - **version** — the first argument (e.g. `"11.2.10"`), if a newer Swiper is needed. A design copied from HR's standard designs may ship an older pin (e.g. `"6.5.6"`) than the base template documents — modify-in-place means you **keep the copy's version** unless you're upgrading deliberately, in which case say so in the diff;
 - **`loop`** — usually `true`; set `false` if the tile can't tolerate clones (see the gotcha below) — and **always `false` with `cssMode`**;
-- **`cssMode: true`** — use when the storefront's own carousels are native scroll containers (trackpad/wheel scrollable, often arrow-less — Shopify Dawn-family "slider" sections). The wrapper becomes a real `overflow-x: auto` + `scroll-snap` container, matching native scroll behaviour exactly without hijacking vertical page scroll (prefer this over the `mousewheel: true` module, which needs `forceToAxis: true` to avoid that hijack). Needs v8+ markup (root `class="swiper"`). Requires `loop: false`; kills the clone gotchas but the row stops at the last product — with a fractional `slidesPerView` make sure the box returns enough products to fill (dashboard: product count / fallback strategy), and usually hide the `swiper-button-*` arrows to match. Field-verified: store-SE-2, store-D. → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/recoms/general.md` § "Mousewheel / touchpad horizontal scroll";
+- **`cssMode: true`** — use when the storefront's own carousels are native scroll containers (trackpad/wheel scrollable, often arrow-less — Shopify Dawn-family "slider" sections). The wrapper becomes a real `overflow-x: auto` + `scroll-snap` container, matching native scroll behaviour exactly without hijacking vertical page scroll. This is the route for *native scroll-container* carousels; when the customer's slider instead runs Swiper's (or Splide's) mouse-wheel module, mirror that with `mousewheel: true` — see *Mouse-wheel scroll* below. The two don't combine: Swiper ignores `mousewheel` under `cssMode`. Needs v8+ markup (root `class="swiper"`). Requires `loop: false`; kills the clone gotchas but the row stops at the last product — with a fractional `slidesPerView` make sure the box returns enough products to fill (dashboard: product count / fallback strategy), and usually hide the `swiper-button-*` arrows to match. Field-verified: store-SE-2, store-D. → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/recoms/general.md` § "Mousewheel / touchpad horizontal scroll";
 - **`spaceBetween`** — the gap between slides. **First check where the gap currently comes from:** the base scaffold's `.hr-product { margin: 10px 5px }` already produces a ~10px inter-tile gap. If you keep the `.hr-product` wrapper, that margin *is* the gap — adding `spaceBetween` on top of it **double-gaps** the slider. Only set `spaceBetween` when you've removed the `.hr-product` wrapper/margin (see the "complete native card tile" exception above), and set it to the measured native grid gap. Hardcode the value, and **omit the key entirely** if detection returns null (don't pass `0`). Run this on the surveyed category page:
 
   ```js
@@ -84,6 +84,7 @@ Keep the `_.util.swiper_slider(...)` call. You may adjust:
 
 - **scoped nav selectors** — point `nextEl` / `prevEl` at `#hello-retail-{{ key }} .swiper-button-next` / `.swiper-button-prev`. The arrow `<div>`s keep the plain `swiper-button-next` / `swiper-button-prev` classes; scoping happens through the unique per-box wrapper id `#hello-retail-{{ key }}`. **Never point `navigation` at bare/unscoped `.swiper-button-next/prev`** — that collides with other Swiper instances on the page (a reviews carousel, another recom box) and the arrows end up driving the wrong slider. Always keep the `#hello-retail-{{ key }}` parent scope;
 - **hidden-container placements (tabs / accordions)** — if the box's placement selector can sit inside a tab panel, accordion, or any container that is `display: none` at init time (theme tab components — e.g. Bricks tabs — collapsible sections), Swiper measures a zero-width container and the slider renders broken (slides stacked or stuck at slide 1) when the tab is later opened. Add `observer: true, observeParents: true` to the options — Swiper then re-measures itself when the container becomes visible. If the theme's tab switcher only toggles classes without DOM mutations and `observer` doesn't fire, fall back to calling `swiper.update()` from a delegated click handler on the tab control. Omit both on placements that are always visible; the observers cost a little and cover nothing there;
+- **`mousewheel: true`** — only when the customer's own slider scrolls with the mouse wheel **and the operator said yes** to mirroring it (see *Mouse-wheel scroll* below);
 - add the **`on: { afterInit }` hook** to trigger add-to-cart init (the one permitted addition).
 
 ```js
@@ -129,6 +130,59 @@ Keep the `_.util.swiper_slider(...)` call. You may adjust:
 6. **Third-party apps that lazily decorate tiles** (wishlist hearts, review badges — often via an IntersectionObserver that binds per element as it scrolls into view) usually work fine with clones without any help from you: each copy gets decorated when *it* becomes visible, so a heart may appear a beat late on a fast swipe. That's known-benign — verify once, note it, and don't burn time "fixing" it.
 
 **afterInit vs delegation, in one line:** DOM-mutation/init that touches each form → `afterInit` (idempotent, scoped to `this.el`); click/change handlers → delegate from `document`.
+
+## Mouse-wheel scroll — mirror the customer's slider, ask first
+
+Some storefronts let the mouse wheel (or a trackpad's vertical swipe) move their product sliders sideways. When the customer's own slider does, the HR box should be able to do the same — but it changes how the page scrolls under the cursor, so it is **the operator's call, never a default**.
+
+**1. Detect (Step 2).** On the pages where the customer's own product sliders live — usually the homepage and a PDP, not the category grid — run this in the browser. It reads the slider library's own config, skipping HR boxes:
+
+```js
+(() => {
+  const own = el => !el.closest('[id^="hello-retail-"], [id^="aw-box-"]');
+  const sel = el => el.id ? '#' + el.id : el.tagName.toLowerCase() + '.' + [...el.classList].slice(0, 3).join('.');
+  const out = [];
+  document.querySelectorAll('.swiper, .swiper-container, swiper-container').forEach(el => {
+    const s = el.swiper;
+    if (!s || !s.params || !own(el)) return;
+    const mw = s.params.mousewheel;
+    out.push({
+      lib: 'swiper', slider: sel(el), version: (window.Swiper && window.Swiper.version) || null,
+      mousewheel: s.mousewheel ? !!s.mousewheel.enabled : (mw === true || !!(mw && mw.enabled)),
+      forceToAxis: !!(mw && mw.forceToAxis), cssMode: !!s.params.cssMode
+    });
+  });
+  document.querySelectorAll('.splide').forEach(el => {
+    const sp = el.splide;
+    if (sp && sp.options && own(el)) out.push({ lib: 'splide', slider: sel(el), mousewheel: !!sp.options.wheel });
+  });
+  return out.length ? out : 'no Swiper/Splide slider found';
+})();
+```
+
+No instance found but the slider looks wheel-scrollable (another library, or the instance isn't on the element)? Hover the slider and scroll the wheel in the Playwright browser: the slider moving while the page stays put means wheel scroll is on. A slider that only moves with a trackpad's *sideways* swipe or shift+wheel is a native scroll container — that's the `cssMode` route above, not this one.
+
+**2. Ask.** When any customer slider reports `mousewheel: true`, ask the operator once, before building the shell (Step 4), naming what you found:
+
+> The shop's own slider `<slider>` on `<page>` scrolls with the mouse wheel. Enable mouse-wheel scroll on the Hello Retail recoms too? (yes / no)
+
+No wheel-scrolling slider → don't ask, change nothing. Running without an operator to answer (as a subagent) → don't enable; put the question under OPEN QUESTIONS.
+
+**3. On "yes" — the team method.** Three changes, all in `templateCode`, all called out in the diff:
+
+1. **Swiper version ≥ 11** — the base template already pins `"11.2.10"`; a design copied from an HR standard design may still pin `"6.5.6"`: bump it to `"11.2.10"`.
+2. **Root class `swiper-container` → `swiper`** on `#slider-{{ key }}` — Swiper 8+ styles and initialises the `.swiper` class. This renames a scaffold class, which Hard rule 1 otherwise forbids — the operator's "yes" to mouse-wheel scroll is the approval; say so in the diff.
+3. **Add `mousewheel: true`** to the `_.util.swiper_slider(...)` options. Mirror the customer's own settings: if their slider reports `forceToAxis: true`, pass `mousewheel: { forceToAxis: true }` instead, so a vertical wheel over the box keeps scrolling the page as it does on theirs.
+
+```js
+_.util.swiper_slider("11.2.10", "#slider-{{ key }}", {
+    loop: true,
+    mousewheel: true,   // mirrors the customer's slider — operator approved
+    // …existing slidesPerView / navigation / breakpoints / on: { afterInit } unchanged
+});
+```
+
+After the push, check it on the rendered draft: hover the box and scroll the wheel — the slides move — then check the arrows, swipe and breakpoints still work on Swiper 11. A box with `cssMode: true` gets no `mousewheel` (Swiper ignores it there). → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/recoms/general.md` § "Mousewheel / touchpad horizontal scroll"
 
 ## Prev/next arrows — match the storefront's native nav
 

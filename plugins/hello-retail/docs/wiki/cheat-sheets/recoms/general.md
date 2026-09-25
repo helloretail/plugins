@@ -80,10 +80,24 @@ _.util.swiper_slider("11.2.10", "#slider-{{ key }}", {
 ```
 
 - **`cssMode: true` is the preferred route** — the wrapper gets `overflow-x: auto` + `scroll-snap-type: x mandatory`, i.e. the *same mechanism* the theme's own carousels use, so trackpad/wheel/touch behaviour matches natively and vertical page scrolling is never hijacked. Field-verified on live HR recoms on two shops.
-- The alternative, Swiper's `mousewheel: true` module, also works but hijacks the wheel while the cursor is over the slider — vertical scrolling stalls there unless you also set `mousewheel: { forceToAxis: true }`. Prefer `cssMode` unless you specifically need mousewheel-module features.
+- `cssMode` is for storefronts whose carousels are native scroll containers. When the customer's own slider instead scrolls with the **mouse wheel** (Swiper/Splide wheel module — the slider moves while the page stays put), mirror it with the mousewheel module — see below. Swiper ignores `mousewheel` under `cssMode`; pick one.
 - `cssMode` requires **`loop: false`**. Upside: no slide clones, so the clone-related event-delegation and duplicate-`id` gotchas disappear. Downside: the slider stops at the last product instead of wrapping — with few products and a fractional `slidesPerView` the row can underfill, so make sure the box returns enough products (fallback strategy / product count in the dashboard).
 - `slidesPerView` accepts fractional values (`2.33`, `5.5`) — the standard way to show a partial "peek" tile matching the storefront's own carousel. Measure the native carousel (container width ÷ tile pitch) rather than guessing.
 - Hiding the `swiper-button-prev/next` arrows entirely (`display: none`) is the usual companion when matching a scroll-carousel storefront — check whether the customer's own carousels show arrows before keeping ours.
+
+**Mouse-wheel scroll (team method).** Only when the customer's own slider scrolls with the wheel, and only after asking the operator — it changes how the page scrolls under the cursor:
+
+1. Swiper version `"11.2.8"` or later (the base template pins `"11.2.10"`; older copies pin `"6.5.6"`).
+2. Root class `swiper-container` → `swiper` (Swiper 8+ markup).
+3. Add `mousewheel: true` to the options — or `mousewheel: { forceToAxis: true }` when the customer's slider has `forceToAxis`, so a vertical wheel over the box keeps scrolling the page.
+
+```javascript
+_.util.swiper_slider("11.2.10", "#slider-{{ key }}", {
+	loop: true,
+	mousewheel: true,
+	/* … */
+});
+```
 
 ---
 
@@ -306,3 +320,4 @@ if (grandTotalNode !== null) {
 - 2026-06-02: Documented Swiper version upgrade via `_.util.swiper_slider(version, selector, options)` — bump the first arg (e.g. `"6.5.6"` → `"11.2.10"`).
 - 2026-08-06: Added Free-Shipping re-run-on-cart-update MutationObserver (AJAX/drawer carts where the total changes without a page reload).
 - 2026-08-20: Added Mousewheel/touchpad-scroll section (from an onboarding): `cssMode: true` (+ `loop: false`) as the preferred native-scroll route, `mousewheel: true` + `forceToAxis` as the alternative; fractional `slidesPerView` for the native "peek" look; arrow-hiding guidance.
+- 2026-09-25: Added the team's mouse-wheel method (Swiper 11 + root class `swiper` + `mousewheel: true`), used when the customer's own slider scrolls with the wheel and the operator opts in; `cssMode` stays the route for native scroll-container carousels.
