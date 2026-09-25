@@ -1,6 +1,6 @@
 ---
 source: field
-verified: 2026-09-15
+verified: 2026-09-25
 ---
 
 # DanDomain & Lightspeed — Add to cart
@@ -36,6 +36,17 @@ otherwise the DanDomain standard form.
 ```
 
 ## ATC form — DanDomain standard (not dmws_perfect)
+
+**The `action` URL, the hidden-input `name` pattern and the product-id field are not fixed
+across DanDomain shops — always take all three from the surveyed tile's own `<form>`, never
+from this snippet.** Two shapes seen in the field: the classic template posts to
+`/kurv/tilfoej/` with `product[<id>][amount]`; the newer AngularJS-driven product-list
+template posts to `/actions/cart/add` with a visible quantity `<input name="product[<id>][amount]">`
+inside the form and a `<button type="submit" name="cartadd">`. The `<id>` the theme uses is
+the DanDomain item number — on the Angular template that is `product.extraData.itemNumber`
+(matches the native `product[1234][amount]` value), not `productId`. Copy the form verbatim per
+the tile-extractor rules and bind only the dynamic values. The snippet below is the classic
+shape, kept as the reference for its Liquid branches:
 
 ```liquid
 <form action="/kurv/tilfoej/" method="post">
