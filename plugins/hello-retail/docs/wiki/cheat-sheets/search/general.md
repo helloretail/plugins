@@ -848,19 +848,20 @@ Call `categoryTextBold()` after results render.
 
 ---
 
-### _Tile CSS parity — an empty CUSTOM_STYLING_BLOCK is a starting point, not the finish_
+### _Tile fidelity — the copy is the fix, CSS is not_
 
-**The trap:** the verbatim-tile approach assumes that because we keep the customer's tile classes/markup byte-for-byte, the customer's own theme CSS will style it inside the HR overlay. **That assumption fails often.** When it does, you ship a tile that looks broken (classic symptom: product **titles wrap one letter per line** because the tile collapsed to ~0 width). Don't trust it — open the overlay, run a real search, and QA the rendered tile before calling an onboarding done.
+**The old trap, and the old answer.** Keeping the customer's tile classes byte-for-byte does not by itself guarantee the theme's CSS styles the tile inside the overlay: the theme often reaches the tile through an ancestor the overlay does not reproduce, and the base `search.css` overrides a few things. The classic symptom is titles wrapping one letter per line because the tile collapsed to no width. Until 2026-09 this section told you to diff computed styles and **write CSS** that set every differing property back. That answer is retired: it produced designs whose tiles were Hello Retail markup restyled to look like the shop — exactly what the tile skill exists to prevent.
 
-**Why it fails (two recurring causes):**
+**The current answer — three causes, three fixes, none of them CSS you write:**
 
-1. **The theme styles the tile via an ancestor that the HR overlay doesn't reproduce.** Most grids put column width on the *grid item* (`ul.products > li`, `.list-collection > .data-product`, `.collection-product …`) using a direct-child relationship or a section-scoped ancestor. HR wraps every result in `.hr-search-overlay-product` and renders inside `.hr-products-container` — so the customer tile is no longer the grid item / no longer under that ancestor, and the width/layout rules never match. → Put the column width on `.hr-search-overlay-product` (make it `display:block`) and give the tile `width:100%`. If the theme rule is `.<section> .tile {…}`, add `<section>` to `.hr-products-container` (e.g. a theme that scopes its tile rules under a `.collection-product` ancestor).
-2. **HR's base `search.css` overrides the theme.** It commonly forces, inside `.hr-overlay-search`: `text-align:center`, a fixed product-image height, `list-style`/padding resets (which kill or expose `::before`/`::after` dividers), and `display:flex` + padding on buy buttons. Your overrides usually need `!important` **and** sometimes a deeper selector (e.g. `footer.extra form button.cart-form-submit`) to win the cascade.
+1. **The tile was not copied faithfully** — a root class that also styled the card was stripped, the wrong element was taken as the root, a state-only element or class went missing. Fix it in the tile: `tile-extractor` copies the tile as real HTML, binds it by table, and runs a visual fidelity check before hand-over (its FIDELITY section says what it found). A shell never patches a tile problem with CSS.
+2. **The theme's rule needs an ancestor the overlay lacks** — most grids put width, gutters and hover rules on a section wrapper or the grid item. The tile skill reports them as PARENT HOOKS (products-container and cell-level); the shell mirrors those classes onto `hr-products-container` and its cell. That restores the theme's own reach; it authors nothing.
+3. **The overlay's own base CSS overrides the theme** — `text-align: center` at the root, the tile-fill sizing, the reset block. These are the shell's sanctioned edits (`search-developer` → `shell-structure.md`): TILE FILL with the surveyed alignment, `product_tile_width`, the reset deletion. Anything the theme scopes to `body.` or an `#id` is restated **verbatim, rescoped** — the theme's values, never yours.
 
-**The method — diff, don't guess.** Reactively tweaking CSS round after round wastes time. Instead, in the live overlay compare the **native category-page tile** against the **HR-rendered overlay tile** with `getComputedStyle`, element by element, and only override the properties that differ:
+**How to tell which one you are looking at.** After the push, put the Hello Retail tile next to the native tile and look — desktop and 375 px (`search-developer` step 17b; the tile skill's FIDELITY CHECK harness works on the live overlay too). A difference that disappears when you add a class to the container is cause 2. A difference that survives every hook and traces to a rule in `search.css` is cause 3. Everything else is cause 1 and goes back to the tile. When the screenshot does not say why, the computed-style diff below is the lens: it tells you *which property* differs so you can find *whose rule* set it. It is never a list of properties to set back.
 
 ```js
-// in DevTools / Chrome console on a page where the overlay is open
+// diagnostic only — in the browser with the overlay open
 const o = document.querySelector('.hr-overlay-search .<tile-selector>');           // overlay tile
 const n = [...document.querySelectorAll('.<tile-selector>')].find(t => !t.closest('.hr-overlay-search')); // native tile
 const PROPS = ['display','flexDirection','float','width','height','aspectRatio','objectFit',
@@ -873,18 +874,17 @@ const PROPS = ['display','flexDirection','float','width','height','aspectRatio',
 });
 ```
 
-Every line it prints is a property to set back to the native value (scoped to `.hr-overlay-search`). Also check **pseudo-elements** (`getComputedStyle(el,'::before')`) and the **intrinsic image** (`img.naturalWidth/Height`, `currentSrc`) — feed images often differ in ratio from the storefront's fixed thumbnails. Keep hover/decoration pseudos you want (e.g. a `::before` hover card); hide only the divider pseudos and zero transparent gutter borders.
+For each line it prints, find the rule that sets the native value (DevTools → Computed → the arrow to the rule) and read its selector: an ancestor you lack → hook; a `search.css` rule winning → shell edit; neither → the tile.
 
-**QA checklist before shipping a Search tile:**
+**Before shipping a Search tile:**
 
-- [ ] Opened the overlay, ran a real query, and looked at the rendered tile (not just the Liquid).
-- [ ] Titles wrap normally; tile fills its column; image ratio matches the storefront.
-- [ ] Buy button / qty / badges aligned; no stray divider lines or uneven edges; hover state intact.
-- [ ] Any CSS added is scoped to `.hr-overlay-search` (embedded: the embedded container) and never touches the storefront grid.
-- [ ] CSS-only — no markup/class/attribute changes — so the theme's (often delegated) JS bindings keep working.
+- [ ] Opened the overlay, ran a real query, looked at the rendered tile **next to the native one** (not just the Liquid) — desktop and 375 px.
+- [ ] Titles wrap normally; the tile fills its cell; image ratio matches — through TILE FILL, `product_tile_width` and hooks, not tile CSS.
+- [ ] Buy button, badges and prices sit where the native tile has them; hover state intact.
+- [ ] `resultStyles` holds only the sanctioned shell edits and verbatim rescoped theme rules: no rule keyed on a Hello Retail tile class, no rule that re-creates the native look.
 - [ ] Feature controls that need IDs (ATC, wishlist, Quick View) use an ID the **feed actually exposes** — verify, don't assume `productNumber` is the platform's numeric id.
 
-> Platform specifics: [lightspeed.md](./lightspeed.md) (grid-ancestor collapse, divider pseudos, SKU-vs-numeric-id), [shopify.md](./shopify.md).
+> Platform notes: [lightspeed.md](./lightspeed.md) (the cell-level width case, divider pseudos, SKU-vs-numeric-id), [shopify.md](./shopify.md).
 
 ---
 
@@ -910,3 +910,4 @@ Every line it prints is a property to set back to the native value (scoped to `.
 - 2026-08-12: Added _Collapse a long filter row behind a "More filters" toggle_ — CSS-driven collapse + template-authored button, sorting-wrapper exclusion, state-across-rerender and specificity gotchas (source: desktop-embedded search onboarding).
 - 2026-08-20: Added _Mobile Grid Search_ Variant B — strict 2-column CSS grid on the product tab with the tab header lifted out of grid flow; legacy templates only, use the native grid option where the design offers one (field-proven list→grid conversion of a live mobile overlay search).
 - 2026-08-25: Added _`show_vertical_link_content` — required for a content-feed tab to actually behave as a separate tab_ (source: an EAA accessibility onboarding).
+- 2026-09-23: "Tile CSS parity" rewritten as "Tile fidelity": the computed-style diff is a diagnostic, never a source of CSS; differences are a tile fix, a parent hook or a sanctioned shell edit.
