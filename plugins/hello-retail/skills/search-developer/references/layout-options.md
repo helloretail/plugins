@@ -51,7 +51,7 @@ Both desktop variants mount the panel as a **fixed, viewport-high flex column** 
 
 Measured on store-SE-1: panel top 138px (= the site header), `.hr-results` 762px tall with a 3343px scrollHeight. Base `.hr-results-container` margin: **`42px 20px` on desktop-overlay, `40px 20px` on desktop-embedded** — the numbers L3 subtracts (top + bottom).
 
-**The filter re-render model (L7, L8).** Every filter interaction calls `load_more_results(false)`, which **removes and rebuilds the whole `.hr-results`** — filter bar included. Anything you add to the filter DOM (buttons, inputs, classes, `dataset` flags) is gone after each click, and every open dropdown closes. So: (1) JS additions run from the **render hook** below on every render and must be idempotent; (2) expanded/collapsed state that must survive a click lives either in module scope or is re-derived from the DOM (the platform marks a chosen option with class `selected` on its element and `input:checked`); (3) the base binds the dropdown toggle to a click **anywhere on the filter `<li>`** (`this.classList.toggle("active")`, overlay `search.js:300` / embedded `:319`) — any control you place inside a dropdown must `stopPropagation()` on click or the dropdown closes under the visitor. Verified live on store-SE-1 2026-09-07.
+**The filter re-render model (L7, L8).** Every filter interaction calls `load_more_results(false)`, which **removes and rebuilds the whole `.hr-results`** — filter bar included. Anything you add to the filter DOM (buttons, inputs, classes, `dataset` flags) is gone after each click, and every open dropdown closes. So: (1) JS additions run from the **render hook** below on every render and must be idempotent; (2) expanded/collapsed state that must survive a click lives either in module scope or is re-derived from the DOM (the platform marks a chosen option with class `selected` on its element and `input:checked`); (3) the base binds the dropdown toggle to a click **anywhere on the filter `<li>`** (`this.classList.toggle("active")`, grep `this.classList.toggle("active")` in `initializationCode` — ~L304 overlay, ~L323 embedded) — any control you place inside a dropdown must `stopPropagation()` on click or the dropdown closes under the visitor. Verified live on store-SE-1 2026-09-07.
 
 **The render hook.** Both L7 and L8 are called from one place: immediately **after the existing `sortFilters();` call at the end of the `yield_template` callback** inside `load_more_results` — grep `sortFilters();` in `initializationCode`; in the overlay and embedded designs alike it occurs once as a call. The module-level `overlay` variable is in scope there. Calling after `sortFilters()` means your `nth-of-type` counts the **sorted** order.
 
@@ -271,7 +271,7 @@ Two different requests — apply the one the operator named:
 **Headline — the "Products" title becomes the result sentence** (store-SE-1). Three steps, both desktop variants the same:
 
 1. In `resultTemplate`, find the two non-initial headings with `grep -n "<h2 class='hr-products-header'>{{ text_product"` — exactly two hits (the overlay design → `{{ text_products_title }}`; the embedded design → `{{ text_product_title }}`). Never touch `hr-initial-content-header`.
-2. Replace the title token in both with the subtitle expression (`text_products` exists in both variants, `overlay:55` / `embedded:37`):
+2. Replace the title token in both with the subtitle expression (`text_products` is declared near the top of `resultTemplate` in both variants — grep `{# text text_products`):
 
 ```liquid
 <h2 class='hr-products-header'>{{ result_subtitle | replace: "$query$", query | replace: "$totalResults$", products.totalResults | replace: "$contentType$", text_products }}</h2>
@@ -463,7 +463,7 @@ All four are value edits on declarations the base already has; the map, defaults
 }
 ```
 
-JS: no change — the mobile base binds by class anywhere in the overlay (`overlay.querySelectorAll("button.hr-filters")` / `"button.hr-close"`, `search.js:187, 355`). One behaviour to know: a filters button that is **not** inside `.hr-header` is hidden with `display: none` (not disabled) when the query has no filters (`btn.closest(".hr-header") ? disabled : display none`, `:190, :252`), so the row shows only the close button on such queries — say so in the report.
+JS: no change — the mobile base binds by class anywhere in the overlay (`overlay.querySelectorAll("button.hr-filters")` / `"button.hr-close"` — grep them in the mobile design's `initializationCode`). One behaviour to know: a filters button that is **not** inside `.hr-header` is hidden with `display: none` (not disabled) when the query has no filters (`btn.closest(".hr-header") ? disabled : display none`, `:190, :252`), so the row shows only the close button on such queries — say so in the report.
 
 **Header interaction.** With ML5b **and** no logo (ML3 = `""`) **and** `hide_header = false`, the header row is an **empty 90px band** (nothing left in it). Ask the operator which they want: `hide_header = true` (20px spacer) or keep the logo. Never resolve this yourself.
 

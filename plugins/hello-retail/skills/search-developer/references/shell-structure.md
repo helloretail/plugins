@@ -37,10 +37,10 @@ Every design has the same three fields — `resultTemplate` (Liquid), `resultSty
 When the operator doesn't specify a variant, do NOT generate all three (or even two). Infer from available signals in this priority order:
 
 0. **Core-intake search type** (SKILL.md → *Core intake*, Q1: Embedded / Overlay) — Overlay → `desktop-overlay`, Embedded → `desktop-embedded`. This is *the* signal when the config is being **created** (no `search-key` given — a new config has no telling name yet), and it is passed to the create call as `desktopDesign` (`OVERLAY` / `EMBEDDED`), so the attached design is already the right variant (SKILL.md Step 2b).
-1. **MCP config name** (from `search_getDesign` or `search_listConfigs`) — strongest signal when a `search-key` was given. The names this skill gives the configs it creates are exact: `Mobile` → `mobile-overlay`, `Embedded Desktop` → `desktop-embedded`, `Desktop` → `desktop-overlay` (SKILL.md Step 2b). Any other name is a hint only: "mobile" → `mobile-overlay`; otherwise go to 2 — older configs carry names like "Embedded overlay" that do not reliably say which design they hold.
-2. **The design itself** (from `search_getDesign`) — when the name is not one of the three above: `product_grid_layout` declared in `resultTemplate` → `mobile-overlay`; `placement_selector` in `initializationCode` → `desktop-embedded`; neither → `desktop-overlay`. The config `type` is never a variant signal: embedded, overlay and mobile configs all report "Overlay search". Only "Instant search" matters — this skill doesn't handle instant, redirect.
+1. **MCP config name** (from `search_listConfigs`) — the **candidate** when a `search-key` was given or an existing config was picked. The names this skill gives the configs it creates: `Mobile` → `mobile-overlay`, `Embedded Desktop` → `desktop-embedded`, `Desktop` → `desktop-overlay` (SKILL.md Step 2b). Any other name is a hint only ("mobile" → `mobile-overlay`) — older configs carry names like "Embedded overlay" that do not say which design they hold, and a plain "Desktop" may predate this convention. A name is never enough on its own: go to 2.
+2. **The design markers** (from `search_getDesign`, read in Step 3 — still before the survey) — decide the variant and confirm the name: `product_grid_layout` declared in `resultTemplate` → `mobile-overlay`; `placement_selector` in `initializationCode` → `desktop-embedded`; neither → `desktop-overlay`. Name and markers agree → lock it. They disagree (a "Desktop" that carries `placement_selector`, say) → step 4. The config `type` is never a variant signal: embedded, overlay and mobile configs all report "Overlay search". Only "Instant search" matters — this skill doesn't handle instant, redirect.
 3. **Operator's explicit request** — "desktop", "mobile", "embedded", etc.
-4. **If signals conflict or are absent** — ask one specific question: "The config is named *X*. Should I generate `desktop-overlay`, `desktop-embedded`, or `mobile-overlay`?" and stop.
+4. **If signals conflict or are absent** — ask one specific question: "The config is named *X* and its design looks like *<variant from the markers>*. Should I build `desktop-overlay`, `desktop-embedded`, or `mobile-overlay`?" and stop.
 
 **Build exactly the variants in scope** (SKILL.md → *Core intake* Q0: desktop / mobile / both). Don't pair desktop+mobile on your own — when the card is silent on scope, Q0 is asked **up front** in the first batched round, never at the end after one design is already built. The mobile-specific decisions (list/grid, categories tab, Navigation Island) are booleans in the mobile base: `references/mobile-toggles.md`.
 
@@ -48,7 +48,7 @@ The tile body is **shared across all variants** — the product card is the same
 
 ## Edit scope — what you actually change
 
-Every variant's `resultTemplate` has the same slot structure inside `{% capture render_products %}` (the desktop designs open the loop with an earlier `{% if product.isBanner %} … {% else %}{% continue %}{% endif %}` guard — that is not the slot):
+Every variant's `resultTemplate` has the same slot structure inside `{% capture render_products %}` (the desktop designs open the loop with an earlier skip guard — `{%- if product.isBanner -%}` / `{%- else -%}` with an `{% unless … %}{% continue %}{% endunless %}` in each branch — that is not the slot):
 
 ```liquid
 {% for product in product_list %}
