@@ -32,6 +32,16 @@ The team maintains three Search variants, each in its own folder under `${CLAUDE
 
 Each variant folder contains three files: `search.liquid`, `search.css`, `search.js`.
 
+**Shared tokens are not a variant signal.** The root class `.hr-overlay-search`, the
+`overlay_z_index` and `background_color_rgba` tokens, and the `body.hr-search-disable-scroll`
+open-state class exist in **all three** base templates — desktop-embedded included (its
+`search.css` carries `.hr-overlay-search` 200+ times). Finding them in a fetched design says
+nothing about which variant it is, and a `z-index` / `background_color_rgba` edit is a
+per-build step on every variant, not an overlay-only one. What *is* variant-specific:
+`placement_selector` in `search.js` (desktop-embedded only) and the `product_grid_layout` /
+`show_vertical_link_content` / `show_footer_navigation_island` booleans in `search.liquid`
+(mobile-overlay only).
+
 ## Picking the variant — infer, don't default to "all"
 
 When the operator doesn't specify a variant, do NOT generate all three (or even two). Infer from available signals in this priority order:

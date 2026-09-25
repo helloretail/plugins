@@ -6,6 +6,8 @@
 - `search-developer` reads price, badge and button text from a tile inside the search overlay,
   never from the HR debug widget's panel — the panel shows preview tiles of other designs, which
   previously produced a false price-format PASS.
+- `search-developer` no longer takes `.hr-overlay-search` or `overlay_z_index` in a design as a
+  sign that it is an overlay; every variant, including desktop-embedded, uses them.
 
 ### Fixed
 
