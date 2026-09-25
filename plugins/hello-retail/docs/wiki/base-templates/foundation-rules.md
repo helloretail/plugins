@@ -7,7 +7,7 @@ verified: 2026-09-15
 
 > **The rule:** unless the operator explicitly tells you to, **do not rewrite the existing CSS, Liquid/HTML, or JS foundation** of a base template. Add on top of it. If the request genuinely can't be satisfied without altering the foundation, **stop and ask the operator for approval first** — name what has to change and why, and offer the additive alternative.
 
-This applies to every skill that builds a customer design on top of a default design — whether that design comes from the MCP (Search embedded and mobile via `search_createConfig`, Recommendations standard designs via `recoms_listDesigns`) or from the files kept in `docs/wiki/base-templates/` — `search-developer`, `recom-developer`, `triggered-email-developer`, `newsletter-developer` — and to the per-customer designs those skills push back through the `hello-retail` MCP.
+This applies to every skill that builds a customer design on top of a default design — whether that design comes from the MCP (every Search variant via `search_createConfig`, Recommendations standard designs via `recoms_listDesigns`) or from the files kept in `docs/wiki/base-templates/` — `search-developer`, `recom-developer`, `triggered-email-developer`, `newsletter-developer` — and to the per-customer designs those skills push back through the `hello-retail` MCP.
 
 ## Why
 

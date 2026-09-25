@@ -835,8 +835,8 @@ answers, three routes:
   to be the customer's own theme markup, hidden by their `compare-false` body class, inert in
   native and HR alike.)
 - **HR's own default/base template** — cross-check every code-pass defect against the shared
-  base before grading it: for Search the design a fresh `search_createConfig` attaches (embedded, mobile) or the wiki's
-  `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/search/desktop-overlay/` files (overlay), for
+  base before grading it: for Search the design a fresh `search_createConfig` attaches (overlay,
+  embedded or mobile — `desktopDesign` picks the desktop one), for
   recoms the untouched `standard: true` designs from `recoms_listDesigns`, and the files still kept
   under `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/` for the rest. If the
   identical code ships in the base, this onboarding didn't introduce it — tag it

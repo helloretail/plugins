@@ -19,7 +19,7 @@ This is the Hello Retail knowledge base bundled with the `hello-retail` plugin. 
 | [platforms/](./platforms/platforms.md) | Every supported ecommerce and newsletter platform, and the per-platform code: add-to-cart, ratings, swatches, wishlists. |
 | [integrations/](./integrations/integrations.md) | Third-party integrations beyond platforms (Klaviyo, Facebook, Sleeknote, Google Analytics, etc.). |
 | [cheat-sheets/](./cheat-sheets/README.md) | Reusable code snippets D&TS pastes per customer, split by feature × platform (search, recoms, pages, crawler). |
-| [base-templates/](./base-templates/base-templates.md) | Where every customer build starts: the design the MCP attaches for Search embedded and mobile, the canonical files the wiki still keeps for the Search desktop overlay, Recommendations, Newsletter and Triggered Emails, and the rules for extending any of them. |
+| [base-templates/](./base-templates/base-templates.md) | Where every customer build starts: the design the MCP attaches for every Search variant, the canonical files the wiki keeps for Recommendations, Newsletter and Triggered Emails, and the rules for extending any of them. |
 | [translations/](./translations/README.md) | Canonical UI strings for Search, Recommendations and Pages, per language, in `translations.json`. |
 | [onboarding/](./onboarding/onboarding.md) | The background for an onboarding — lifecycle, implementation methods, data requirements, SPA tracking, review & testing. The step-by-step procedures are the plugin's skills, listed there. |
 | [support-knowledge/](./support-knowledge/support-knowledge.md) | Curated index of support articles by topic. |
