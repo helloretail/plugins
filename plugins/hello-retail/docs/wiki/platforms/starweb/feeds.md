@@ -62,12 +62,23 @@ It does the same as the V2 helper:
 
 When migrating a V1 Starweb feed whose price line reads only `specialPriceIncVat`, move it to the V2 helper above rather than translating it one to one.
 
+## Product ID: `extraData.id`
+
+Index Starweb's `productId` as `extraData.id`. The [storefront-data script](./storefront-data.md) reads it from the tile's `data-id` to fetch labels and boost variants.
+
+```js
+extraData: {
+    id: product.productId,
+},
+```
+
 ---
 
 **Related:**
 
 - Platform install nuance — [Starweb overview](./README.md)
 - Multi-currency and customer-unique prices — [dynamic-price-handler.md](./dynamic-price-handler.md)
+- Labels, boost variants and campaign labels — [storefront-data.md](./storefront-data.md)
 - Feed setup flow — `${CLAUDE_PLUGIN_ROOT}/skills/feed-setup/SKILL.md`
 
 ---
@@ -75,3 +86,4 @@ When migrating a V1 Starweb feed whose price line reads only `specialPriceIncVat
 ## Timeline
 
 - 2026-09-24: Page created from the team's Starweb notes. The V2 helper returns a number instead of a string, and falls back to `specialPriceIncVat` when `usedVatRate` is missing as well as when the price list entry is.
+- 2026-09-25: Added the `extraData.id` mapping the labels script needs.
