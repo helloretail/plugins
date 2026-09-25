@@ -9,8 +9,8 @@ This is the **only** flow this skill uses. It needs a `website-uuid` — given b
 | Tool | Use |
 |---|---|
 | `website_getInfo(websiteUuid)` | Language + currency — confirm locale / price-format expectations instead of guessing from `<html lang>`. |
-| `search_listConfigs(websiteUuid)` | List the website's search configs. Each has a stable `key`, a `type` (Full / Instant / Overlay / Other), a `state` (LIVE / REVIEW), and a `draft` flag. Match the config `type` to the variant you're editing; confirm the pick with the operator. |
-| `search_createConfig(websiteUuid, target, desktopDesign)` | Create a search config **with HR's best-practice design attached** — `DESKTOP` (with `desktopDesign` `OVERLAY` or `EMBEDDED`; embedded when omitted), `MOBILE`, `BOTH` (two configs; `desktopDesign` picks the desktop one), `NONE` (bare, API-only — never for this skill). Lands as a draft (INTERNAL_REVIEW for supervisors, REVIEW otherwise); cannot publish. Only when no `search-key` was given **and** no config of the requested type exists — see *Create path*. |
+| `search_listConfigs(websiteUuid)` | List the website's search configs. Each has a stable `key`, a `type` (Full / Instant / Overlay / Other), a `state` (LIVE / REVIEW), and a `draft` flag. The `type` is not a variant signal — embedded, overlay and mobile configs all read "Overlay search"; the variant comes from the name and the design markers (`references/shell-structure.md` → *Variant detection*). Confirm the pick with the operator. |
+| `search_createConfig(websiteUuid, target, desktopDesign)` | Create a search config **with HR's best-practice design attached** — `DESKTOP` (with `desktopDesign` `OVERLAY` or `EMBEDDED`; embedded when omitted), `MOBILE`, `BOTH` (two configs; `desktopDesign` picks the desktop one), `NONE` (bare, API-only — never for this skill). Lands as a draft (INTERNAL_REVIEW for supervisors, REVIEW otherwise); cannot publish. Only when no `search-key` was given **and** the operator chose to create rather than reuse an existing config — see *Create path*. |
 | `search_renameConfig(websiteUuid, key, name)` | Rename a config (the dashboard label; the `key` never changes). Used once per config **this build created**, to give it its variant name — see *Create path* step 3. Never on an existing config: on a LIVE config it forks a draft. |
 | `search_getDesign(websiteUuid, key)` | Read the current design fields for the named config **regardless of state** (LIVE / REVIEW / internal review / archived) — **don't gate the read on state, just read it.** Read before editing so you modify the customer's real design in place. The payload is large (tens of KB) and **spills to a file — never ingest it whole** (see Preconditions section 3). |
 | `search_updateDesign(websiteUuid, key, …)` | Write design fields. Edits the existing draft, or forks a fresh draft from LIVE. Partial — omitted fields are left unchanged. **Always leaves the config in REVIEW; it cannot publish.** |
@@ -31,7 +31,7 @@ This is the **only** flow this skill uses. It needs a `website-uuid` — given b
 
 ## The flow, end to end
 
-1. Get `website-uuid` (SKILL.md Step 1b — given, or `company-id` → `website_listForCompany` + domain match; asked in the first round when neither is given; sanity-check with `website_getInfo`). `search_listConfigs(website-uuid)`: use the given `search-key`; else an existing config of the requested type (confirm with the operator); else create one (*Create path* below). `website_getInfo(website-uuid)` for locale/currency.
+1. Get `website-uuid` (SKILL.md Step 1b — given, or `company-id` → `website_listForCompany` + domain match; asked in the first round when neither is given; sanity-check with `website_getInfo`). `search_listConfigs(website-uuid)`: use the given `search-key`; else an existing config the operator picked in round 1; else create one (*Create path* below). `website_getInfo(website-uuid)` for locale/currency.
 2. `search_getDesign(website-uuid, search-key)` reads the **current** design; this is your modify-in-place base.
 3. Survey the `category-url`, get the tile body from `tile-extractor`, and generate the shell edits to `resultTemplate` / `resultStyles` / `initializationCode`.
 4. **Show the changes for approval** — a clear diff of what changed in each field (html / css / js) vs. the design read in step 2; full modified files available on request. **Wait for the operator's explicit approval.**
@@ -42,8 +42,8 @@ This is the **only** flow this skill uses. It needs a `website-uuid` — given b
 
 A fresh onboarding often arrives as a `website-uuid` alone — the customer has no search yet. Don't ask for a key; resolve it:
 
-1. `search_listConfigs(website-uuid)`. Configs for the device in scope already exist → list them (key, `type`, `state`, last modified) and ask in round 1: use one of these, or create new? A chosen desktop config's name also settles embedded vs overlay (`references/shell-structure.md` → *Variant detection*) — its `type` does not. **Never create a duplicate silently.**
-2. Nothing matches → announce it in one line ("no desktop search config exists — creating a desktop overlay draft") and call `search_createConfig(website-uuid, target, desktopDesign)`:
+1. `search_listConfigs(website-uuid)` — before round 1 when the identity is known, so the existing non-archived configs (name, `state`, last modified) go into the round-1 scope question and one answer settles scope, embedded or overlay, and reuse (SKILL.md → *Sequencing*). A picked config's name is its candidate variant, confirmed by its design markers once read (`references/shell-structure.md` → *Variant detection*) — its `type` never is. **Never create a duplicate silently.**
+2. Nothing to reuse → announce it in one line ("no <desktop|mobile> search config exists — creating a <desktop overlay|desktop embedded|mobile> draft") and call `search_createConfig(website-uuid, target, desktopDesign)`:
 
    | Scope | `target` | `desktopDesign` | Result |
    |---|---|---|---|
@@ -62,7 +62,7 @@ A fresh onboarding often arrives as a `website-uuid` alone — the customer has 
    | `desktop-embedded` | `Embedded Desktop` | Overlay search - Embedded Desktop |
    | `mobile-overlay` | `Mobile` | Overlay search - Mobile |
 
-   On `BOTH` the create call returns two configs; tell them apart by the default name it returned. The new name goes in the report's *Config* block, and it is what `references/shell-structure.md` → *Variant detection* reads on every later build. Rename only configs created in this build, never an existing one — a rename on a LIVE config forks a draft of it (verified 2026-09-25 on an internal test website: the rename applies at once to an INTERNAL_REVIEW config and returns the new name).
+   On `BOTH` the create call returns two configs: the one whose default name contains "mobile" is `Mobile`, the other gets the desktop name (not yet run with `desktopDesign` — check both designs' markers after the rename). The new name goes in the report's *Config* block, and it is what `references/shell-structure.md` → *Variant detection* reads on every later build. Rename only configs created in this build, never an existing one — a rename on a LIVE config forks a draft of it (verified 2026-09-25 on an internal test website: the rename applies at once to an INTERNAL_REVIEW config and returns the new name).
 4. One create per build. A create error → report it once and stop; don't retry in a loop, don't fall back to "create it in the dashboard".
 
 Verified 2026-09-25 on an internal PrestaShop test website: one config per variant created this way (`MOBILE`; `DESKTOP` + `OVERLAY`; `DESKTOP` + `EMBEDDED`), `trigger_selector` pointed at the theme's input, and each opened on the storefront with results.
@@ -84,7 +84,7 @@ Skip them and you either thrash on an oversized result or loop on a failed call 
 
 ## Read path (modify-in-place)
 
-Call `search_getDesign` for the named config **regardless of its state** (section 1), and process the spilled result out-of-context (section 3). You're editing the customer's real design, not regenerating it; the wiki's overlay files are only ever a source when a created config needs the overlay. `references/shell-structure.md` has the slot structure and the banner branch.
+Call `search_getDesign` for the named config **regardless of its state** (section 1), and process the spilled result out-of-context (section 3). You're editing the customer's real design, not regenerating it — there is no other source. `references/shell-structure.md` has the slot structure and the banner branch.
 
 ## Write path (push a draft) — approval is mandatory
 
