@@ -20,6 +20,9 @@ classes, use the dmws_perfect form; otherwise use the DanDomain standard form.
 
 **Code:** `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/dandomain/add-to-cart.md` — the dmws_perfect and DanDomain-standard
 forms. Both are plain `<form action>` POSTs; **no binding JS is needed**, they submit natively.
+The DanDomain-standard `action` URL and product-id field vary per shop template
+(`/kurv/tilfoej/` on the classic one, `/actions/cart/add` with `extraData.itemNumber` on the
+AngularJS product list) — take them from the surveyed `<form>`, not from the reference snippet.
 
 ## Search-trigger conflict (`#search-modal`) — search overlay only
 
