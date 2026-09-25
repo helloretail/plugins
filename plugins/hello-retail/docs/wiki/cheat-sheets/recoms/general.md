@@ -54,7 +54,7 @@ HR initialises sliders through its own wrapper, `_.util.swiper_slider(version, s
 
 ```javascript
 // Pin a newer Swiper just by changing the version string:
-_.util.swiper_slider("11.2.10", "#slider-{{ key }}");
+_.util.swiper_slider("11.2.8", "#slider-{{ key }}");
 
 // Older slider on 6.5.6 (the version most existing templates ship with):
 _.util.swiper_slider("6.5.6", "#slider-{{ key }}", { /* options */ });
@@ -70,7 +70,7 @@ _.util.swiper_slider("6.5.6", "#slider-{{ key }}", { /* options */ });
 Modern storefront carousels (Shopify Dawn-family "slider" sections and similar) are plain scroll containers — trackpad two-finger swipe and shift+wheel scroll them natively, and there are often **no arrow buttons at all**. To make an HR slider look/behave the same, run a newer Swiper in **CSS mode** (needs v8+ markup: root element `class="swiper"`, not the old `swiper-container`):
 
 ```javascript
-_.util.swiper_slider("11.2.10", "#slider-{{ key }}", {
+_.util.swiper_slider("11.2.8", "#slider-{{ key }}", {
 	loop: false,          // required: cssMode does not support loop
 	cssMode: true,        // wrapper becomes a real scroll container (overflow-x + scroll-snap)
 	slidesPerView: 2.33,  // fractional = native "peek" look
@@ -87,12 +87,12 @@ _.util.swiper_slider("11.2.10", "#slider-{{ key }}", {
 
 **Mouse-wheel scroll (team method).** Only when the customer's own slider scrolls with the wheel, and only after asking the operator — it changes how the page scrolls under the cursor:
 
-1. Swiper version `"11.2.8"` or later (the base template pins `"11.2.10"`; older copies pin `"6.5.6"`).
+1. Swiper version `"11.2.8"` — the Swiper 11 build Hello Retail serves, and what the base template pins; older copies pin `"6.5.6"`.
 2. Root class `swiper-container` → `swiper` (Swiper 8+ markup).
 3. Add `mousewheel: true` to the options — or `mousewheel: { forceToAxis: true }` when the customer's slider has `forceToAxis`, so a vertical wheel over the box keeps scrolling the page.
 
 ```javascript
-_.util.swiper_slider("11.2.10", "#slider-{{ key }}", {
+_.util.swiper_slider("11.2.8", "#slider-{{ key }}", {
 	loop: true,
 	mousewheel: true,
 	/* … */
@@ -321,3 +321,4 @@ if (grandTotalNode !== null) {
 - 2026-08-06: Added Free-Shipping re-run-on-cart-update MutationObserver (AJAX/drawer carts where the total changes without a page reload).
 - 2026-08-20: Added Mousewheel/touchpad-scroll section (from an onboarding): `cssMode: true` (+ `loop: false`) as the preferred native-scroll route, `mousewheel: true` + `forceToAxis` as the alternative; fractional `slidesPerView` for the native "peek" look; arrow-hiding guidance.
 - 2026-09-25: Added the team's mouse-wheel method (Swiper 11 + root class `swiper` + `mousewheel: true`), used when the customer's own slider scrolls with the wheel and the operator opts in; `cssMode` stays the route for native scroll-container carousels.
+- 2026-09-25: Corrected the Swiper 11 pin to `"11.2.8"` throughout — Hello Retail serves no `"11.2.10"`.

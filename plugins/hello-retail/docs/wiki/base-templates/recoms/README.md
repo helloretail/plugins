@@ -70,10 +70,10 @@ There is **no `recom.js`** — the only JS is the inline swiper init inside `rec
 The slider is initialised through HR's wrapper on the `ADDWISH_PARTNER_NS` namespace:
 
 ```javascript
-_.util.swiper_slider("11.2.10", "#slider-{{ key }}", { /* options */ });
+_.util.swiper_slider("11.2.8", "#slider-{{ key }}", { /* options */ });
 ```
 
-The first argument pins the Swiper version (the base ships `"11.2.10"`) — bump it to upgrade. The third argument is a standard Swiper config (`loop`, `slidesPerView`, `slidesPerGroup`, `navigation`, `breakpoints`). See [../../cheat-sheets/recoms/general.md](../../cheat-sheets/recoms/general.md#_swiper-version--how-to-upgrade_).
+The first argument pins the Swiper version (the base ships `"11.2.8"`) — bump it to upgrade. The third argument is a standard Swiper config (`loop`, `slidesPerView`, `slidesPerGroup`, `navigation`, `breakpoints`). See [../../cheat-sheets/recoms/general.md](../../cheat-sheets/recoms/general.md#_swiper-version--how-to-upgrade_).
 
 ## Editing rules
 

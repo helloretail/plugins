@@ -61,7 +61,7 @@ The folder has two files: `recom.liquid` (→ MCP `templateCode`) and `recom.css
 Keep the `_.util.swiper_slider(...)` call. You may adjust:
 
 - **`breakpoints`** — slides-per-view per width. Swiper breakpoints are **min-width**: the top-level `slidesPerView` governs the smallest range, then each breakpoint overrides upward. Confirm tiles-per-view against the **storefront's own category-grid column count** rather than guessing, and prefer real device widths. Sensible default: base `slidesPerView: 2` (0–767), `768 → 3`, `1024 → 4`. Fractional values (`2.33`, `5.5`) are the standard way to match a storefront scroll-carousel's partial "peek" tile — measure the native carousel (container width ÷ tile pitch), not the paginated grid, when the box replaces a carousel;
-- **version** — the first argument (e.g. `"11.2.10"`), if a newer Swiper is needed. A design copied from HR's standard designs may ship an older pin (e.g. `"6.5.6"`) than the base template documents — modify-in-place means you **keep the copy's version** unless you're upgrading deliberately, in which case say so in the diff;
+- **version** — the first argument (e.g. `"11.2.8"`), if a newer Swiper is needed. A design copied from HR's standard designs may ship an older pin (e.g. `"6.5.6"`) than the base template documents — modify-in-place means you **keep the copy's version** unless you're upgrading deliberately, in which case say so in the diff;
 - **`loop`** — usually `true`; set `false` if the tile can't tolerate clones (see the gotcha below) — and **always `false` with `cssMode`**;
 - **`cssMode: true`** — use when the storefront's own carousels are native scroll containers (trackpad/wheel scrollable, often arrow-less — Shopify Dawn-family "slider" sections). The wrapper becomes a real `overflow-x: auto` + `scroll-snap` container, matching native scroll behaviour exactly without hijacking vertical page scroll. This is the route for *native scroll-container* carousels; when the customer's slider instead runs Swiper's (or Splide's) mouse-wheel module, mirror that with `mousewheel: true` — see *Mouse-wheel scroll* below. The two don't combine: Swiper ignores `mousewheel` under `cssMode`. Needs v8+ markup (root `class="swiper"`). Requires `loop: false`; kills the clone gotchas but the row stops at the last product — with a fractional `slidesPerView` make sure the box returns enough products to fill (dashboard: product count / fallback strategy), and usually hide the `swiper-button-*` arrows to match. Field-verified: store-SE-2, store-D. → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/recoms/general.md` § "Mousewheel / touchpad horizontal scroll";
 - **`spaceBetween`** — the gap between slides. **First check where the gap currently comes from:** the base scaffold's `.hr-product { margin: 10px 5px }` already produces a ~10px inter-tile gap. If you keep the `.hr-product` wrapper, that margin *is* the gap — adding `spaceBetween` on top of it **double-gaps** the slider. Only set `spaceBetween` when you've removed the `.hr-product` wrapper/margin (see the "complete native card tile" exception above), and set it to the measured native grid gap. Hardcode the value, and **omit the key entirely** if detection returns null (don't pass `0`). Run this on the surveyed category page:
@@ -93,7 +93,7 @@ Keep the `_.util.swiper_slider(...)` call. You may adjust:
         // platform-specific — see references/add-to-cart-js.md
     }
 
-    _.util.swiper_slider("11.2.10", "#slider-{{ key }}", {
+    _.util.swiper_slider("11.2.8", "#slider-{{ key }}", {
         loop: true,
         slidesPerView: 2,
         slidesPerGroup: 2,
@@ -170,12 +170,12 @@ No wheel-scrolling slider → don't ask, change nothing. Running without an oper
 
 **3. On "yes" — the team method.** Three changes, all in `templateCode`, all called out in the diff:
 
-1. **Swiper version ≥ 11** — the base template already pins `"11.2.10"`; a design copied from an HR standard design may still pin `"6.5.6"`: bump it to `"11.2.10"`.
+1. **Swiper `"11.2.8"`** — the base template pins `"11.2.8"`, the Swiper 11 build Hello Retail serves; a design copied from an HR standard design may still pin `"6.5.6"`: bump it to `"11.2.8"`. Use no other 11.x version string.
 2. **Root class `swiper-container` → `swiper`** on `#slider-{{ key }}` — Swiper 8+ styles and initialises the `.swiper` class. This renames a scaffold class, which Hard rule 1 otherwise forbids — the operator's "yes" to mouse-wheel scroll is the approval; say so in the diff.
 3. **Add `mousewheel: true`** to the `_.util.swiper_slider(...)` options. Mirror the customer's own settings: if their slider reports `forceToAxis: true`, pass `mousewheel: { forceToAxis: true }` instead, so a vertical wheel over the box keeps scrolling the page as it does on theirs.
 
 ```js
-_.util.swiper_slider("11.2.10", "#slider-{{ key }}", {
+_.util.swiper_slider("11.2.8", "#slider-{{ key }}", {
     loop: true,
     mousewheel: true,   // mirrors the customer's slider — operator approved
     // …existing slidesPerView / navigation / breakpoints / on: { afterInit } unchanged
