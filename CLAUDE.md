@@ -54,6 +54,57 @@ Node.js is used only for `scripts/validate.mjs` and markdownlint.
   `internal/` (gitignored) and are never committed. The repository tracks only what ships or
   explains the plugin: `plugins/`, the root README and CONTRIBUTING, CI and `scripts/`.
 
+## Pull requests
+
+Every PR has the same shape, whoever opens it, so the reviewer, CI and the Release workflow can
+all read it without asking. Pushing and opening the PR still happen only when asked; this is
+the pattern to follow once they are.
+
+**Branch.** From `main`, named `<type>/<short-kebab-topic>` — `feat/recom-pages-tile-copy`,
+`fix/wiki-verify-public-docs`. One plugin per PR where practical. The release-note fragment is
+named after the branch minus its type: `changelog.d/recom-pages-tile-copy.md`.
+
+**Title.** One line in Conventional Commits form, imperative, no trailing period:
+`<type>: <what is different, naming the skill when one skill is affected>`. It becomes the
+squash-merge subject on `main` and sets the version bump — `fix:` / `docs:` / `chore:` /
+`refactor:` patch, `feat:` minor, `feat!:` or a `BREAKING CHANGE` footer major — so get it
+right when opening, not at merge time. Say what changes for the person using the skill, not
+which file moved; the same rule as the release notes.
+
+- Good: `feat: search-developer replaces the default tile wholesale and checks it by eye`
+- Bad: `Update SKILL.md`, `fix: fixes`, `feat: changes to tile-extractor`
+
+**Body.** Follow `.github/pull_request_template.md` — read it first, because
+`gh pr create --body` does not apply it. Keep its three headings, in order, and fill them;
+never leave the template's HTML comments or an untouched checklist behind.
+
+- `## What` — one or two sentences: which plugin and skill, and what is different for the
+  person running it. A table is fine when several files or skills move together.
+- `## Why` — the problem or request behind it. A ClickUp card or Slack thread may be linked,
+  but the PR is as public as the repository: no customer names, domains, UUIDs or screenshots
+  in the body either.
+- `## Checklist` — the template's boxes, ticked only when true. Where one does not apply,
+  replace the box with the reason on one line (`No release note — refactor only, nothing is
+  different for the user`) rather than deleting it or ticking it anyway.
+
+Two optional headings go between `## Why` and the checklist when they earn their place:
+`## Not changed` (or `## Scope`) for what is deliberately left out and why, and `## Checks` for
+anything verified beyond `npm run check`. A PR based on another open branch says so in its
+first line — `**Stacked on #38**` — and why.
+
+**Release note.** A PR that changes anything under `plugins/<plugin>/` adds one new file under
+`plugins/<plugin>/changelog.d/`, one per plugin touched, written to the "Release notes" rules
+below and in the same session as the change. When there is deliberately none — a refactor, a
+typo, a lint fix — say so in the body: CI warns on a plugin change with no fragment, and the
+reviewer should not have to guess whether it was forgotten. `npm run changelog` shows how the
+entry will read.
+
+**Before opening.** `npm run check` passes locally. `git diff main...HEAD --stat` shows nothing
+under `QA/`, `output/` or `internal/`, no screenshots, no auth state. Every commit on the branch
+also has a Conventional Commits subject. Then push and `gh pr create` with the title and body
+above; CODEOWNERS are requested automatically. Do not merge and do not enable auto-merge —
+that is the reviewer's call.
+
 ## Release notes
 
 Every PR that changes anything under `plugins/<plugin>/` also adds its entry as **a new file**
@@ -126,7 +177,8 @@ owns the whole file. Your PR only ever adds one file under `changelog.d/`.
 
 ## Current state
 
-The repository is private, so the marketplace must be registered over SSH for background
-auto-update to work (see `README.md` → Installing). Merging to `main` publishes: the Release
+The repository is public: tracked files, commit messages, PR titles and bodies are all readable
+by anyone, so the customer-data rule has no exceptions anywhere. Installing and registering the
+marketplace is described in `README.md` → Installing. Merging to `main` publishes: the Release
 workflow bumps the version, rolls the changelog, tags and cuts a GitHub Release carrying that
 version's notes.
