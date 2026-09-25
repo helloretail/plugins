@@ -731,6 +731,10 @@ click, `hello_retail_id` bootstrap) are in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/chea
 - Tile body verbatim from the tile skill; no invented classes; no Hello Retail class inside
   the tile; no `hr-product` boilerplate where the design's own wrapper differs. A difference
   after the push is a tile fix, a hook or a restated theme rule — never CSS that re-creates the look.
+- CSS authoring: extend a rule that already exists before adding a second one for the same
+  selector, never re-declare a value that already holds, and put a new rule in the section that
+  already styles that element.
+  → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Writing the CSS itself*
 - Settings from real fields + live tool schema — never from memory.
 - Integration mode first (Step 0). API-JSON: no template edits, no product conditions
   unless the operator confirms the caller always sends that field. Both asked with the

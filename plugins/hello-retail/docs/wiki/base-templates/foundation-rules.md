@@ -7,7 +7,7 @@ verified: 2026-09-25
 
 > **The rule:** unless the operator explicitly tells you to, **do not rewrite the existing CSS, Liquid/HTML, or JS foundation** of a base template. Add on top of it. If the request genuinely can't be satisfied without altering the foundation, **stop and ask the operator for approval first** — name what has to change and why, and offer the additive alternative.
 
-This applies to every skill that builds a customer design on top of a default design — whether that design comes from the MCP (every Search variant via `search_createConfig`, Recommendations standard designs via `recoms_listDesigns`) or from the files kept in `docs/wiki/base-templates/` — `search-developer`, `pages-developer`, `recom-developer`, `triggered-email-developer`, `newsletter-developer` — and to the per-customer designs those skills push back through the `hello-retail` MCP.
+This applies to every skill that builds a customer design on top of a default design — whether that design comes from the MCP (every Search variant via `search_createConfig`, Recommendations standard designs via `recoms_listDesigns`) or from the files kept in `docs/wiki/base-templates/` — `search-developer`, `pages-developer`, `recom-developer`, `triggered-email-developer`, `newsletter-developer` — and to the per-customer designs those skills push back through the `hello-retail` MCP. For `pages-developer` the design it fetches is the foundation, and *Writing the CSS itself* governs its `templateCss` just the same.
 
 ## Why
 
@@ -50,23 +50,58 @@ Recommendation designs are different: fixed texts become inline `{% input … %}
 
 ## How to extend instead
 
-- **Append, don't edit.** Put your override *after* the base rule, at the end of the stylesheet (or in the sanctioned slot), so the base rule stays visible in the file and in the diff.
+- **Override, don't edit — and put the override where it belongs.** Your rule goes *after* the base rule it overrides, inside the section that already styles that element (`/* Products */`, `/* Header - Logo */`, …), not in a pile at the end of the file. The base rule stays visible in the file and in the diff, and the stylesheet stays readable as a stylesheet. → *Writing the CSS itself*
 - **Win on specificity, not by deletion.** Prefix with the overlay root and add a class, e.g. `.hr-overlay-search .hr-products-container.is-native-grid { … }` beats `.hr-overlay-search .hr-products-container`. Reach for `!important` only when a base `!important` forces it, and say so in the diff.
 - **Never reformat, reorder, dedupe, or "tidy" base rules.** A whitespace-only reflow of a 1,300-line stylesheet makes the real change unreviewable, and that is where deletions hide.
 - **Never regenerate a whole field from scratch.** `resultStyles` / `resultTemplate` / `initializationCode` / `templateCode` / `templateStyles` are always *modified in place* from what the MCP read returned.
 - **In Liquid, add markup inside the slot** — don't restructure the surrounding blocks to make the tile fit.
 - **In JS, add functions and bind them at the documented call sites** (e.g. after every `fix_links`) — don't refactor or re-order the base scaffold.
 
-## When the foundation really does have to change
+## Writing the CSS itself
 
-Some requests can't be done additively — the base rule is `!important`, the required layout contradicts the base grid, a base handler swallows the event you need. Then:
+The rules above say what you may touch. These three say how the CSS you add should read. They hold
+for every stylesheet we author — `resultStyles`, `templateStyles`, `templateCss` — and for the base
+templates themselves when the team edits those.
 
-1. **Stop before editing.** Don't do it and mention it afterwards.
-2. **Tell the operator exactly**: which file/field, which rule or block, what the request needs, and why an override can't reach it.
-3. **Offer the additive alternative** you'd otherwise ship, and what it compromises.
-4. **Wait for an explicit go-ahead.** No answer → ship the additive version and flag the limitation in MISSING DATA.
+### 1. Reach for an existing rule before writing a new one
 
-Edits already sanctioned by a skill (documented in its `references/`) don't need this — they *are* the approved deviations, e.g. Search's reset-block removal, TILE FILL rule, `product_tile_width` match, gutter-padding strip, `text-align` removal, fixed-column grid override, and the self-contained tile CSS block on CSS-in-JS storefronts. Everything outside those lists needs approval.
+Where a rule already exists that can be extended — a declaration added to it, or one taken out — to
+reach the result you want, that beats adding a second rule for the same selector. Two rules for one
+element is how a stylesheet ends up declaring the same property twice, and the next reader cannot
+tell which one is live.
+
+**Never re-declare something that already holds.** If the base already sets `font-size: 14px` on
+that element and 14px is what you want, write nothing. A rule that restates a value already in
+effect is invisible in the render and misleading in the diff — it reads as a decision when it is a
+no-op.
+
+The limit is the foundation rule above: a **base** rule is extended by an override, not edited in
+place. Editing or deleting one is a foundation change and needs the operator's go-ahead (*When the
+foundation really does have to change*). Rules **you** added earlier in the same build are yours —
+extend those in place instead of stacking another beside them.
+
+### 2. Put related rules together
+
+A new rule goes next to the rules that already style the same element or the same part of the UI.
+The base stylesheets are already sectioned this way — `search.css` carries `/* Products */`,
+`/* Header - Logo */`, `/* Filter section */`, `/* Initial Content */` — so there is nearly always
+an obvious home. Tile styling belongs with the tile styling; a filter override belongs with the
+filter rules.
+
+This is what keeps a 1,300-line stylesheet navigable: everything about one section is in one place,
+and whoever changes the tile next finds all of it without grepping the file. No section fits → put
+it at the end and say so in the diff, rather than inventing a section.
+
+Moving an existing rule to make room is not grouping — it is a reorder, which the rules above
+forbid. Insert; never rearrange.
+
+### 3. Comment only what the CSS does not already say
+
+CSS is close to self-explanatory: `color: #1a1a1a` needs no comment saying it sets a colour, or that the value came from the customer's site. [Comments in the code you add](#comments-in-the-code-you-add) applies: one short line, only where a reader would otherwise be confused. In CSS that is typically a value that looks wrong but is deliberate, a workaround for a theme or browser bug, a magic number nobody can re-derive, or a rule that exists to defeat a specific `!important`.
+
+Section banners are a different thing and stay — the base files use them as structure, and rule 2
+depends on them. Keep every comment the base already has, and match the existing style when a new
+section is genuinely needed.
 
 ## Comments in the code you add
 
@@ -88,10 +123,21 @@ This applies to everything a skill writes: Liquid, CSS and JS in a design, and f
 
 The tile Liquid from `tile-extractor` stays comment-free, per that skill's own rule.
 
+## When the foundation really does have to change
+
+Some requests can't be done additively — the base rule is `!important`, the required layout contradicts the base grid, a base handler swallows the event you need. Then:
+
+1. **Stop before editing.** Don't do it and mention it afterwards.
+2. **Tell the operator exactly**: which file/field, which rule or block, what the request needs, and why an override can't reach it.
+3. **Offer the additive alternative** you'd otherwise ship, and what it compromises.
+4. **Wait for an explicit go-ahead.** No answer → ship the additive version and flag the limitation in MISSING DATA.
+
+Edits already sanctioned by a skill (documented in its `references/`) don't need this — they *are* the approved deviations, e.g. Search's reset-block removal, TILE FILL rule, `product_tile_width` match, gutter-padding strip, `text-align` removal, fixed-column grid override, and the self-contained tile CSS block on CSS-in-JS storefronts. Everything outside those lists needs approval.
+
 ## Self-check before you show the diff
 
 - [ ] **Diff against the base, not just against your intent.** Every base selector/rule/function present before your edit is still present, byte-identical unless it's on the sanctioned list.
-- [ ] Your changes read as **additions at the end** plus token-value changes — not as a rewritten file.
+- [ ] Your changes read as **additions plus token-value changes** — not as a rewritten file. Each addition sits in the section that owns those elements, and no base rule moved to make room for it.
 - [ ] Every comment you added is one short line explaining something non-obvious ("Doing X because Y"); no narration, no restating the code.
 - [ ] Any customer-specific inputs sit in their own English-named `{# section … #}`, one empty line below the last base declaration, with English role-based names.
 - [ ] **No chrome CSS deleted:** filters, filter dropdowns, selected-filter counts, range slider, sorting, results header/subtitle, content column, close button, animations, mobile tabs, breakpoints.
