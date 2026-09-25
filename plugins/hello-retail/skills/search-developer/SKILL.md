@@ -39,6 +39,8 @@ A Search design is a **product tile** sitting inside an **overlay shell**. This 
 
 Why this bites in Search specifically: `search.css` is ~1,300 lines and most of it styles **chrome that isn't in front of you while you build** — filters and filter dropdowns, selected-filter counts, the price range slider, sorting, the results header, the content column, the close button, animations, breakpoints. Filter markup only renders once filters are configured and a real query runs, so a reworked stylesheet passes a first screenshot with the filter styling already destroyed. This has happened on a real build (2026-08-03): strong, specific design requests are what trigger the rewrite instinct — a plain "draft me a search" doesn't.
 
+**New inputs for a customer** (e.g. making a tile text editable): put them in a new English-named `{# section … #}` one empty line below the last base declaration, with English role-based snake_case names. Never insert them among the base declarations. → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Adding customer-specific inputs*
+
 **If the request genuinely can't be met without altering the foundation, stop and ask for approval first** — name the exact rule/block, say why an override can't reach it, offer the additive alternative, and wait. Full rationale, extension recipe, and the chrome QA list: **`${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md`**.
 
 ## What you need from the operator before starting
