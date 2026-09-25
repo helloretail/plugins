@@ -4,7 +4,7 @@ source: index
 
 # Search — Base Templates
 
-Where a Search build starts, per variant. All three come from the platform through the MCP: the design `search_createConfig` attaches to the new config is the base. The wiki keeps no copy of any of them, because a copy drifts from the platform.
+Where a Search build starts, per variant. The design comes directly from Hello Retail's system: when a new search is created (`search_createConfig`), the platform attaches its current default design to the new config, and that design is the base. The wiki keeps no copy of any of them, because a copy drifts from the platform.
 
 ## Variants
 
