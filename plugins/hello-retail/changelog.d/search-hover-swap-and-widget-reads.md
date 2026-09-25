@@ -1,3 +1,9 @@
+### Changed
+
+- `search-developer` checks a tile's hover image by comparing where both images render and
+  whether the link around them is `display: block`, not only whether the hover image fades in.
+  It previously passed a hover image that faded in correctly but sat far below the main image.
+
 ### Fixed
 
 - `tile-extractor` no longer assumes every DanDomain shop posts add-to-cart to `/kurv/tilfoej/`
