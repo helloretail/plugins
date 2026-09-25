@@ -7,4 +7,4 @@
 
 - `feed-setup` maps `price` on Starweb feeds from `activePriceExVat`, so scheduled prices show up correctly.
 - `feed-migration` moves Starweb V1 price lines that read only `specialPriceIncVat` to `activePriceExVat`, and says so in its summary.
-- `tile-extractor` no longer reports Starweb labels as missing feed data. It keeps the tile's product-ID link and hands over the labels script for the surface being built.
+- `tile-extractor` no longer reports Starweb labels as missing feed data. It checks which of Starweb's storefront endpoints the shop has, and hands over only the matching labels and boost-variant code for the surface being built.
