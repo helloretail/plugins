@@ -491,7 +491,7 @@ These are the most important checks — get these right.
   design, so "native tiles have a heart/star on every tile, the HR tiles don't" is **not** a
   parity gap there — record it ACCEPTED with the platform named, at every breakpoint, never
   FAIL/WARN, and keep it off the fix list. Every other platform is still graded by the
-  per-breakpoint rule above. → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan-streamline/README.md`
+  per-breakpoint rule above. → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan/README.md`
 - [ ] **Interactive-state parity (presence is not enough)** — for every stateful control on the
       tile (variant/unit toggles like Bottle/Case, swatches, size pickers, quantity steppers):
       actually **click it in the HR tile AND on a native tile** and compare the selected/active
