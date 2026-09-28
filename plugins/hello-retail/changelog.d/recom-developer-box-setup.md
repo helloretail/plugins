@@ -4,6 +4,7 @@
 - `recom-developer` starts a recom onboarding by asking where each recom goes: a CSS selector, the heading or section it sits next to, or "the customer will place the div". It turns the answer into a selector checked on several pages of that type, shows the spot on a screenshot for you to confirm, and marks theme selectors as final when they're stable or temporary when they aren't. With a ClickUp card it pre-fills how many recoms and on which pages, but never reads a placement from the card's screenshots.
 - `recom-developer` suggests how many products each recom holds from the shop's own slider on that page, and asks 8, 10 or 12 when the page has none. The same check finds the shop's slider arrows, which the recom copies and hides on mobile where the shop does.
 - `recom-developer` asks for each recom's heading, suggesting one from the shop's own section, and offers cart and upsell recoms a free-shipping heading ("Add 120 kr. more for free shipping"). The heading reads the cart correctly in every currency format, updates when a drawer cart changes without a reload, and takes its threshold and texts from dashboard fields, so one design serves several domains.
+- `recom-developer` asks how each recom should pick its products: pick one of the best-practice algorithms for the page, or describe it in your own words ("bought together with this, then the same category, only in stock"). It builds the steps and filters from that, asks only what's left open, and reads it back in plain words for your yes before setting it up.
 
 ### Changed
 

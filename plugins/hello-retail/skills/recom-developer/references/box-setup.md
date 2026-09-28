@@ -79,9 +79,11 @@ confirm. Several boxes on one page: preview them together, so their order is vis
 
 ## 4. Ask: what each recom shows
 
-- **Algorithm** — `recoms_listBestPracticeAlgorithms(websiteUuid, type)`. Suggest the one that fits
-  the page (the card's algorithm name, when it gave one) and let the operator confirm or pick
-  another. Anything no best-practice algorithm covers → step 7 *Strategy*.
+- **Algorithm — ask how the recom should pick its products.** Offer the best-practice algorithms
+  for the page type as a numbered list, with a suggestion, and take an answer in the operator's own
+  words just as well. Translate the words into steps, ask only the follow-ups they leave open
+  (fallback, stock, exclusions, price), read the result back in plain words and get a yes.
+  → **`algorithm-intake.md`** §1–4. The write is step 7.
 - **Heading** — ask for every box: *"What should the heading be for the \<page\> recom?"* Suggest
   one in the shop's language — the heading of the shop's own section the box replaces or sits next
   to (the slider survey's `heading`), or a plain one for the algorithm ("Others also bought") —
@@ -119,7 +121,7 @@ confirm. Several boxes on one page: preview them together, so their order is vis
 ## 5. Plan, show, wait for approval
 
 Show one plan table for all boxes — box, page, placement (selector, `insertMode`, final /
-temporary), algorithm, product count (and where it came from), heading (free-shipping or plain), then every other field as current → new — and wait for an explicit
+temporary), algorithm (the plain-words read-back), product count (and where it came from), heading (free-shipping or plain), then every other field as current → new — and wait for an explicit
 go-ahead. A change to a **LIVE** box drafts it; say which ones will turn DRAFT.
 
 ## 6. Create the boxes and set their general settings
@@ -148,23 +150,21 @@ Send only the fields that change.
   Retail Media injection needs Retail Media on the website's agreement.
 - **`locked`** — never. Supervisor only.
 
-## 7. Strategy — prefer a best-practice algorithm
+## 7. Strategy — write the algorithm the operator confirmed
 
-- **The confirmed algorithm is a best-practice one** → `recoms_applyBestPracticeAlgorithm`. It replaces
-  the steps only and keeps the box's global filters.
-- **Anything custom** (a price range on a cart box, "only this brand", an out-of-stock filter):
-  1. `docs_get("docs://product-algorithms/format")` first.
-  2. `recoms_getAlgorithm` → edit → `recoms_updateAlgorithm` with the **whole** `steps` list (and
-     the whole `filters` list if you change it). Anything you leave out is deleted.
-  3. Send back `numberReceipts`, `skipReceipts` and `priceInfluence` exactly as they were read.
-  4. Filter field names come from the read's `filterableFields`. Real values come from
-     `productData_getFieldValues` — hierarchies are `$`-separated (`kids$shoes`) and nest one
-     level deeper (`[["kids","shoes"]]`). List-valued fields always take a JSON list.
-  5. Hiding sold-out products = a global `inStock EQUALS true` filter, if `inStock` is in
-     `filterableFields`.
+Write exactly what was read back and confirmed in step 4 → **`algorithm-intake.md`** §5:
+
+- **A best-practice algorithm as it stands** → `recoms_create` with it (new box) or
+  `recoms_applyBestPracticeAlgorithm` (existing box); the steps are replaced, the box's own global
+  filters are kept — fix those separately when they differ from the confirmed plan.
+- **Anything else** → `recoms_getAlgorithm` → `recoms_updateAlgorithm` with the **whole** `steps` list
+  (and the whole `filters` list if you change it). Anything you leave out is deleted. Send back
+  `numberReceipts`, `skipReceipts` and `priceInfluence` exactly as they were read.
+- Field names from the read's `filterableFields`; literal values from `productData_getFieldValues`.
 - Talk about steps by their **dashboard `number`** — it's what the customer sees.
-- A refused input names the offending step: fix that step. Warnings from the tool go to the
-  operator as they are.
+- A refused input names the offending step: fix that step once, then tell the operator. Warnings
+  from the tool go to the operator as they are.
+- Read back with `recoms_getAlgorithm` and compare with the confirmed plan.
 
 ## 8. Page context — `recoms_updateContextCrawlConfig`
 
@@ -222,6 +222,7 @@ dashboard's UTM suggestion is
 - Per box: name, key, state, page, and its placement — the selector with `insertMode` and
   **final** or **temporary**, or the **div** the customer's developer must paste and where. A
   temporary selector carries "move to the `#hr-recom-<key>` div once the customer places it".
+- Per box, the algorithm in plain words, as the operator confirmed it.
 - Boxes created or changed. All of them are DRAFT: **the operator publishes them in the dashboard.**
 - **Dashboard field values per box** — the MCP writes the design, not what goes in its
   `{% input %}` fields: list `headline` (and, with a free-shipping heading, `free_shipping_threshold`,
