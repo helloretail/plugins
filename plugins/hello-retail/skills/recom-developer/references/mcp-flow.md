@@ -1,21 +1,43 @@
 # Hello Retail MCP — read the live recom design, push a REVIEW draft
 
-The `hello-retail` MCP server (`https://core.helloretail.com/mcp`) exposes the customer's **live** Recommendations configuration, so you read the current design and push edits back as a **draft** instead of relying on copy-paste. The MCP is no longer Search-only — it now has a recom read **+ write** path.
+The `hello-retail` MCP server (`https://core.helloretail.com/mcp`) exposes the customer's **live** Recommendations configuration — the designs **and** the boxes that render them — so you read the current state and push edits back as a **draft** instead of relying on copy-paste.
 
-This is the default flow. It needs a `website-uuid` **and** a `design-key`. The uuid is unique per site/domain, so there is no domain to resolve or pick.
+This is the default flow. It needs a `website-uuid`; the `design-key` is discovered from it (see *Resolving the design-key*). The uuid is unique per site/domain, so there is no domain to resolve or pick.
+
+## Two kinds of key
+
+A **box** (a recommendation: `FRONT_PAGE`, `PRODUCT_PAGE`, … with its strategy, placement and settings) and a **design** (the Liquid/CSS it renders with) have **separate keys**. `recoms_list` returns each box's `key` **and** its `designKey`. The box tools take a box key; `recoms_getDesign` / `recoms_updateDesign` / `recoms_copyDesign` take a design key. Never pass one where the other is expected.
 
 ## Tools (all keyed by `websiteUuid`)
+
+**Designs — what the box looks like (this skill's core flow):**
 
 | Tool | Use |
 |---|---|
 | `website_getInfo(websiteUuid)` | Language + currency — confirm locale / price-format expectations instead of guessing from `<html lang>`. |
 | `recoms_listDesigns(websiteUuid)` | List every design available to the website: the company's **custom** designs (incl. archived) **and** the shared **standard** designs. Returns `key`, `title`, `archived`/`standard` flags and last-modified. **Archived and standard designs are read-only — never target them with `recoms_updateDesign`.** |
-| `recoms_list(websiteUuid[, includeArchived])` | List recom **boxes** (LIVE + DRAFT by default). Each box exposes a `designKey` — the design it renders with. Use this when the operator knows the box but not the design key. |
 | `recoms_getDesign(websiteUuid, key)` | Read the current design fields (`templateCode` + `templateStyles`) for the named design **regardless of state**. Read before editing so you modify the customer's real design in place. The payload can be large and **spills to a file — never ingest it whole** (see Payload spill below). |
 | `recoms_updateDesign(websiteUuid, key, templateCode?, templateStyles?)` | Write design fields. **Partial** — omit a field to leave it unchanged, but at least one of `templateCode` / `templateStyles` must be provided. Saving **auto-creates a DRAFT of every LIVE box using this design**, leaving them in DRAFT for review. **Publishing is not possible through this tool.** |
 | `recoms_copyDesign(websiteUuid, sourceKey[, title])` | Copy a design (incl. a read-only standard one) into a new editable company design. **The title is set here and only here** — see "Confirm the title first" below. |
-| `recoms_updateSelectedDesign(websiteUuid, designKey, keys[])` | Point one or more boxes at a design. Boxes already on it report UNCHANGED. |
-| `recoms_updatePlacement(websiteUuid, key, selector?, selectorMode?, insertMode?)` | Set where/how a box attaches to the page — see "Box placement" below. Empty-string `selector` resets to the default `#hr-recom-<key>`. |
+| `recoms_updateSelectedDesign(websiteUuid, designKey, keys[])` | Point one or more boxes at a design — all of them in **one** call. Boxes already on it report UNCHANGED. |
+
+**Boxes — which products, where, and how (procedure: `box-setup.md`):**
+
+| Tool | Use |
+|---|---|
+| `recoms_list(websiteUuid[, includeArchived])` | Every box (LIVE + DRAFT by default): `key`, `name`, `type`, `state`, `draft`, `designKey`, last-changed. A LIVE box with a pending draft is listed **twice under one key** — `state` tells the rows apart. Every tool resolves a key **to the draft**, so a read shows the draft and a write never changes what the shop is serving. |
+| `recoms_create(websiteUuid, type, algorithmName)` | New box for a page type, started from a best-practice algorithm. Born **DRAFT**, named after the algorithm ("Retargeted - Box 1"), on the website's default design, at its default selector. Returns `placementDivExample` — the div the shop pastes into its page. |
+| `recoms_getGeneralSettings` / `recoms_updateGeneralSettings` | `name`, `type`, `productCount`, `responsiveMode` (`MOBILE`/`DESKTOP`/`BOTH`), **`priority` = load order** (1 loads first, 10 last), `renderIfEmpty`, `retailMediaInjectionMode`, `locked` (Supervisor only). Partial update. A non-supervisor cannot raise `productCount` above the greater of 20 and its current value. |
+| `recoms_getPlacement` / `recoms_updatePlacement` | `selector`, `selectorMode`, `insertMode`, whether the selector is the default, what the default is, and the default div. Partial update; empty-string `selector` resets to `#hr-recom-<key>`. See "Box placement" below. |
+| `recoms_getAlgorithm` / `recoms_updateAlgorithm` | The strategy: ordered `steps`, global `filters`, `filterByGroupingKey`, plus read-only `productCount`, `filterableFields` and `matchesBestPractice` (the best-practice algorithm the steps still run unchanged; `null` once tuned). **`steps` and `filters` each replace the whole list.** |
+| `recoms_listBestPracticeAlgorithms(type)` / `recoms_applyBestPracticeAlgorithm(key, algorithmName)` | The proven step sequences per page type; applying one replaces **only the steps** and keeps the box's global filters and `filterByGroupingKey`. |
+| `recoms_getContextCrawlConfig` / `recoms_updateContextCrawlConfig` | The crawl strings the box runs against the page it renders on (the hierarchies / urls / productNumbers "selectors"); each field is `$input.<field>` in the strategy. **Replaces the whole config**; `""` removes it. `null` on read = not representable as crawl strings, so not editable here either. |
+| `recoms_getGoogleAnalyticsSettings` / `recoms_updateGoogleAnalyticsSettings` | GA click/view events and `extraLinkParams` (UTM tags on product links). Partial update; `""` clears a text field. |
+| `docs_get(uri)` | `docs://product-algorithms/format` (step catalogue, filters, `$context` expressions, conditions) and `docs://crawl-strings/syntax` — read the one you need **before** writing a strategy or a crawl config. |
+
+Every box write, like a design write, **auto-drafts a LIVE box** and cannot publish.
+
+**Not possible through the MCP** — goes on the operator list: publishing, deleting or archiving a box or a design, renaming a **design** (`recoms_updateGeneralSettings` renames the *box*), and `locked` for non-supervisors. The `recoms_getAnalytics*` tools exist but only LIVE boxes produce numbers — they belong to reports and support, not to a build.
 
 ## Field mapping — MCP fields to this skill's two files
 
@@ -28,17 +50,22 @@ This is the default flow. It needs a `website-uuid` **and** a `design-key`. The 
 
 1. If the operator gave a `design-key`, confirm it with `recoms_listDesigns` and check the `archived`/`standard` flags — **bail if it's standard or archived** (read-only) and ask for the editable company design instead.
 2. If the operator only knows the **box**, call `recoms_list` and read the box's `designKey`.
-3. If neither is known, list designs/boxes and ask the operator which one to edit. Don't guess.
+3. If neither is known, derive it — don't ask first. `recoms_list` + `recoms_listDesigns`, then group the LIVE/DRAFT boxes by `designKey`:
+   - **one editable company design** behind the boxes under work → that is the design-key; say so and proceed.
+   - **only standard designs** (no company design yet) → propose `recoms_copyDesign` from the standard one the boxes use (confirm the title first, below), then `recoms_updateSelectedDesign` to point the boxes at the copy.
+   - **several editable designs** → show the grouping (design title → box names) and ask which one to edit. Don't guess.
 
 > **Shared-design caution.** One design can back several boxes. Because `recoms_updateDesign` drafts **every** LIVE box using the design, confirm the key is the intended one before pushing — you may be drafting more boxes than you think. If the customer wants the change on one box only, they need a dedicated design; flag that rather than editing a shared one.
 
 ## Copying a design — confirm the title FIRST
 
-`recoms_copyDesign` is the route to an editable design when the box sits on a read-only standard one. **The title can only be set at copy time**: there is no MCP rename, and no MCP delete — a mis-titled copy means either a manual dashboard rename by the operator, or an orphaned design cluttering the list forever. So before calling it, confirm the intended design title with the operator (they often have a naming convention — "Main Design", per-page names, per-brand names). After copying, point the target box(es) at the new key with `recoms_updateSelectedDesign`.
+`recoms_copyDesign` is the route to an editable design when the box sits on a read-only standard one. **The title can only be set at copy time**: no MCP tool renames a design (`recoms_updateGeneralSettings` renames a *box*, not its design), and there is no MCP delete — a mis-titled copy means either a manual dashboard rename by the operator, or an orphaned design cluttering the list forever. So before calling it, confirm the intended design title with the operator (they often have a naming convention — "Main Design", per-page names, per-brand names). After copying, point the target box(es) at the new key with `recoms_updateSelectedDesign`.
 
 ## Box placement — `recoms_updatePlacement`
 
 A design renders nothing until its **box** attaches somewhere. Placement has three parts: `selector` (CSS selector for the anchor element), `insertMode` (`REPLACE` / `PREPEND` / `APPEND` / `BEFORE` / `AFTER`), and `selectorMode` (`NORMAL` = evaluated on script load; `LIVE_ONCE` / `LIVE_MULTI` = re-evaluated as the DOM changes — for SPA-ish or late-rendered anchors).
+
+**Read it first with `recoms_getPlacement`** — it says whether the box is on its default selector, what that default is, and the div the shop pastes for it. Before changing a placement you know what you are replacing; in the hand-off you can name the div per box.
 
 - **The default selector `#hr-recom-<key>` is the customer-placed div** — the preferred, durable placement (the customer adds that div to their theme). A CSS selector targeting theme markup is the **temporary** alternative while the customer hasn't placed their divs yet (the common "replace their own / place it ourselves for now" onboarding ask). Say which mode you're in and flag temporary selectors in the hand-off — they should migrate to the div once the customer places it.
 - **Shopify section IDs are volatile.** IDs like `shopify-section-template--26550883189082__slideshow_gzQ4aj` regenerate their numeric middle on every theme publish (and can differ between sessions) — an exact-ID selector will match today and silently never match again. Anchor on the **stable suffix** instead, tag-qualified for uniqueness: `section[id$="__slideshow_gzQ4aj"]`. Verify it matches exactly one element (`document.querySelectorAll(...)` — nested inner elements often share the suffix, which is what the tag qualifier is for).
@@ -81,6 +108,8 @@ A real `templateCode` is tens of KB. When the tool result overflows a single res
 - Push **only the changed fields**. If you didn't touch CSS, omit `templateStyles` so you can't clobber it.
 - **Send raw HTML/Liquid/CSS — never entity-escaped.** `&lt;div&gt;` instead of `<div>` saves without any error and then renders as literal text on the storefront. The API does no validation that would catch it.
 - **Verify every push.** `recoms_updateDesign` succeeding proves nothing about *what* was stored. Re-fetch with `recoms_getDesign`, extract the pushed field(s) (payload-spill rules apply), and `diff` against your local copy — only a trailing-newline difference is acceptable. Spot-check that a field you did NOT push is unchanged.
+- **Name the boxes the push drafted.** Re-run `recoms_list` and list every box on this `designKey` that now shows a DRAFT row — those are what the operator must publish (or review) in the dashboard. More boxes than expected means the design is shared; say so.
+- **Box writes follow the same rules** — diff (current → new per field), approval, write, read back with the matching `get*`. → `box-setup.md`
 - **The external-integration rule:** `recoms_updateDesign` is a live-customer **write** path — confirm sign-off from the D&TS lead before using it in a real onboarding. Reads (`get*`, `list*`) are low-risk.
 - If a read or push **errors**, report it once and stop — don't retry-loop. Offer the inline copy-paste fallback (show the full modified files in chat) so the onboarding isn't blocked.
 
