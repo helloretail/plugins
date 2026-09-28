@@ -4,6 +4,12 @@ Read this before workflow step 7 of `../SKILL.md` (the parity table) and again w
 `MISSING DATA` section. Every row here is a field that is routinely absent or empty; check each one
 that the native tile needs against the `productData_get` rows before assuming it is there.
 
+**One matching product is not confirmation.** When an oddly-named or unexpectedly-populated field
+looks like it might carry a state the tile needs (e.g. a field that reads like a typo of another
+one), verify it against at least 2-3 live products with different values — not just the one that
+happened to match your first guess — before binding it. A field can coincidentally match on one
+product and be wrong, stale, or unrelated on the next.
+
 | Field                                            | Note                                                                                                                                       |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `extraData.altImage`                             | Hover image — often missing. Check what it actually CONTAINS before using: on multi-color feeds it may be a *different color's* packshot, and swapping to it on hover misleads. If no faithful hover image exists, prefer omitting the hover element with operator approval (Output Rule #6 exception) over a `product.imgUrl` fallback that causes a contain→cover crop-jump |
