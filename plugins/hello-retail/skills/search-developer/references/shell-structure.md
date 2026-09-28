@@ -150,11 +150,22 @@ The base template sizes only **its own default tile**: the rule `.hr-overlay-sea
 }
 ```
 
-- **When to add it:** whenever the reproduced tile's root is **not** `.hr-search-overlay-product-link` — i.e. almost every onboarding. If the root *is* `.hr-search-overlay-product-link`, the base already sizes it — add nothing.
+- **When to add it:** whenever the reproduced tile's root is **not** `.hr-search-overlay-product-link` — i.e. almost every onboarding. If the root *is* `.hr-search-overlay-product-link`, the base already sizes it — add nothing. Emit **all four declarations together** — `text-align` alone is not the fill rule (field case store-SE-7, 2026-09: shipped with `text-align` only, the customer's `<li>` root sized itself to its content inside the flex cell and the tile rendered off-width).
 - **Where it goes:** append this single block to the CSS section (`resultStyles`). It is the **one sanctioned CSS rule** the skill emits — a fixed, structural fill that compensates for the base sizing only its default tile. It is **not** tile styling and **not** a license to author other CSS.
 - Use `> *` (not the tile's specific root class) so the fix is **automatic** — it survives tile regeneration and hardcodes nothing onto the tile markup. It harmlessly also matches the **banner branch's** immediate child, which already carries inline `width/height:100%`.
 - Apply the same fix in **every** variant you generate, scoped under that variant's overlay root (desktop-overlay: `.hr-overlay-search`; desktop-embedded / mobile-overlay: the root that variant uses).
 - **The `text-align` line matches the native tile's alignment** — set it from the tile skill's ALIGNMENT report; drop the line only when the native tile is genuinely centered. Full rationale: the *Tile text alignment* section below.
+
+**Image guard — only when the rendered pair shows the image overflowing the cell.** A flex item's `min-width` defaults to `auto` (its min-content width), so an `<img>` carrying an HTML `width` attribute wider than the cell (WooCommerce block images ship `width="564"`) can still push the root past 100% unless the theme's own stylesheet caps it — a percentage `width` or a `max-width` on the image both do (verified: WooCommerce block images carry `width: 100%` from the theme, so the 564px attribute never bites there). If the fidelity pair shows that, add one guard next to the fill rule — a sizing guard, not tile styling:
+
+```css
+.hr-overlay-search .hr-search-overlay-product img {
+	max-width: 100%;
+	height: auto;
+}
+```
+
+An inline `height` on the image (WooCommerce's `style="height:403px;object-fit:cover"`) beats the `height: auto` here, which is intended — the guard only caps width. Never add it pre-emptively: on a theme that already caps its images it is a no-op that muddies the diff.
 
 **Why this makes every tile in a row the same height:** the results grid's default `align-items: stretch` already equalizes cell heights per row; the `height: 100%` above is what lets the tile root accept that height instead of shrinking to its content. If tiles in a row still differ in height, the rule isn't actually applying to the tile's current root — verify in the live overlay (not just in `resultStyles`) before suspecting anything else.
 
