@@ -25,7 +25,7 @@ All three are quick wins the operator should never have to fix by hand. Treat th
 
 ### Theme color — never ship the placeholder `#F13658`
 
-`#F13658` is the base scaffold's placeholder pink (`primary_shop_color` in `mobile-overlay/search.css`). **It must never reach a customer's dashboard.** Identify the customer's primary brand/accent color from the surveyed storefront and set `primary_shop_color` to it:
+`#F13658` is the base scaffold's placeholder pink (`primary_shop_color` in the mobile design's `resultStyles`). **It must never reach a customer's dashboard.** Identify the customer's primary brand/accent color from the surveyed storefront and set `primary_shop_color` to it:
 
 - **mobile-overlay** — `{# color primary_shop_color = … #}` drives the close / filter / search / back / reset button colors (the base header derives `close_button_color`, `filters_button_color`, etc. from it).
 

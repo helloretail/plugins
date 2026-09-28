@@ -6,7 +6,7 @@ source: index
 
 > The **canonical starting files** D&TS works from when onboarding a new Hello Retail customer. One set of files for every platform. Edit in place when team conventions change — new customers inherit your edits.
 
-These are the source-of-truth Liquid + CSS + JS the team copies into the per-customer design in the Hello Retail dashboard, then customizes. If you change a default here, every future onboarding picks it up.
+Two sources, one rule. For **Search** — desktop overlay, desktop embedded and mobile — the starting design is the one Hello Retail attaches when the config is created through the MCP (`search_createConfig`, target `DESKTOP` / `MOBILE` / `BOTH`, with `desktopDesign` `OVERLAY` / `EMBEDDED` on desktop); the wiki keeps no copy of those files, because a copy drifts from the platform. For Recommendations, Newsletter and Triggered Emails, the files below are the starting point. Whichever the source, the foundation is extended, never rewritten.
 
 > ⚠️ **Building a per-customer design? Read [foundation-rules.md](./foundation-rules.md) first.** The base CSS/Liquid/JS foundation is **not** rewritten per customer — you extend it with higher-specificity overrides, and you ask the operator for approval before altering it. The *Editing rules* below are about changing the **base itself**, which is a different job.
 
@@ -14,13 +14,8 @@ These are the source-of-truth Liquid + CSS + JS the team copies into the per-cus
 
 ```
 base-templates/
-├── search/                             ← Search layouts
-│   ├── desktop-overlay/                Desktop full-screen overlay (default)
-│   │   ├── search.liquid              Base Liquid — same for every platform
-│   │   ├── search.css                 Base CSS — same for every platform
-│   │   └── search.js                  Base JS — same for every platform
-│   ├── desktop-embedded/               Inline-embedded desktop variant (search.liquid + search.css + search.js)
-│   └── mobile-overlay/                 Mobile overlay (search.liquid + search.css + search.js)
+├── search/                             ← Search: no design files — every variant comes from the MCP (see search/README.md)
+│   └── README.md                       which create call attaches which variant
 ├── recoms/                             ← Recommendations layouts (see recoms/README.md)
 │   └── slider/                         Swiper slider recom box (default)
 │       ├── recom.liquid              Base Liquid — same for every platform
@@ -32,6 +27,16 @@ base-templates/
     ├── references/                     email-safe-rules.md · hr-feed-fields.md · inspection-and-verification.md
     └── examples/                       per-customer worked tiles
 ```
+
+## Where each Search variant comes from
+
+| Variant | Source | How a build gets it |
+|---|---|---|
+| desktop-overlay | the design `search_createConfig(target=DESKTOP, desktopDesign=OVERLAY)` attaches | create the config, `search_getDesign` it, edit in place |
+| desktop-embedded | the design `search_createConfig(target=DESKTOP, desktopDesign=EMBEDDED)` attaches | same |
+| mobile-overlay | the design `search_createConfig(target=MOBILE)` attaches | same |
+
+The MCP's `type` label reads "Overlay search" for all three; only the config *name* tells them apart. The team renames each created config to `Desktop`, `Embedded Desktop` or `Mobile` — the on-site widget prints the type in front, so it reads "Overlay search - Desktop".
 
 ## Two email surfaces — different deliverables
 
@@ -51,7 +56,7 @@ The team uses **the same base files for every customer regardless of platform**.
 
 ## The slot model
 
-`search.liquid` has one place per-customer markup goes: the **`{% else %}` branch of the banner check** within `{% for product in product_list %}`. The base files carry the platform's default tile there and nothing else — no placeholder, no marker comment (one was tried and retired: it kept leaking into pushed designs). The customer's tile — produced by `tile-extractor` — **replaces the whole default tile element**, `<a class="hr-search-overlay-product-link">…</a>` included: nothing of the default tile survives in a pushed design.
+`search.liquid` (the design's `resultTemplate`) has one place per-customer markup goes: the **`{% else %}` branch of the banner check** within `{% for product in product_list %}`. Every source carries Hello Retail's default tile there (`<a class="hr-search-overlay-product-link">…</a>`) and nothing else — no placeholder, no marker comment. The `search-developer` skill's `scripts/splice-tile.mjs` finds the branch by parsing the Liquid. A marker comment was tried and retired: it kept leaking into pushed designs.
 
 ```liquid
 {% for product in product_list %}
@@ -71,38 +76,38 @@ The team uses **the same base files for every customer regardless of platform**.
 {% endfor %}
 ```
 
-`search.css` contains one slot: `{{ CUSTOM_STYLING_BLOCK }}`, placed above the HR scaffold styles. **It stays empty.** The theme styles the copied tile; what the theme cannot reach is restored by mirroring the tile's parent hooks onto `hr-products-container` (rule 6) and by the shell's sanctioned edits (`search-developer` → `shell-structure.md`). Tile CSS in this block is the pattern the verbatim pipeline retired.
+A Search design has **no CSS slot** (older copies carried a `{{ CUSTOM_STYLING_BLOCK }}` token; the designs the MCP attaches have none). The theme styles the copied tile; what the theme cannot reach is restored by mirroring the tile's parent hooks onto `hr-products-container` (rule 6) and by the shell's sanctioned edits — never by CSS written for the tile.
 
 **That branch is the only place per-customer markup goes.** Everything around it — banner branch, filters, captured_filters, hr-results, content blog branch, hr-close, animations, breakpoints — stays untouched across all customers.
 
 ## Editing rules
 
-1. **Keep the anchors.** The default tile in the `{% else %}` branch and the `{{ CUSTOM_STYLING_BLOCK }}` slot must remain — they're the per-customer anchor points. Never add a marker comment to a Search file: it ends up in pushed designs.
+1. **Keep the anchors** in the files the wiki keeps: the `{{ TILE_BODY }}` and `{{ CUSTOM_STYLING_BLOCK }}` slots (Recoms). The wiki keeps no Search files — never add one here, and never add a marker comment to a Search design: it ends up in pushed designs.
 2. **Don't touch the banner branch.** Banners are HR Retail Media markup and have their own conventions. The base handles them correctly out of the box.
 3. **Don't substitute customer-specific values in the defaults.** Token defaults should be neutral (`#232324` not a brand color, `240px` not 300). Operators override per customer in the dashboard.
 4. **Don't add per-customer extension markup.** Amasty Labels, Timesact Pre-order ribbons, Dawn `<details>` collision workarounds — those are per-customer and live in the customer's design, not in the base.
-5. **Mirror the platform defaults.** If the default Hello Retail Search template ships a structural change upstream, propagate the change here.
-6. **Scope the tile to the customer's CSS via the container — never a wrapper inside the loop.** Customer themes usually scope their card CSS under a section-level ancestor (e.g. `.collection-product`, `.products-grid`, `.collection`). In the overlay that ancestor is absent, so those rules don't match and the tile loses styling. **Fix: add the ancestor class to `.hr-products-container`** (the loop's parent — there are usually two occurrences, the `initialContent` branch and the `else` branch), e.g. `<div class='hr-products-container collection-product' …>`. Do **not** wrap the tile in that class inside `{% for %}` — a per-tile wrapper drags in the theme's section width/grid and shrinks every tile (observed: 290px → 192px). This is the one sanctioned edit outside the two slots.
+5. **Mirror the platform defaults** in the files the wiki keeps. No Search design has a wiki copy to keep in sync — that is the point of reading them from the MCP.
+6. **Scope the tile to the customer's CSS via the container — never a wrapper inside the loop.** Customer themes usually scope their card CSS under a section-level ancestor (e.g. `.collection-product`, `.products-grid`, `.collection`). In the overlay that ancestor is absent, so those rules don't match and the tile loses styling. **Fix: add the ancestor class to `.hr-products-container`** (the loop's parent — there are usually two occurrences, the `initialContent` branch and the `else` branch), e.g. `<div class='hr-products-container collection-product' …>`. Do **not** wrap the tile in that class inside `{% for %}` — a per-tile wrapper drags in the theme's section width/grid and shrinks every tile (observed: 290px → 192px). In Search this is the one sanctioned edit outside the tile slot (the `{% else %}` branch); in Recoms, outside the two slots.
 
 ## Tile styling gotchas
 
 Hard-won from real onboardings. The reusable pieces live in the [cheat sheets](../cheat-sheets/README.md) and the [platform pages](../platforms/platforms.md).
 
-- **HR centers tile text.** The base rule `.hr-overlay-search { text-align: center }` cascades into every tile; native category tiles are usually left-aligned. Adding the customer's scoping ancestor to `.hr-products-container` (rule 6) normally pulls in the theme's own `text-align` and fixes it. If the theme has no such rule, the shell sets the surveyed alignment on its TILE FILL rule (the tile skill's ALIGNMENT line) — never a tile rule in `CUSTOM_STYLING_BLOCK`.
+- **HR centers tile text.** The base rule `.hr-overlay-search { text-align: center }` cascades into every tile; native category tiles are usually left-aligned. Adding the customer's scoping ancestor to `.hr-products-container` (rule 6) normally pulls in the theme's own `text-align` and fixes it. If the theme has no such rule, the shell sets the surveyed alignment on its TILE FILL rule (the tile skill's ALIGNMENT line) — never a CSS rule written for the tile.
 - **Restore the theme's reach, never author CSS for the tile.** Restoring the theme's own scoped rules (rule 6) is the fix; a rule that re-creates the tile's look on Hello Retail or customer classes is the retired pattern. A difference that neither the copy nor a hook explains is reported to the shell, which owns the sanctioned edits.
 - **`<li>` tiles need `list-style-type: none`.** If the customer's tile root is an `<li>` (Dawn-style grids), it renders inside HR's `<div>` container, not a `<ul>`, so the browser shows a bullet. The tile skill's bind script adds inline `style="list-style-type:none;"` on the `<li>`.
 - **Collapsing a per-card image carousel breaks the image box.** When a tile's image area is a theme-JS slider (Swiper, `global-variant-slider`, etc.) that won't init in the overlay, and you reduce it to a static `<img>` (+ hover), the theme's square-ratio and `img{position:absolute;width/height:100%}` fill rules are often scoped to the `.swiper-slide`/container structure you removed. Restore the square box with inline `style="padding-bottom:100%;"` on the `.media` wrapper; the image-fill rule usually returns once the scoping ancestor is on `.hr-products-container` (rule 6).
 
 ## How operators use these
 
-1. Pick the right base for the layout (today: `search/desktop-overlay/`).
-2. Copy `search.liquid` + `search.css` + `search.js` as the starting point for the customer's design.
+1. Get the starting design: create the config through the MCP (`search_createConfig`, passing `desktopDesign` `OVERLAY` or `EMBEDDED` on desktop) and read the attached design with `search_getDesign`.
+2. Extract the three fields to files (`resultTemplate.liquid`, `resultStyles.css`, `initializationCode.js`) in the session scratch folder and work on disk — the payload is too large to hold in context.
 3. Survey the customer's category-page tile (sample 6-12 tiles from the pagination grid, avoiding 3rd-party recom widgets) to identify variations: sale, sold-out, badges, swatches, brand label, ATC form, etc.
-4. Replace the whole content of the `{% else %}` branch of the banner check — the default tile element — with the tile body from `tile-extractor` — the customer's card copied as real HTML with the product values bound by table.
-5. Leave `{{ CUSTOM_STYLING_BLOCK }}` empty; apply only the shell's sanctioned edits (parent hooks on the container, TILE FILL, `product_tile_width`, the reset deletion).
-6. Paste the modified Liquid + CSS + JS into the HR dashboard HTML + CSS + JS sections for the customer's design.
+4. Replace the whole `{% else %}` branch content — the default tile element and everything inside it — with the tile body from `tile-extractor` (the customer's card copied as real HTML with the product values bound by table): `node "<search-developer>/scripts/splice-tile.mjs" --liquid resultTemplate.liquid --tile tile.liquid --out resultTemplate.liquid`.
+5. Write no CSS for the tile; apply only the shell's sanctioned edits (parent hooks on the container and the cell, TILE FILL, `product_tile_width`, the reset deletion where the design still has the block).
+6. Push the three files' contents with `search_updateDesign` once the operator approved the diff; publishing stays a dashboard step.
 
-JS section is typically copy-adapted from `search.js` with the customer's selectors/feature flags filled in.
+The JS field keeps the design's own scaffold; only the customer's selectors and feature flags change.
 
 ## Related
 
