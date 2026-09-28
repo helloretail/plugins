@@ -18,7 +18,8 @@ Reads the cart total from a Shopify-style `.cart-total-wrapper .money` element, 
 
 ```javascript
 var heading = jQuery("#hello-retail-{{ key }} h2"),   // the base headline <h2> carries no class
-basketAmount = parseFloat( jQuery(".cart-total-wrapper .money").text().trim().split("$").pop().trim().replace(",", "") );
+// Keep only the digits and the decimal point: "$1,234.56" → 1234.56, whatever the thousands separator.
+basketAmount = parseFloat( jQuery(".cart-total-wrapper .money").last().text().replace(/[^0-9.]/g, "") );
 
 if( !isNaN(basketAmount) ) {
     if(basketAmount < 50) {
@@ -33,7 +34,14 @@ if( !isNaN(basketAmount) ) {
 
 **Adapt for the customer:**
 
-- Change `$` to the customer's currency symbol if not USD.
+- Change `$` in the heading texts to the customer's currency symbol if not USD.
+- **Decimal-comma currencies** (`1.234,56 kr`, `1 234,50 €`): parse with
+  `.replace(/[^0-9,]/g, "").replace(",", ".")` instead — strip everything but the digits and the
+  comma, then make the comma the decimal point. Don't split on the currency symbol: for a currency
+  written after the number (`349,00 kr`), `split("kr").pop()` returns the empty text after it.
+- On Shopify the cart total is also available as a number, with no text to parse:
+  `fetch("/cart.js").then(r => r.json()).then(cart => cart.total_price / 100)` (the shopper's
+  currency, after discounts, before shipping).
 - Change `50` to the customer's free-shipping threshold.
 - Confirm the parent selector — some Shopify themes nest `.money` under `#cart-total`, `.cart__total`, etc.
 
@@ -85,3 +93,4 @@ Some modern Shopify themes use `<quick-view-button>` web components that need `c
 ## Timeline
 - 2026-05-19: Initial Shopify-specific recoms extracted from the consolidated cheat sheet.
 - 2026-05-21: Added Dynamic Currency (Shopify .json endpoint) and link to Quick View pattern.
+- 2026-09-28: Free Shipping: cart-total parsing strips every thousands separator (it removed only the first, so $1,234,567.89 read as 1234); the notes now give the decimal-comma parse, since swapping `$` for `kr` as they said made the snippet read nothing, and the `/cart.js` total.
