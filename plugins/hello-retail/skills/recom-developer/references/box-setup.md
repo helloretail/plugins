@@ -84,12 +84,33 @@ confirm. Several boxes on one page: preview them together, so their order is vis
   another. Anything no best-practice algorithm covers → step 7 *Strategy*.
 - **Headline** — the text for the box's `{% input headline %}` field, in the shop's language.
 - **Load order** — only when several boxes share a page: which gets products first (step 6).
-- **Product count** and **devices** — from the card; otherwise the defaults (step 6).
+- **Product count — how many products the box holds.** Run *Survey the shop's own sliders*
+  (`placement-snippets.md`) on the page the box goes on — homepage and PDP placements usually have
+  one. Then:
+  - **The shop has a product slider there** → its `products` is the default. Say where it came
+    from and let the operator change it:
+
+    > The shop's own slider "\<heading\>" on this page holds **12** products. Use 12 for this
+    > recom? (or 8 / 10 / another number)
+
+    Several sliders with different counts → prefer the one the box replaces or sits next to, and
+    name the others.
+  - **No slider on that page** → ask: *"How many products should this recom show — 8, 10 or 12?"*
+
+  The count must fit the non-supervisor limit (step 6 → `productCount`).
+- **Arrows — from the same survey.** Keep the `prev` / `next` it reports for the design step
+  (SKILL.md Step 4 → *Box-shell parity*; `slider-structure.md` → *Prev/next arrows*): visible
+  arrows → the box copies their design; arrows hidden at 375 px → the box hides its arrows at the
+  same breakpoint; `null` → the shop's slider has no arrows: keep the base template's arrows, or hide
+  them when the shop's slider is an arrow-less scroll row (`slider-structure.md` → `cssMode`). The placement page has no slider →
+  take the arrows from the homepage or a PDP slider instead — one design serves every box. Also
+  keep `perView` at 375 / 768 / 1280 for the box's `breakpoints`.
+- **Devices** — from the card; otherwise `BOTH` (step 6).
 
 ## 5. Plan, show, wait for approval
 
 Show one plan table for all boxes — box, page, placement (selector, `insertMode`, final /
-temporary), algorithm, then every other field as current → new — and wait for an explicit
+temporary), algorithm, product count (and where it came from), then every other field as current → new — and wait for an explicit
 go-ahead. A change to a **LIVE** box drafts it; say which ones will turn DRAFT.
 
 ## 6. Create the boxes and set their general settings
@@ -109,7 +130,7 @@ Send only the fields that change.
 - **`priority`** is the load order: 1 loads first and gets the **first batch of products**. On the
   PDP, **Alternatives gets the lowest value**. Load order is about product allocation, not the
   box's position on the page.
-- **`productCount`** — from the card, or leave the created default. A non-supervisor cannot go above the greater of 20 and
+- **`productCount`** — the count confirmed in step 4 (the shop's own slider, or the operator's 8 / 10 / 12). A non-supervisor cannot go above the greater of 20 and
   the current value; if the list asks for more, flag it.
 - **`responsiveMode`** — `BOTH` unless the operator or the card splits devices. A sidebar / drawer cart recom
   usually needs its own mobile box: one `DESKTOP` box and one `MOBILE` box, each on the design

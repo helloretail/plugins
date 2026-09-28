@@ -83,7 +83,7 @@ Confirm `website-uuid`, then resolve the `design-key` from `recoms_list` + `reco
 
 ### Step 1.5 — Set up the boxes (an onboarding, or the operator asks)
 
-Follow **`references/box-setup.md`**. In order: confirm which recoms on which pages (the ClickUp card's text as a pre-fill), then **for each box ask where it goes first** — a selector, a heading or section, or the customer div — resolve it to a verified selector on the live page, preview the spot and get it confirmed; then the algorithm and headline; then one plan table (current → new), explicit go-ahead, write as DRAFT, read back. Do it before the design push, so the draft has a box to render in at Step 7.5. The confirmed page URLs are also where you survey in Step 2. Pure design work with correct boxes → skip.
+Follow **`references/box-setup.md`**. In order: confirm which recoms on which pages (the ClickUp card's text as a pre-fill), then **for each box ask where it goes first** — a selector, a heading or section, or the customer div — resolve it to a verified selector on the live page, preview the spot and get it confirmed; then the algorithm, the headline and the **product count** (the shop's own slider on that page gives the default; no slider → ask 8, 10 or 12); then one plan table (current → new), explicit go-ahead, write as DRAFT, read back. Do it before the design push, so the draft has a box to render in at Step 7.5. The confirmed page URLs are also where you survey in Step 2. Pure design work with correct boxes → skip.
 
 ### Step 2 — Survey the storefront (use a real browser)
 
@@ -93,7 +93,7 @@ Also survey the **box-shell context** on the page type the box will live on (the
 
 - **Content width** — how sibling sections constrain their width. Usually a theme container utility class (max-width + responsive padding); note its class name — you reuse it on `#hello-retail-{{ key }}` in Step 4 so the box aligns with the page instead of rendering full-bleed.
 - **Section headings** — the theme's native section-heading classes/computed size, for the box `<h2>`.
-- **Native carousel nav at mobile widths** — most themes hide carousel arrows below a breakpoint and rely on swipe; note the breakpoint so your arrows match. → `references/slider-structure.md`
+- **The shop's own sliders — arrows and tiles in view** — use the *Survey the shop's own sliders* result from box setup (or run it now on the homepage and a PDP; `references/placement-snippets.md`) at 375 / 768 / 1280 px. Its `prev` / `next` are the arrows the box copies, and hides where the theme hides its own (most themes drop carousel arrows below a breakpoint and rely on swipe); its `perView` values set the box's `breakpoints`. → `references/slider-structure.md` → *Prev/next arrows*
 - **Mouse-wheel scroll on the shop's own sliders** — on the homepage / a PDP, run the detection snippet: does any customer slider scroll sideways with the mouse wheel (Swiper / Splide `mousewheel` on)? **If yes, ask the operator whether to enable it on the HR recoms too**, before Step 4 — never enable it unasked. If no, don't ask. → `references/slider-structure.md` → *Mouse-wheel scroll*
 
 ### Step 3 — Get the product tile from the tile skill
@@ -109,7 +109,7 @@ Using the base template (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/recoms/
 - **Mouse-wheel scroll** — only if the operator said yes in Step 2: Swiper `"11.2.8"`, root class `swiper-container` → `swiper`, and `mousewheel: true` (or `{ forceToAxis: true }` when the customer's slider has it). → `references/slider-structure.md` → *Mouse-wheel scroll*
 - **Add-to-cart JS wiring** — define the platform cart function, triggered from `afterInit` (clones exist by then) and/or via delegated handlers; scoped to the slider root, idempotent. → **`references/add-to-cart-js.md`**
 - **Banner** — replace `BANNER_SIZE_NAME_PLACEHOLDER` with `banner-size-name` if supplied; else leave it and flag in MISSING DATA. Never edit the banner markup.
-- **Box-shell parity** — apply the Step 2 shell findings: add the theme's content-width container class to `#hello-retail-{{ key }}` (the box must align with sibling sections, never full-bleed unless the page is), and give the `<h2>` headline the theme's native section-heading classes so it matches the page's other section titles. → `references/slider-structure.md`
+- **Box-shell parity** — apply the Step 2 shell findings: add the theme's content-width container class to `#hello-retail-{{ key }}` (the box must align with sibling sections, never full-bleed unless the page is), and give the `<h2>` headline the theme's native section-heading classes so it matches the page's other section titles. Style the prev/next arrows after the shop's own slider arrows from the Step 2 survey, and hide them at the breakpoint where the theme hides its own; no arrows on the shop's sliders → keep the base arrows. → `references/slider-structure.md` → *Prev/next arrows*
 
 `{{ CUSTOM_STYLING_BLOCK }}` stays **empty** — the recom slider is injected into the live page, so the customer's theme CSS styles the tile. Flag genuine styling gaps in NOTES; don't author CSS — except theme rules that provably can't reach the slider because they're ancestor- or media-scoped, which you restate rescoped to the box (Hard rule 6).
 
@@ -232,7 +232,7 @@ Then **wait for explicit approval** → push (Step 7) → remind the operator to
 **Intake & MCP**
 
 - [ ] `website-uuid` supplied or asked for; `design-key` derived from `recoms_list` + `recoms_listDesigns` (asked only when several editable designs are candidates); design confirmed editable (not standard/archived); `recoms_getDesign` read first as the modify-in-place base (spilled payload handled out-of-context). No MCP → inline copy-paste fallback.
-- [ ] Box inventory read (general settings, placement, algorithm, crawl config per box on the design). Onboarding: the set of recoms confirmed, and **for every box the placement asked first** and resolved on the live page — selector verified on 3 pages of the type and after a hard reload, marked final or temporary, spot previewed and confirmed; nothing read from a ClickUp screenshot. Box changes, if any: plan table shown and approved, each facet read before written, whole lists sent back, read back after, placement divs in the hand-off.
+- [ ] Box inventory read (general settings, placement, algorithm, crawl config per box on the design). Onboarding: the set of recoms confirmed, and **for every box the placement asked first** and resolved on the live page — selector verified on 3 pages of the type and after a hard reload, marked final or temporary, spot previewed and confirmed; nothing read from a ClickUp screenshot. Product count taken from the shop's own slider on the placement page and confirmed, or asked (8 / 10 / 12) when there is none. Box changes, if any: plan table shown and approved, each facet read before written, whole lists sent back, read back after, placement divs in the hand-off.
 - [ ] Locale confirmed via `website_getInfo`. Tile survey done with the **Claude in Chrome MCP** (Playwright only as fallback) — `WebFetch`/`curl` NOT used. If no browser MCP available, operator pasted tile HTML.
 
 **Tile handoff**
@@ -250,7 +250,7 @@ Then **wait for explicit approval** → push (Step 7) → remind the operator to
 - [ ] Shop's own sliders checked for mouse-wheel scroll; if on, the operator was asked. `mousewheel` added only on a yes — with Swiper `"11.2.8"` and root class `swiper`, called out in the diff, and checked by wheel on the rendered draft.
 - [ ] Swatch/ATC click handlers delegated from `document`; form-level ATC init runs from `afterInit`, scoped to the slider root, idempotent (`data-*` guard). Unsupported platform: form emitted, cart left unbound, MISSING DATA line.
 - [ ] `BANNER_SIZE_NAME_PLACEHOLDER` substituted or flagged. `{{ CUSTOM_STYLING_BLOCK }}` empty — any CSS added falls under a Hard-rule-6 exception (scoping workaround with values copied from theme/Search, or native-card scaffold cleanup) and is called out in the diff.
-- [ ] Box-shell parity applied: theme container class on `#hello-retail-{{ key }}`, native section-heading classes on the `<h2>`, arrows match native carousel behaviour at mobile widths.
+- [ ] Box-shell parity applied: theme container class on `#hello-retail-{{ key }}`, native section-heading classes on the `<h2>`, arrows styled after the shop's own slider arrows (slider survey) and hidden where the theme hides its own; `breakpoints` from the survey's `perView` at 375 / 768 / 1280.
 
 **Output**
 
