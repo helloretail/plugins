@@ -82,7 +82,16 @@ confirm. Several boxes on one page: preview them together, so their order is vis
 - **Algorithm** — `recoms_listBestPracticeAlgorithms(websiteUuid, type)`. Suggest the one that fits
   the page (the card's algorithm name, when it gave one) and let the operator confirm or pick
   another. Anything no best-practice algorithm covers → step 7 *Strategy*.
-- **Headline** — the text for the box's `{% input headline %}` field, in the shop's language.
+- **Heading** — ask for every box: *"What should the heading be for the \<page\> recom?"* Suggest
+  one in the shop's language — the heading of the shop's own section the box replaces or sits next
+  to (the slider survey's `heading`), or a plain one for the algorithm ("Others also bought") —
+  and let the operator confirm or change it. It becomes the value of the box's
+  `{% input headline %}` field.
+- **Cart and upsell boxes — offer a free-shipping heading.** Ask: *"Should this heading show how
+  far the shopper is from free shipping — e.g. 'Add 120 kr. more for free shipping'?"* On yes, ask
+  the threshold, the text below it (with `{amount}`), the text once reached, and — non-Shopify —
+  where the page shows the cart subtotal. The build is `free-shipping-heading.md`; the normal
+  heading above stays as its fallback. On no, the plain heading only.
 - **Load order** — only when several boxes share a page: which gets products first (step 6).
 - **Product count — how many products the box holds.** Run *Survey the shop's own sliders*
   (`placement-snippets.md`) on the page the box goes on — homepage and PDP placements usually have
@@ -110,7 +119,7 @@ confirm. Several boxes on one page: preview them together, so their order is vis
 ## 5. Plan, show, wait for approval
 
 Show one plan table for all boxes — box, page, placement (selector, `insertMode`, final /
-temporary), algorithm, product count (and where it came from), then every other field as current → new — and wait for an explicit
+temporary), algorithm, product count (and where it came from), heading (free-shipping or plain), then every other field as current → new — and wait for an explicit
 go-ahead. A change to a **LIVE** box drafts it; say which ones will turn DRAFT.
 
 ## 6. Create the boxes and set their general settings
@@ -214,5 +223,9 @@ dashboard's UTM suggestion is
   **final** or **temporary**, or the **div** the customer's developer must paste and where. A
   temporary selector carries "move to the `#hr-recom-<key>` div once the customer places it".
 - Boxes created or changed. All of them are DRAFT: **the operator publishes them in the dashboard.**
+- **Dashboard field values per box** — the MCP writes the design, not what goes in its
+  `{% input %}` fields: list `headline` (and, with a free-shipping heading, `free_shipping_threshold`,
+  `free_shipping_left`, `free_shipping_reached`) with the value the operator confirmed, for them to
+  enter in the dashboard.
 - Operator-only items: publishing, deleting or archiving boxes and designs, renaming a design,
-  locking.
+  locking, and the `{% input %}` field values above.

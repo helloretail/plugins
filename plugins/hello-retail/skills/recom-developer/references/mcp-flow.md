@@ -37,7 +37,7 @@ A **box** (a recommendation: `FRONT_PAGE`, `PRODUCT_PAGE`, … with its strategy
 
 Every box write, like a design write, **auto-drafts a LIVE box** and cannot publish.
 
-**Not possible through the MCP** — goes on the operator list: publishing, deleting or archiving a box or a design, renaming a **design** (`recoms_updateGeneralSettings` renames the *box*), and `locked` for non-supervisors. The `recoms_getAnalytics*` tools exist but only LIVE boxes produce numbers — they belong to reports and support, not to a build.
+**Not possible through the MCP** — goes on the operator list: publishing, deleting or archiving a box or a design, renaming a **design** (`recoms_updateGeneralSettings` renames the *box*), `locked` for non-supervisors, and the **values of a design's `{% input %}` fields** (`headline`, the tile's fixed texts, free-shipping fields) — the operator enters those in the dashboard. The `recoms_getAnalytics*` tools exist but only LIVE boxes produce numbers — they belong to reports and support, not to a build.
 
 ## Field mapping — MCP fields to this skill's two files
 
