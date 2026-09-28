@@ -188,7 +188,7 @@ After the push, check it on the rendered draft: hover the box and scroll the whe
 
 The `.swiper-button-prev/next` arrows are the **one** slider-shell element the site's theme CSS does *not* style — so default Swiper arrows (white circle, shadow, 0.5 opacity) almost never match the shop. Tuning them in the base scaffold's arrow rules is fine (this is shell CSS, not tile CSS — it does not violate the "don't author tile CSS" rule below).
 
-During survey, find the storefront's own carousel/slider nav and copy its look. Common selectors: `.carousel-prev` / `.carousel-next`, slick `.slick-arrow`, splide `.splide__arrow`. Read computed styles (width/height, background, border, border-radius, color, box-shadow) plus the `:hover` rule from the stylesheet, then mirror them.
+During survey, find the storefront's own carousel/slider nav and copy its look — the *Survey the shop's own sliders* snippet (`placement-snippets.md`) returns each slider's `prev` / `next` selector with its computed size, background, border, radius, colour and shadow. Common selectors: `.carousel-prev` / `.carousel-next`, slick `.slick-arrow`, splide `.splide__arrow`. Read computed styles (width/height, background, border, border-radius, color, box-shadow) plus the `:hover` rule from the stylesheet, then mirror them.
 
 To match the glyph exactly, override Swiper's icon font with the native character:
 

@@ -1,6 +1,6 @@
-# Placement snippets — turn the operator's answer into a selector
+# Placement snippets — where the box goes, and what the shop's own sliders do
 
-Browser-console snippets for `box-setup.md` → step 3. Run them with the browser MCP's evaluate
+Browser-console snippets for `box-setup.md` → steps 3 and 4. Run them with the browser MCP's evaluate
 tool on the live page the box goes on. They only read the page — except *Preview the spot*, which
 adds a marker in **your** browser that a reload removes. Nothing here writes to Hello Retail.
 
@@ -142,3 +142,96 @@ your browser — reload to remove it. Replace `SELECTOR` and `MODE` (`BEFORE`, `
 Take the screenshot with the marker and its neighbouring sections in view, and save it into
 `QA/screenshots/`. For several boxes on one page, run it once per box with a different label
 before taking the screenshot.
+
+## Survey the shop's own sliders — product count and arrows
+
+Run on the page the box goes on (`box-setup.md` → step 4), after the page has settled. Finds the
+shop's own product sliders — Swiper, Splide, Slick, Flickity, Glide, Owl, Keen and plain
+scroll containers — skipping Hello Retail boxes, and reports per slider how many products it
+holds (clones not counted), how many tiles are in view at this width, and its prev/next buttons
+with their computed look.
+
+```js
+(() => {
+  const own = el => !el.closest('[id^="hello-retail-"], [id^="aw-box-"], .hr-placement-preview');
+  const clean = s => (s || '').replace(/\s+/g, ' ').trim();
+  const stable = c => !/\d{3,}|initialized|^(is-|js-)|active|visible|loaded|^css-/.test(c);
+  const sel = el => {
+    if (el.id && !/\d{5,}/.test(el.id)) return '#' + CSS.escape(el.id);
+    const label = el.getAttribute('aria-label');
+    return el.tagName.toLowerCase() + [...el.classList].filter(stable).slice(0, 3).map(c => '.' + CSS.escape(c)).join('') +
+      (label ? `[aria-label="${label.replace(/"/g, '\\"')}"]` : '');
+  };
+  const LIBS = [
+    ['swiper', '.swiper, .swiper-container, swiper-container', '.swiper-slide:not(.swiper-slide-duplicate)'],
+    ['splide', '.splide', '.splide__slide:not(.is-clone)'],
+    ['slick', '.slick-slider', '.slick-slide:not(.slick-cloned)'],
+    ['flickity', '.flickity-enabled', '.flickity-slider > *'],
+    ['glide', '.glide', '.glide__slide:not(.glide__slide--clone)'],
+    ['owl', '.owl-carousel', '.owl-item:not(.cloned)'],
+    ['keen', '.keen-slider', '.keen-slider__slide'],
+  ];
+  const found = [];
+  for (const [lib, rootSel, slideSel] of LIBS) {
+    document.querySelectorAll(rootSel).forEach(el => { if (own(el)) found.push({ el, lib, slides: [...el.querySelectorAll(slideSel)] }); });
+  }
+  // Native scroll containers (Dawn-style slider sections): scroll sideways, hold several images.
+  document.querySelectorAll('ul, ol, div, slider-component').forEach(el => {
+    if (!own(el) || found.some(f => f.el.contains(el) || el.contains(f.el))) return;
+    if (!/(auto|scroll)/.test(getComputedStyle(el).overflowX) || el.scrollWidth <= el.clientWidth + 20) return;
+    const slides = [...el.children].filter(c => c.querySelector('img'));
+    if (slides.length >= 3) found.push({ el, lib: 'scroll', slides });
+  });
+  const viewport = window.innerWidth || document.documentElement.clientWidth;
+  return found
+    .filter(f => !found.some(g => g !== f && g.el.contains(f.el)))        // outermost slider only
+    .map(({ el, lib, slides }) => {
+      // Swiper 11's loop keeps no duplicate class: count distinct slide indexes instead.
+      const idx = new Set(slides.map(s => s.getAttribute('data-swiper-slide-index')).filter(v => v !== null));
+      const box = el.getBoundingClientRect();
+      const perView = slides.reduce((sum, s) => {
+        const r = s.getBoundingClientRect();
+        const vis = Math.min(r.right, box.right) - Math.max(r.left, box.left);
+        return r.width > 0 && vis > 0 ? sum + vis / r.width : sum;
+      }, 0);
+      const scope = el.closest('section, .shopify-section, [data-section-type]') || el.parentElement;
+      const btn = dir => [...scope.querySelectorAll(
+        `.swiper-button-${dir}, .splide__arrow--${dir}, .slick-${dir}, .flickity-prev-next-button.${dir === 'prev' ? 'previous' : 'next'}, ` +
+        `.glide__arrow--${dir === 'prev' ? 'left' : 'right'}, .owl-${dir}, ` +
+        `button[aria-label*="${dir}" i], a[aria-label*="${dir}" i], button[class*="${dir}"], [role="button"][class*="${dir}"]`)]
+        .find(own);
+      const arrow = b => {
+        if (!b) return null;
+        const cs = getComputedStyle(b);
+        return { selector: sel(b), visible: b.offsetWidth > 0 && cs.display !== 'none' && cs.visibility !== 'hidden',
+          width: cs.width, height: cs.height, background: cs.backgroundColor, border: cs.border,
+          borderRadius: cs.borderRadius, color: cs.color, boxShadow: cs.boxShadow };
+      };
+      return {
+        lib, slider: sel(el),
+        heading: clean(scope.querySelector('h1, h2, h3, [class*="title"], [class*="heading"]')?.textContent).slice(0, 60) || '(no heading)',
+        products: idx.size || slides.length,                               // → the productCount default
+        perView: Math.round(perView * 100) / 100, viewport,               // run at 375 / 768 / 1280
+        prev: arrow(btn('prev')), next: arrow(btn('next')),                // null → the slider has no arrows
+        top: Math.round(box.top + scrollY),
+      };
+    })
+    .sort((a, b) => a.top - b.top);
+})()
+```
+
+Reading it:
+
+- **`products`** is the suggested product count for the box. When several sliders report different
+  counts, prefer the one the box replaces or sits next to (same `heading` as the placement's
+  section), and name the others when you ask.
+- A slider that loads its products lazily (a "Recently viewed" row filled after load, a slider
+  that fetches more on scroll) can report fewer than it holds — when `products` looks low, scroll
+  the slider to its end and run it again.
+- **`perView`** is what the shop shows at this width — fractional values (`4.48`) are a peeking
+  last tile. Run at 375, 768 and 1280 px and use the three values for the box's `breakpoints`
+  (`slider-structure.md` → *Swiper init*).
+- **`prev` / `next`** with `visible: true` → copy that design (`slider-structure.md` →
+  *Prev/next arrows*). `visible: false` at 375 px while true at 1280 → the theme hides its arrows
+  on mobile: hide the box's at the same breakpoint. `null` → the shop's slider has no arrows.
+- Nothing returned → the page has no slider of its own.
