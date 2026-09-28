@@ -101,7 +101,7 @@ Using the base template (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/recoms/
 - **Mouse-wheel scroll** — only if the operator said yes in Step 2: Swiper `"11.2.8"`, root class `swiper-container` → `swiper`, and `mousewheel: true` (or `{ forceToAxis: true }` when the customer's slider has it). → `references/slider-structure.md` → *Mouse-wheel scroll*
 - **Add-to-cart JS wiring** — define the platform cart function, triggered from `afterInit` (clones exist by then) and/or via delegated handlers; scoped to the slider root, idempotent. → **`references/add-to-cart-js.md`**
 - **Banner** — replace `BANNER_SIZE_NAME_PLACEHOLDER` with `banner-size-name` if supplied; else leave it and flag in MISSING DATA. Never edit the banner markup.
-- **Box-shell parity** — apply the Step 2 shell findings: add the theme's content-width container class to `#hello-retail-{{ key }}` (the box must align with sibling sections, never full-bleed unless the page is), and give the `<h2>` headline the theme's native section-heading classes so it matches the page's other section titles. → `references/slider-structure.md`
+- **Box-shell parity** — apply the Step 2 shell findings: get the box's width to match sibling sections by **placing it inside the theme's own container element** (a placement change, `recoms_updatePlacement`), not by copying the theme's container class into `templateCode` — a reused-across-domains design shouldn't assume one site's class name exists elsewhere. Give the `<h2>` headline the theme's native section-heading classes so it matches the page's other section titles. → `references/slider-structure.md`
 
 `{{ CUSTOM_STYLING_BLOCK }}` stays **empty** — the recom slider is injected into the live page, so the customer's theme CSS styles the tile. Flag genuine styling gaps in NOTES; don't author CSS — except theme rules that provably can't reach the slider because they're ancestor- or media-scoped, which you restate rescoped to the box (Hard rule 6).
 
@@ -237,7 +237,7 @@ Then **wait for explicit approval** → push (Step 7) → remind the operator to
 - [ ] Shop's own sliders checked for mouse-wheel scroll; if on, the operator was asked. `mousewheel` added only on a yes — with Swiper `"11.2.8"` and root class `swiper`, called out in the diff, and checked by wheel on the rendered draft.
 - [ ] Swatch/ATC click handlers delegated from `document`; form-level ATC init runs from `afterInit`, scoped to the slider root, idempotent (`data-*` guard). Unsupported platform: form emitted, cart left unbound, MISSING DATA line.
 - [ ] `BANNER_SIZE_NAME_PLACEHOLDER` substituted or flagged. `{{ CUSTOM_STYLING_BLOCK }}` empty — any CSS added falls under a Hard-rule-6 exception (scoping workaround with values copied from theme/Search, or native-card scaffold cleanup) and is called out in the diff.
-- [ ] Box-shell parity applied: theme container class on `#hello-retail-{{ key }}`, native section-heading classes on the `<h2>`, arrows match native carousel behaviour at mobile widths.
+- [ ] Box-shell parity applied: width matched by **placing the box inside the theme's own container element** (placement change) rather than copying its class into `templateCode`; native section-heading classes on the `<h2>`; arrows match native carousel behaviour at mobile widths.
 
 **Output**
 
