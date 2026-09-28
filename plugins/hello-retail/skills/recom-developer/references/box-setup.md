@@ -7,71 +7,120 @@ the procedure; the tool reference is `mcp-flow.md` → *Tools*.
 
 **Run it when** the operator asks to "set up the recoms", "create the boxes", "configure the recom
 for [page]", "set the load order", "fix the placement", "change the algorithm" — or when the
-inventory (step 1) shows boxes missing or misconfigured against the order list. On a fresh
-onboarding, set the boxes up **before** the design push, so the draft design has a box to render
-in for Step 7.5.
+inventory (step 1) shows boxes missing or misconfigured against what the operator wants. On a
+fresh onboarding this is where the build starts, and the boxes are set up **before** the design
+push, so the draft design has a box to render in for Step 7.5.
 
 Same governance as a design push: **read → plan → show → explicit go-ahead → write → read back.**
 Every write lands as a **DRAFT** and nothing here can publish.
 
-## Inputs
+## 1. Read what exists (silent — no questions yet)
 
-- `website-uuid`.
-- **The order list** — which boxes, on which page type, with which algorithm, product count,
-  headline and placement. Source: the ClickUp card (through the ClickUp MCP when it is connected)
-  or the operator. **Never invent a box, an algorithm or a placement** — anything the list
-  doesn't say, ask.
-- A live URL per page type the boxes go on (category, PDP, cart), for testing selectors.
+- **The inventory.** `recoms_list(websiteUuid)`, then for each LIVE/DRAFT box:
+  `recoms_getGeneralSettings`, `recoms_getPlacement`, `recoms_getAlgorithm`,
+  `recoms_getContextCrawlConfig`. These payloads are small — read them in full. Build one table:
 
-## 1. Read the inventory (read-only, always)
+  | key | name | type | state | designKey | priority | productCount | responsiveMode | selector (default?) | algorithm | crawl fields |
+  |---|---|---|---|---|---|---|---|---|---|---|
 
-`recoms_list(websiteUuid)`, then for each LIVE/DRAFT box under work:
-`recoms_getGeneralSettings`, `recoms_getPlacement`, `recoms_getAlgorithm`,
-`recoms_getContextCrawlConfig`. These payloads are small — read them in full. Build one table:
+  For `algorithm`, write `matchesBestPractice` when it isn't null, otherwise "tuned — N steps".
+  For `crawl fields`, list the field names (`hierarchies`, `urls`, …) or "none".
+- **The ClickUp card, when it's available** (ClickUp MCP connected, or the operator linked it).
+  Take only what its **text** says: how many recoms, on which pages, algorithm names, headlines.
+  The card's placement information is mostly **screenshots — never derive a placement from
+  them.** At most, a screenshot tells you which page to ask about.
 
-| key | name | type | state | designKey | priority | productCount | responsiveMode | selector (default?) | algorithm | crawl fields |
-|---|---|---|---|---|---|---|---|---|---|---|
+## 2. Ask: which recoms, on which pages
 
-For `algorithm`, write `matchesBestPractice` when it isn't null, otherwise "tuned — N steps".
-For `crawl fields`, list the field names (`hierarchies`, `urls`, …) or "none".
+With a card, show its list as a pre-fill and ask the operator to confirm or correct it:
 
-Compare the table with the order list: each row becomes **create**, **change** (name the fields)
-or **leave**.
+> The card mentions 4 recoms: front page, product page ×2, cart. Is that the set?
 
-## 2. Plan, show, wait for approval
+Without a card, ask: *"How many recoms, and on which pages?"* Existing boxes from step 1 count
+toward the set — say which already exist.
 
-Show one plan table — box, tool, field, current → new — and wait for an explicit go-ahead. A
-change to a **LIVE** box drafts it; say which ones will turn DRAFT.
+## 3. Ask: where does each recom go — placement first
 
-## 3. Create missing boxes
+**One question per box, before anything else about that box.** Ask it in these words:
 
-1. `recoms_listBestPracticeAlgorithms(websiteUuid, type)` — pick the entry whose one-line
-   description matches what the order list asks for. No clear match → show the candidates and ask.
-2. `recoms_create(websiteUuid, type, algorithmName)` → returns the new `key` and
-   `placementDivExample`. **Record the div for the hand-off.**
-3. The box is born named after the algorithm ("Retargeted - Box 1") — rename it in step 4.
+> Where should the **\<page\>** recom go? Give me a page URL and one of:
+> a CSS selector · the heading or section it should sit next to (and before / after it) ·
+> or "the customer will place the div".
 
-## 4. General settings — `recoms_updateGeneralSettings`
+Resolve the answer on the live page with the browser MCP — the snippets are in
+`placement-snippets.md`:
+
+| The operator gives | Do |
+|---|---|
+| **A CSS selector** | Run *Verify a selector*. It must match exactly one visible element, again after a hard reload, and on 2 more pages of the same type. A volatile selector (Shopify's numeric section IDs, hashed classes, `:nth-child`) is rewritten to its stable form — say so. |
+| **A heading, section name or visible text** ("below *You may also like*", "above the newsletter block") | Run *Find the section by its text* → the section that holds it, with candidate selectors ranked by stability. Take the most stable one that matches exactly one element, then verify it as above. |
+| **"The customer will place the div"** | Keep the default `#hr-recom-<key>`. Its `placementDivExample` goes into the hand-off with the page it belongs on. |
+| **Nothing matches, or the answer is vague** | Run *Section map* and show the page's sections as a numbered list (heading and position). Ask: *"Which one — and before or after it?"* |
+
+Then settle the rest of the placement from the same answer:
+
+- **`insertMode`** — "above / before" → `BEFORE`, "below / after" → `AFTER`, "inside, at the top /
+  bottom" → `PREPEND` / `APPEND`. **`REPLACE` removes the shop's own section** — only when the
+  operator said "replace", and confirm it once more.
+- **`selectorMode`** — `NORMAL`, unless *Verify a selector* finds the anchor missing from the
+  server HTML (a late-rendered app block or lazy section) → `LIVE_ONCE`; an anchor that
+  re-renders (a cart drawer opened again) → `LIVE_MULTI`.
+- **`type`** — from the page: homepage `FRONT_PAGE`, category `CATEGORY_PAGE`, PDP `PRODUCT_PAGE`,
+  cart `CART_PAGE`, cart drawer / add-to-cart step `UPSELL_STEP`, search results `SEARCH_PAGE`,
+  404 `E404_PAGE`. Don't ask for it.
+- **Final or temporary.** A selector is **final** when it matches exactly one element on every page
+  you tested (3 of the type where the shop has them), survives a hard reload, carries no volatile
+  token, and doesn't sit in a hidden container. Otherwise it is **temporary**: it goes in the
+  hand-off with "move to the `#hr-recom-<key>` div once the customer places it".
+
+**Show the spot before you move on.** Run *Preview the spot* (a dashed marker, in your browser
+only — a reload removes it), screenshot it into `QA/screenshots/`, and ask the operator to
+confirm. Several boxes on one page: preview them together, so their order is visible.
+
+## 4. Ask: what each recom shows
+
+- **Algorithm** — `recoms_listBestPracticeAlgorithms(websiteUuid, type)`. Suggest the one that fits
+  the page (the card's algorithm name, when it gave one) and let the operator confirm or pick
+  another. Anything no best-practice algorithm covers → step 7 *Strategy*.
+- **Headline** — the text for the box's `{% input headline %}` field, in the shop's language.
+- **Load order** — only when several boxes share a page: which gets products first (step 6).
+- **Product count** and **devices** — from the card; otherwise the defaults (step 6).
+
+## 5. Plan, show, wait for approval
+
+Show one plan table for all boxes — box, page, placement (selector, `insertMode`, final /
+temporary), algorithm, then every other field as current → new — and wait for an explicit
+go-ahead. A change to a **LIVE** box drafts it; say which ones will turn DRAFT.
+
+## 6. Create the boxes and set their general settings
+
+1. `recoms_create(websiteUuid, type, algorithmName)` with the algorithm confirmed in step 4 →
+   returns the new `key` and `placementDivExample`. **Record the div for the hand-off.**
+2. Set the placement from step 3 right away (step 9), so the box attaches where the operator
+   confirmed.
+3. The box is born named after the algorithm ("Retargeted - Box 1") — rename it below.
+
+### General settings — `recoms_updateGeneralSettings`
 
 Send only the fields that change.
 
-- **`name`** — the customer-facing name the order list uses. No `DK` / `TEST` / `[NOTE]` style tags;
+- **`name`** — the customer-facing name (the card's, or page + purpose: "PDP – Alternatives"). No `DK` / `TEST` / `[NOTE]` style tags;
   QA fails those.
 - **`priority`** is the load order: 1 loads first and gets the **first batch of products**. On the
   PDP, **Alternatives gets the lowest value**. Load order is about product allocation, not the
   box's position on the page.
-- **`productCount`** — from the order list. A non-supervisor cannot go above the greater of 20 and
+- **`productCount`** — from the card, or leave the created default. A non-supervisor cannot go above the greater of 20 and
   the current value; if the list asks for more, flag it.
-- **`responsiveMode`** — `BOTH` unless the order list splits devices. A sidebar / drawer cart recom
+- **`responsiveMode`** — `BOTH` unless the operator or the card splits devices. A sidebar / drawer cart recom
   usually needs its own mobile box: one `DESKTOP` box and one `MOBILE` box, each on the design
   that fits it.
-- **`renderIfEmpty`**, **`retailMediaInjectionMode`** — leave as they are unless the order list asks.
+- **`renderIfEmpty`**, **`retailMediaInjectionMode`** — leave as they are unless the operator asks.
   Retail Media injection needs Retail Media on the website's agreement.
 - **`locked`** — never. Supervisor only.
 
-## 5. Strategy — prefer a best-practice algorithm
+## 7. Strategy — prefer a best-practice algorithm
 
-- **The order list names a standard algorithm** → `recoms_applyBestPracticeAlgorithm`. It replaces
+- **The confirmed algorithm is a best-practice one** → `recoms_applyBestPracticeAlgorithm`. It replaces
   the steps only and keeps the box's global filters.
 - **Anything custom** (a price range on a cart box, "only this brand", an out-of-stock filter):
   1. `docs_get("docs://product-algorithms/format")` first.
@@ -87,7 +136,7 @@ Send only the fields that change.
 - A refused input names the offending step: fix that step. Warnings from the tool go to the
   operator as they are.
 
-## 6. Page context — `recoms_updateContextCrawlConfig`
+## 8. Page context — `recoms_updateContextCrawlConfig`
 
 The crawl config is what the dashboard and the QA checklist call the **hierarchies / urls /
 productNumbers selector**. It runs in the visitor's browser on the page the box renders on, and
@@ -111,25 +160,26 @@ How:
    comes back with its line number.
 5. A read that returns `null` can't be edited through the MCP → operator item.
 
-## 7. Placement — `recoms_updatePlacement`
+## 9. Placement — `recoms_updatePlacement`
 
-Read `recoms_getPlacement` first. The rules are in `mcp-flow.md` → *Box placement*: the
-customer-placed `#hr-recom-<key>` div is the durable choice, a theme selector is temporary and gets
-flagged, Shopify section IDs are volatile, and you verify it live after setting it. The two ways to
-hide a category box while a filter or sort is active are also there; ask the operator which one.
+Write what step 3 resolved: `selector`, `insertMode`, `selectorMode` (an existing box: read
+`recoms_getPlacement` first). The customer div needs no write — it is the default. After the
+write, reload the page with a fresh cache-busting param and check the box attaches at the
+previewed spot. The rest is in `mcp-flow.md` → *Box placement*, including the two ways to hide a
+category box while a filter or sort is active (ask the operator which one).
 
-## 8. Design assignment — `recoms_updateSelectedDesign`
+## 10. Design assignment — `recoms_updateSelectedDesign`
 
 A new box renders with the website's default design. Point every box that should use the
 customer's design at it in **one** call (`keys[]`). Boxes already on it come back UNCHANGED.
 
-## 9. GA / UTM — only when the order list asks
+## 11. GA / UTM — only when the operator or the card asks
 
 `recoms_getGoogleAnalyticsSettings` first, then `recoms_updateGoogleAnalyticsSettings`. The
 dashboard's UTM suggestion is
 `utm_source=helloretail&utm_medium=productbox&utm_campaign=<url-encoded box name>`.
 
-## 10. Verify
+## 12. Verify
 
 - Re-read every facet you wrote with its `get*` and compare it with the approved plan. A
   difference is reported, not retried.
@@ -139,9 +189,9 @@ dashboard's UTM suggestion is
 
 ## Hand-off lines
 
-- Per box: name, key, state, and the **placement div** the customer's developer must paste, with
-  the page it goes on. Also any temporary theme selector, with "migrate to the div once it's
-  placed".
+- Per box: name, key, state, page, and its placement — the selector with `insertMode` and
+  **final** or **temporary**, or the **div** the customer's developer must paste and where. A
+  temporary selector carries "move to the `#hr-recom-<key>` div once the customer places it".
 - Boxes created or changed. All of them are DRAFT: **the operator publishes them in the dashboard.**
 - Operator-only items: publishing, deleting or archiving boxes and designs, renaming a design,
   locking.

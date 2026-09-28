@@ -1,6 +1,7 @@
 ### Added
 
 - `recom-developer` now sets up the recommendation boxes as well as the design: it creates missing boxes from a best-practice algorithm and sets their name, load order, product count, devices, strategy, hierarchies / urls selector, placement and design, all as drafts after you approve a current → new plan. The hand-off lists the placement div each box needs on the customer's page.
+- `recom-developer` starts a recom onboarding by asking where each recom goes: a CSS selector, the heading or section it sits next to, or "the customer will place the div". It turns the answer into a selector checked on several pages of that type, shows the spot on a screenshot for you to confirm, and marks theme selectors as final when they're stable or temporary when they aren't. With a ClickUp card it pre-fills how many recoms and on which pages, but never reads a placement from the card's screenshots.
 
 ### Changed
 
