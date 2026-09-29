@@ -814,14 +814,15 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       *Mouse-wheel scroll*). Compare the settings, not just the feel:
       `[...document.querySelectorAll('.swiper, .swiper-container')].filter(e => e.swiper).map(e => ({ hr: !!e.closest('[id^="hello-retail-"]'), mousewheel: e.swiper.params.mousewheel, speed: e.swiper.params.speed, slidesPerGroup: e.swiper.params.slidesPerGroup }))`.
       Only when the shop's slider itself slides on vertical wheel input is matching that a PASS.
-- [ ] **Slide speed and step match the shop** — one arrow click and one wheel notch should move
-      the HR box about as far and about as fast as they move the shop's own slider. Compare the
-      Swiper `speed` (transition ms) and `slidesPerGroup` from the probe above, then watch both
-      side by side — an HR box that whips through a whole page of tiles while the native slider
-      glides one tile at a time reads as broken to the customer even when every tile is correct.
-      Report a clear difference as WARN → operator decision (the design may be deliberately
-      faster; the fix is to copy the native `speed` / `slidesPerGroup` into the swiper options).
-      Record the two speeds in the report so the operator can decide without re-measuring.
+- [ ] **Slide step / speed vs the shop — record it, don't grade it** — an HR box usually moves
+      one whole view per arrow click or wheel notch (`slidesPerGroup` = `slidesPerView`), while
+      many native sliders move one tile; ours therefore looks faster. **That is the intended
+      default** (D&TS, 2026-09: CSMs recommend one-view-per-step, and the shop's own sliders are
+      normally removed at go-live, so the two never sit side by side) → not a defect. Read
+      `speed` (transition ms) and `slidesPerGroup` for both from the probe above and put the two
+      values in the report as a NOTE. Raise it to WARN → operator decision only when the shop's
+      own sliders stay on the same pages as the recoms, or the card / customer asked for the
+      recoms to match the native slider — the customer's wish decides, never the default alone.
 - [ ] **Loop** — loops correctly, or stops cleanly at the ends if loop is off
 - [ ] **No empty slide at end** — last page fills completely
 - [ ] **Inter-tile gap matches native** — the gap comes from EITHER the scaffold `.hr-product`
@@ -1298,11 +1299,13 @@ Decisions / Declined / Known-open land in the customer's living hand-off documen
 - **"Mouse-wheel works" is two checks, not one.** A Shopify store (store-DK, 2026-09) had
   wheel scroll mirrored onto the recoms and the horizontal test passed on the first try — but the
   box also slid on *vertical* wheel input, which the shop's own Swiper (`forceToAxis: true`) never
-  does, so on a Mac trackpad the page could not be scrolled past the box. The same box also moved
-  a whole page of tiles per notch where native glides one tile. Neither shows up in a "hover and
-  scroll sideways" test; test the vertical axis and compare `speed` / `slidesPerGroup` every time
-  wheel scroll is on. The trap reproduced on a Mac trackpad but not on a Windows trackpad, so
-  record the OS and input device you tested with, and don't grade PASS from one of them alone.
+  does, so on a Mac trackpad the page could not be scrolled past the box; `forceToAxis: true`
+  fixed it. A "hover and scroll sideways" test never shows this — test the vertical axis every
+  time wheel scroll is on. The trap reproduced on a Mac trackpad but not on a Windows trackpad,
+  so record the OS and input device you tested with, and don't grade PASS from one of them
+  alone. The same QA also flagged the box as "too fast" next to the native slider; that turned
+  out to be the intended one-view-per-step default, not a bug — hence the record-don't-grade
+  rule in the Carousel checklist. Ask before grading speed.
 
 ## REFERENCES
 
