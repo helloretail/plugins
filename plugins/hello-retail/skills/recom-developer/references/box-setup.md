@@ -73,6 +73,17 @@ Then settle the rest of the placement from the same answer:
   token, and doesn't sit in a hidden container. Otherwise it is **temporary**: it goes in the
   hand-off with "move to the `#hr-recom-<key>` div once the customer places it".
 
+**Category boxes — ask about hiding.** Right after the placement, ask:
+
+> Should this recom hide on categories with fewer than **N** products (e.g. 8 or 12)? And while a
+> filter is selected — or a sort?
+
+On yes, find on the live category the product tile, the page scope and the "filter active" signal,
+build the conditions into the placement selector, and run *Check the hide conditions*
+(`placement-snippets.md`) on a big category, a small one and a filtered one before it goes into the
+plan. The pattern, the preconditions and the fallback for themes that filter without a reload are
+in `mcp-flow.md` → *Hiding a category recom*.
+
 **Show the spot before you move on.** Run *Preview the spot* (a dashed marker, in your browser
 only — a reload removes it), screenshot it into `QA/screenshots/`, and ask the operator to
 confirm. Several boxes on one page: preview them together, so their order is visible.
@@ -123,7 +134,7 @@ confirm. Several boxes on one page: preview them together, so their order is vis
 ## 5. Plan, show, wait for approval
 
 Show one plan table for all boxes — box, page, placement (selector, `insertMode`, final /
-temporary), algorithm (the plain-words read-back), product count (and where it came from), heading (free-shipping or plain), then every other field as current → new — and wait for an explicit
+temporary, hide conditions for category boxes), algorithm (the plain-words read-back), product count (and where it came from), heading (free-shipping or plain), then every other field as current → new — and wait for an explicit
 go-ahead. A change to a **LIVE** box drafts it; say which ones will turn DRAFT.
 
 ## 6. Create the boxes and set their general settings

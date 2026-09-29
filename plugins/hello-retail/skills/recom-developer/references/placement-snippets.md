@@ -235,3 +235,46 @@ Reading it:
   *Prev/next arrows*). `visible: false` at 375 px while true at 1280 → the theme hides its arrows
   on mobile: hide the box's at the same breakpoint. `null` → the shop's slider has no arrows.
 - Nothing returned → the page has no slider of its own.
+
+## Check the hide conditions — category boxes
+
+Builds the conditional placement selector for a category box (`mcp-flow.md` → *Hiding a category
+recom*) and says whether it matches on this page. Replace the values — `FILTER_SCOPE` only when the
+filter check sits on a different ancestor than the count (`'body'` + `'.page-wrapper'`); leave it
+`null` for the one-scope form. Run it on a category with plenty of products, one with fewer than N,
+and one with a filter applied.
+
+```js
+((scope, tile, n, filterActive, anchor, filterScope) => {
+  const root = document.querySelector(scope);
+  const tiles = root ? [...root.querySelectorAll(tile)] : [];
+  const grid = tiles[0]?.parentElement || null;
+  const nonTiles = grid ? [...grid.children].filter(el => !el.matches(tile))
+    .map(el => el.tagName.toLowerCase() + [...el.classList].map(c => '.' + c).join('')) : [];
+  // :nth-child counts every child of the grid — count tiles only when anything else sits in it.
+  const count = nonTiles.length ? `${tile}:nth-child(${n} of ${tile})` : `${tile}:nth-child(${n})`;
+  const selector = filterScope
+    ? `${scope}:has(${count}) ${filterScope}:not(:has(${filterActive})) ${anchor}`   // two ancestors
+    : `${scope}:has(${count}):not(:has(${filterActive})) ${anchor}`;                 // one scope
+  return {
+    scopeFound: !!root,
+    filterScopeHoldsAnchor: filterScope ? !!document.querySelector(`${filterScope} ${anchor}`) : null,   // must be true
+    anchorMatches: document.querySelectorAll(anchor).length,   // must be 1
+    tiles: tiles.length,
+    oneGrid: tiles.every(t => t.parentElement === grid),       // false → the tile selector is too broad
+    nonTileSiblings: nonTiles,                                  // anything here → the `of` form is used
+    filtersActive: document.querySelectorAll(filterActive).length,
+    selector,                                                   // → recoms_updatePlacement
+    matches: document.querySelectorAll(selector).length,       // 1 → the box shows here, 0 → hidden
+  };
+})('SCOPE', 'TILE', 12, 'FILTER_ACTIVE', 'ANCHOR', null)
+```
+
+Expected: `matches: 1` on the big unfiltered category, `0` on the small one, `0` with a filter on.
+Anything else → fix the part that's wrong (`tiles` counts the wrong thing, `filtersActive` is not 0
+before filtering) and run it again.
+
+**Does filtering reload the page?** Before applying a filter run `window.__hrReloadMark = 1`; after
+the results update, run `typeof window.__hrReloadMark`. `"undefined"` → the page reloaded and the
+selector works. `"number"` → the theme filters without a reload: the selector can't remove a box
+that's already there — take the JS-guard route in `mcp-flow.md` and tell the operator why.
