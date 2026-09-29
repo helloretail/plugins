@@ -249,6 +249,31 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    from the measured price skeleton (`kr##.##` → "kr", before; `##,## €` → "€",
    after). A € price slider on a kr shop was an operator-reported dropdown defect.
 
+4g. **Pagination chrome parity — the base pagination is not the shop's.** Field-proven
+   2026-09-29: the default `templateCss` ships a fixed 45px button height, a blue `#337ab7`
+   active page, a 2px gap, and no rule at all for the prev/next `.direction-links` buttons,
+   which therefore render as bare browser buttons; because those two hold only a 17px SVG
+   they also come out shorter than the number buttons. Whenever the design paginates
+   (`paginated = true`, or the operator asked for numbered pages), restyle it to the shop:
+
+- **Reference, in this order.** (1) The shop's own pagination on the category page —
+  measure it like any other chrome (link/active/hover/disabled colours, border, radius,
+  padding, font, gap). (2) The shop has none (single page, "load more", infinite scroll):
+  use the theme's own pagination rules instead — scan the linked stylesheets for
+  `.pagination` / `.page-link` / `.page-item` selectors, and read the framework's
+  pagination variables from a temporary `<ul class="pagination">` element the survey
+  appends and removes (Bootstrap 5 exposes `--bs-pagination-*` on it). Never keep HR's
+  defaults, never invent a palette; the design's own injected CSS is not a reference.
+- **Write.** Value-swap the base pagination block (`gap`, `height`, the `.active` colours)
+  and add the measured declarations as rules scoped to `.hr-pagination-container`, always
+  for `.page-link` **and** `.direction-links` together: padding, font, colour, background,
+  border, the joined `-1px` overlap, end radii on the first/last item, hover, focus and
+  active. Give both button kinds the same fixed `height` — the number buttons' rendered
+  height (text line + padding + border) — so the SVG-only arrows cannot end up shorter.
+- **Verify on-site** (step 7): every visible button, arrows included, has the same
+  rendered height and top edge at 1440 and 375px; the active page uses the shop's active
+  colour; the row is centred and does not overflow a phone width.
+
 5. **Filters & sorting.** Read the current facets with `pages_getDesignFilters` /
    `pages_getDesignSorting`, then write with `pages_updateDesignFilters` /
    `pages_updateDesignSorting` — enable the flag only when configuring real settings,
