@@ -798,9 +798,11 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       automation's drag tool (e.g. Playwright `browser_drag` across the slider) — when no
       drag/touch emulation is available, record SKIPPED → operator device check, never
       silently omit
-- [ ] **Mouse-wheel scroll matches the shop** — if the shop's own slider scrolls sideways with
-      the mouse wheel, hover the HR box and scroll: it moves too when the design has
-      `mousewheel` on; when it doesn't, WARN → operator decision (mirroring it is opt-in), never FAIL
+- [ ] **Mouse-wheel / trackpad scroll matches the shop** — if the shop's own desktop slider
+      scrolls sideways with the mouse wheel or a two-finger trackpad swipe, hover the HR box and
+      do the same: it moves too when the design has `mousewheel` on (that one option covers both
+      inputs); when it doesn't, WARN → operator decision (mirroring it is opt-in), never FAIL.
+      A box that only moves with its arrows while the shop's slider swipes is exactly this WARN
 - [ ] **Wheel axis matches the shop — vertical scroll over the box must not get trapped** — when
       both sliders scroll with the wheel, test the *vertical* direction separately: hover the HR
       box and scroll down (Playwright `page.mouse.wheel(0, 600)` with the pointer over the box;
