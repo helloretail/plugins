@@ -801,6 +801,25 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
 - [ ] **Mouse-wheel scroll matches the shop** — if the shop's own slider scrolls sideways with
       the mouse wheel, hover the HR box and scroll: it moves too when the design has
       `mousewheel` on; when it doesn't, WARN → operator decision (mirroring it is opt-in), never FAIL
+- [ ] **Wheel axis matches the shop — vertical scroll over the box must not get trapped** — when
+      both sliders scroll with the wheel, test the *vertical* direction separately: hover the HR
+      box and scroll down (Playwright `page.mouse.wheel(0, 600)` with the pointer over the box;
+      on a trackpad, a two-finger swipe down). On the shop's own slider a vertical wheel keeps
+      scrolling the page (Swiper `mousewheel.forceToAxis: true`, the common setting); if the HR
+      box instead slides on vertical input too, the cursor is trapped — the page cannot be scrolled
+      past the box without moving the mouse off it (worst on Mac trackpads) → FAIL, fix =
+      mirror the shop's `forceToAxis` (`../recom-developer/references/slider-structure.md` →
+      *Mouse-wheel scroll*). Compare the settings, not just the feel:
+      `[...document.querySelectorAll('.swiper, .swiper-container')].filter(e => e.swiper).map(e => ({ hr: !!e.closest('[id^="hello-retail-"]'), mousewheel: e.swiper.params.mousewheel, speed: e.swiper.params.speed, slidesPerGroup: e.swiper.params.slidesPerGroup }))`.
+      Only when the shop's slider itself slides on vertical wheel input is matching that a PASS.
+- [ ] **Slide speed and step match the shop** — one arrow click and one wheel notch should move
+      the HR box about as far and about as fast as they move the shop's own slider. Compare the
+      Swiper `speed` (transition ms) and `slidesPerGroup` from the probe above, then watch both
+      side by side — an HR box that whips through a whole page of tiles while the native slider
+      glides one tile at a time reads as broken to the customer even when every tile is correct.
+      Report a clear difference as WARN → operator decision (the design may be deliberately
+      faster; the fix is to copy the native `speed` / `slidesPerGroup` into the swiper options).
+      Record the two speeds in the report so the operator can decide without re-measuring.
 - [ ] **Loop** — loops correctly, or stops cleanly at the ends if loop is off
 - [ ] **No empty slide at end** — last page fills completely
 - [ ] **Inter-tile gap matches native** — the gap comes from EITHER the scaffold `.hr-product`
@@ -1274,6 +1293,14 @@ Decisions / Declined / Known-open land in the customer's living hand-off documen
   Known case: Bricks-tabs homepage carousels. Not a tile or breakpoint issue — the fix is
   build-side (`observer: true` or `swiper.update()` on tab activation, see
   `../recom-developer/references/slider-structure.md`).
+- **"Mouse-wheel works" is two checks, not one.** A Shopify store (store-DK, 2026-09) had
+  wheel scroll mirrored onto the recoms and the horizontal test passed on the first try — but the
+  box also slid on *vertical* wheel input, which the shop's own Swiper (`forceToAxis: true`) never
+  does, so on a Mac trackpad the page could not be scrolled past the box. The same box also moved
+  a whole page of tiles per notch where native glides one tile. Neither shows up in a "hover and
+  scroll sideways" test; test the vertical axis and compare `speed` / `slidesPerGroup` every time
+  wheel scroll is on. The trap reproduced on a Mac trackpad but not on a Windows trackpad, so
+  record the OS and input device you tested with, and don't grade PASS from one of them alone.
 
 ## REFERENCES
 
