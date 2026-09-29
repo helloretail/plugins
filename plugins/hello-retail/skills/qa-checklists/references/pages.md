@@ -41,6 +41,11 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
 - [ ] Navigation (e.g. shown in multiple places)
 - [ ] Navigate to a new page → adds 'Clear all' text to the page…
 - [ ] Navigate (and go back) → marks both the previous page and the current page as active
+- [ ] Pagination looks like the shop's own pagination (or, when the shop has none, follows the
+  theme's own `.pagination` / `.page-link` rules): active page in the shop's active colour, not
+  HR's blue; prev/next arrows are styled like the number buttons and have the **same rendered
+  height** (SVG-only buttons come out shorter unless the design fixes the height); the row is
+  centred and fits a phone width. Fix: `pages-developer` step 4g.
 - [ ] Navigate to a new page → can't open the filter
 - [ ] Main menu: when opened, icons/wishlist button pop up on top of the menu window
 - [ ] Mobile/tablet: not responsive / design breaks at those widths
