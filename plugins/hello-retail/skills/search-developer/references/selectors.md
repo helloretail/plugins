@@ -259,7 +259,7 @@ It is **distinct from `trigger_selector`**: the trigger is *what opens search*; 
    Math.round(headerEl.getBoundingClientRect().bottom);   // -> EXPECTED offset in px
    ```
 
-2. **Pick a candidate container** — the element where the page's own content begins. Try in order: `main`, `#maincontent`, `#MainContent`, `#content`, `.main-content`, the theme's page/content wrapper. Never pick anything that lives inside the header, and never the trigger input's own form/wrapper. If **no** candidate passes step 3, don't hunt for a "visually right" element and don't stop to ask — **create the target** (*Placement anchor fallback* below) and run step 3 on the anchor instead.
+2. **Pick a candidate container** — the element where the page's own content begins. Try in order: `main`, `#maincontent`, `#MainContent`, `#content`, `.main-content`, the theme's page/content wrapper. When the wrapper's tag or class changes per template (WordPress block themes render `<section>` on archives, `<main>` on the front page and a plain `<div>` on product pages), pick a **structural** selector — `.site-wrapper > *:not(header):not(footer)` — over a tag/class one. Never pick anything that lives inside the header, and never the trigger input's own form/wrapper. If **no** candidate passes step 3, don't hunt for a "visually right" element and don't stop to ask — **create the target** (*Placement anchor fallback* below) and run step 3 on the anchor instead.
 3. **Validate the candidate with numbers, not by eye** — all three checks must pass:
 
    ```js
@@ -274,6 +274,8 @@ It is **distinct from `trigger_selector`**: the trigger is *what opens search*; 
    - `offsetParent` is `BODY` — otherwise `offsetTop` is a local, meaningless number → reject the candidate.
    - `offsetTop === docTop` (±1px) — confirms the value the JS reads matches reality.
    - `offsetTop ≈ EXPECTED` from step 1 (±5px) — confirms results will start exactly at the header's bottom edge.
+
+   **Repeat the three checks on every template type — the homepage, a category page and a product page at minimum**, plus brand/CMS pages when the shop has them. The survey runs on one category page, but the panel opens from every page, and block themes and headless frameworks swap the wrapper tag per template. A selector that matches nothing on a template leaves `placement_query` null → `marginTop: 0px` → the panel opens under the header on that page, with no error anywhere (field case store-SE-7, 2026-09: `section.<theme-class>` matched the category page only; the front page rendered `<main>`, the product page a `<div>` — a structural selector passed on all three). Report one number-triple per template.
 4. **Interpret the result by header type** — the numeric checks are universal, but what they return (and what to do about it) depends on how the theme positions its header. All known cases:
 
    | Header type | What you'll measure | What to do |
@@ -335,7 +337,7 @@ Rules:
 ## Self-check
 
 - [ ] `trigger_selector` in every emitted `search.js` is a customer-specific selector — not the bare `input[type='search']` default.
-- [ ] `placement_selector` (desktop-embedded only) passed the three numeric checks: `offsetParent === BODY`, `offsetTop === docTop`, `offsetTop ≈ header bottom` — with the measured numbers stated in the report. Not an element inside the header, not the trigger's form/wrapper, not set for overlay variants.
+- [ ] `placement_selector` (desktop-embedded only) passed the three numeric checks: `offsetParent === BODY`, `offsetTop === docTop`, `offsetTop ≈ header bottom` — on the homepage, a category page and a product page (the wrapper tag can change per template), with the measured numbers for each stated in the report. Not an element inside the header, not the trigger's form/wrapper, not set for overlay variants.
 - [ ] When no page element passed, the **placement anchor** was injected (config-block insertion before the base offset lines; in-flow zero-height sibling for a body-child static/sticky header, absolute-pinned for fixed/nested headers), `placement_selector` points at it, it passed the same three checks, and the report names the branch, the header wrapper and the numbers. The operator was asked only because the header wrapper itself couldn't be identified — never as a substitute for injecting.
 - [ ] Rendered with the embedded search open: header fully visible and interactive, nav dropdowns open **over** the panel (`overlay_z_index` below the header's stacking context), panel covers the page content below the header.
 - [ ] The selector targets the customer's real search affordance, verified in the surveyed DOM.
