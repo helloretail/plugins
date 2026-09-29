@@ -7,7 +7,7 @@ verified: 2026-09-25
 
 > **The rule:** unless the operator explicitly tells you to, **do not rewrite the existing CSS, Liquid/HTML, or JS foundation** of a base template. Add on top of it. If the request genuinely can't be satisfied without altering the foundation, **stop and ask the operator for approval first** — name what has to change and why, and offer the additive alternative.
 
-This applies to every skill that builds a customer design on top of `docs/wiki/base-templates/` — `search-developer`, `pages-developer`, `recom-developer`, `triggered-email-developer`, `newsletter-developer` — and to the per-customer designs those skills push back through the `hello-retail` MCP.
+This applies to every skill that builds a customer design on top of a default design — whether that design comes from the MCP (every Search variant via `search_createConfig`, Recommendations standard designs via `recoms_listDesigns`) or from the files kept in `docs/wiki/base-templates/` — `search-developer`, `pages-developer`, `recom-developer`, `triggered-email-developer`, `newsletter-developer` — and to the per-customer designs those skills push back through the `hello-retail` MCP.
 
 ## Why
 
@@ -21,7 +21,7 @@ This applies to every skill that builds a customer design on top of `docs/wiki/b
 
 | Surface | Foundation (read-only by default) | Where your work goes |
 |---|---|---|
-| Search | `search.css` HR scaffold rules + the `{# text/color/boolean … #}` parameter block; everything in `search.liquid` outside the `{{ TILE_BODY }}` slot (`captured_filters`, `hr-results`, banner branch, content branch, `hr-close`); the `search.js` scaffold (`open_overlay`/`close_overlay`/`fix_links`/render functions) | The `{{ TILE_BODY }}` slot, parameter **values**, new customer inputs in their own section ([below](#adding-customer-specific-inputs)), the sanctioned `resultStyles` edits, and selector/interactivity wiring appended in `search.js` |
+| Search | `search.css` HR scaffold rules + the `{# text/color/boolean … #}` parameter block; everything in `search.liquid` outside the tile slot (the `{% else %}` branch of the banner check) (`captured_filters`, `hr-results`, banner branch, content branch, `hr-close`); the `search.js` scaffold (`open_overlay`/`close_overlay`/`fix_links`/render functions) | The tile slot (the whole `{% else %}` branch, replaced by the customer's tile), parameter **values**, new customer inputs in their own section ([below](#adding-customer-specific-inputs)), the sanctioned `resultStyles` edits, and selector/interactivity wiring appended in `search.js` |
 | Recommendations | `recom.css` scaffold; the swiper scaffold + init structure in `recom.liquid`; the banner branch | The `{{ TILE_BODY }}` slot, `breakpoints`/version/`loop` tuning, the `afterInit` hook, delegated handlers |
 | Triggered emails / newsletter | The parameter block, the section skeleton (which sections exist, related-products, `{% break %}`, voucher, `cart_url`), and the variable names | Styling of the existing sections and the product-tile content — restyle, don't restructure |
 

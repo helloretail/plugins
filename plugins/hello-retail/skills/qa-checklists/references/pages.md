@@ -63,6 +63,10 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
 - [ ] Option text too long so it disappears / overwrites the amount-of-products
 - [ ] Filter sidebar: styling is off and elements get cut off
 - [ ] Filter sidebar: every time you choose an option it reloads the bar
+- [ ] Open a filter or the sorting dropdown, then click outside it (product grid, page
+  background) → it closes. The base design JS only closes a dropdown when another heading is
+  clicked; a dropdown that stays open until then is a FAIL (fix: the outside-click listener in
+  `pages-developer` step 5b). Clicking inside an open dropdown must keep it open.
 
 ## Filters — setup
 

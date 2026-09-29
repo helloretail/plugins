@@ -6,8 +6,8 @@ once they're there. Offered in `box-setup.md` → step 4; built only on the oper
 
 This supersedes the per-shop Free Shipping snippets in
 `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/recoms/` (`shopify.md`, `dandomain.md`, `general.md`)
-for new builds. Those hardcode the threshold, currency and copy, compute once, and the Danish one
-reads `1.234,56` as `1.234`. Read them only to understand a design that already uses one.
+for new builds. Those are written for one shop each — the threshold, currency and copy are
+hardcoded and the heading is computed once. Read them to understand a design that already uses one.
 
 ## What to ask the operator (on yes)
 

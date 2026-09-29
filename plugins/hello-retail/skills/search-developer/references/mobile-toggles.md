@@ -1,6 +1,6 @@
 # Mobile-overlay toggles — core intake M1–M3 and the mobile defaults
 
-The `mobile-overlay` base already ships every layout decision the intake asks about as a **boolean input**. This file is the map: which boolean answers which question, which design field it is declared in, what each value renders, and how they interact. Every change here is a **value edit** on a declaration that already exists — never re-declare, move or delete it (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md`).
+The mobile design (the one `search_createConfig(MOBILE)` attaches) already ships every layout decision the intake asks about as a **boolean input**. This file is the map: which boolean answers which question, which design field it is declared in, what each value renders, and how they interact. Every change here is a **value edit** on a declaration that already exists — never re-declare, move or delete it (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md`).
 
 Desktop has no equivalent of these — its layout decisions (filter position, sticky, show-more) are not base toggles and stay out of the intake. When an operator asks for one anyway, the recipes live in `references/layout-options.md`.
 

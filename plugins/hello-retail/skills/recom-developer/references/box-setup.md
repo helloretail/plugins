@@ -59,6 +59,11 @@ Resolve the answer on the live page with the browser MCP — the snippets are in
 
 Then settle the rest of the placement from the same answer:
 
+- **Width** — when the resolved anchor sits outside the theme's content container, the box would
+  render full-bleed: prefer an anchor (or `insertMode`) that puts it **inside** the container that
+  holds the sibling sections. The width is fixed by the placement, never by copying the
+  container's class into the design (`slider-structure.md` → *Width — prefer placement*).
+
 - **`insertMode`** — "above / before" → `BEFORE`, "below / after" → `AFTER`, "inside, at the top /
   bottom" → `PREPEND` / `APPEND`. **`REPLACE` removes the shop's own section** — only when the
   operator said "replace", and confirm it once more.

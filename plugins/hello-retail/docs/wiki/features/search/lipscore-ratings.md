@@ -134,5 +134,5 @@ if (window.lipscore && typeof window.lipscore.initWidgets === 'function') {
 
 - [Search feature reference](./search.md)
 - [Search templates onboarding playbook](../../onboarding/search-templates.md) — the tile-editing loop this slots into
-- [Base Search templates](../../base-templates/base-templates.md)
+- [Where the Search design comes from](../../base-templates/search/README.md) — Hello Retail's system supplies it when a new search is created
 - [Data requirements](../../onboarding/data-requirements.md) — where to record the `extraData.lipscoreProductId` ask if the customer needs to add it
