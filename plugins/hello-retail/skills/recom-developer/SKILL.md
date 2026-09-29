@@ -5,13 +5,13 @@ description: >
   product tile — for an onboarding. Reads the live recom design via the hello-retail MCP,
   generates the slider shell (banner branch, swiper init/breakpoints/version/loop, the
   afterInit add-to-cart hook, clone-safe delegated handlers), drops in the product tile, shows
-  a diff, and pushes a REVIEW draft via recoms_updateDesign — never publishes. Use for
-  any HR Recommendations UI work: recom box, recom slider, .hr-product tile, swiper
-  breakpoints, in-slider swatches or add-to-cart wiring, banner / Retail Media slides,
-  REVIEW-draft pushes, or questions about HR recom structure. Trigger even if the operator only
-  gives a website-uuid + design-key. The product tile body itself is produced by the
-  tile-extractor skill, which this skill invokes. Does NOT handle HR Search —
-  that's the separate search-developer skill.
+  a diff, and pushes a REVIEW draft via recoms_updateDesign — never publishes. Also sets up
+  the boxes as drafts: "create the recom boxes", algorithm, load order, placement, hierarchies /
+  urls selectors. Use for any HR Recommendations work: recom box, recom slider, .hr-product tile,
+  swiper breakpoints, in-slider swatches or add-to-cart wiring, banner / Retail Media slides, or
+  questions about HR recom structure. Trigger even on only a website-uuid. The product tile body
+  is produced by the tile-extractor skill, which this skill invokes. Does NOT handle HR Search —
+  that's search-developer.
 model: sonnet
 ---
 
@@ -26,6 +26,7 @@ You are the **Recom UI Developer** for the Hello Retail D&TS / Implementation te
 A Recommendations design is a **product tile** sitting inside a **swiper-slider box**. This skill owns the **slider box**; the tile body is a separate skill.
 
 - **You build the slider box:** the MCP read/diff/draft flow, the banner branch (Retail Media), the swiper init (version, breakpoints, `loop`, the `on: { afterInit }` add-to-cart hook), the clone-safe **delegated JS** the slider needs, and the in-slider **add-to-cart JS wiring**. Plus assembly: dropping the tile into the `{{ TILE_BODY }}` slot (inside the base's `<div class="hr-product">`) and pushing the result.
+- **You also set up the boxes** — on an onboarding this is where you start, and the **first question to the operator is where each recom goes**. Create them, strategy, load order (`priority`), product count, devices, page context (the hierarchies / urls selectors), placement, design assignment — every write a DRAFT, the same read → diff → approval → read-back loop as the design. → **`references/box-setup.md`**
 - **The `tile-extractor` skill builds the tile body** — the `{{ TILE_BODY }}` slot contents: the customer's product card copied as real HTML with the product values bound by table, the sale/stock branches, swatches, hover image, ratings, the shop's own ATC **form markup**, and — because a recom design is reused across domains — every fixed text ("Add to cart", "Sold out", "From") as an `{% input %}` block, listed in its TEXT INPUTS section. You invoke it (Step 3); you do not re-implement tile logic here.
 
 > **No tile CSS, on any surface.** A recom slider is injected **into the live storefront**, where the customer's own theme CSS styles the copied tile — so you do **not** author tile CSS and the `{{ CUSTOM_STYLING_BLOCK }}` slot stays **empty**. Search is no different: the tile skill authors no CSS for either surface, and each shell has only its own sanctioned edits. When you invoke the tile skill in Step 3, tell it `target surface = recom`, so it returns the tile **markup only**, authors no CSS, and turns the fixed texts into `{% input %}` blocks. One caveat: theme rules that are **ancestor-scoped** (e.g. `.main-products-grid .js-quick-add { … }`) or **media-scoped** never reach the injected slider — restating those exact rules rescoped to the box is sanctioned, not authoring (Hard rule 6; `references/slider-structure.md` → *Theme CSS that doesn't reach the slider*).
@@ -43,7 +44,8 @@ A Recommendations design is a **product tile** sitting inside a **swiper-slider 
 | Input | Example | Notes |
 |---|---|---|
 | `website-uuid` *(required for MCP)* | `8f3c…` | Unique per site/domain; drives every MCP call. If missing and you intend to use the MCP, **ask**. Without it, fall back to inline copy-paste (see Step 7). |
-| `design-key` *(required for MCP)* | `others-also-bought` | The recom **design** to read/edit. Unsure which? `recoms_listDesigns(website-uuid)` (company customs + shared standards) or `recoms_list(website-uuid)` (each box's `designKey`). **Never edit a standard/shared or archived design — those are read-only.** If missing, **ask.** → `references/mcp-flow.md` |
+| `design-key` *(discovered)* | `others-also-bought` | The recom **design** to read/edit — **derive it, don't ask first**: `recoms_list` gives each box's `designKey`, `recoms_listDesigns` the `standard`/`archived` flags. One editable company design behind the boxes → use it; only standard designs → propose a copy; several editable ones → ask which. **Never edit a standard/shared or archived design — those are read-only.** → `references/mcp-flow.md` → *Resolving the design-key* |
+| `placement` *(per box, asked first)* | `section[id$="__recs"]`, "below *You may also like*", "customer places the div" | A page URL plus a CSS selector, **or** the heading / section it sits next to, **or** the customer div. You turn it into a verified selector. The ClickUp card may give how many recoms and on which pages (its text only — placements there are mostly screenshots, never read a placement from them); **where** always comes from the operator. → `references/box-setup.md` → *2–3* |
 | `category-url` *(required)* | `https://example-shop.com/collections/all` | The product grid to survey. You fetch it yourself — don't ask for pasted DOM. |
 | `banner-size-name` *(optional)* | `recom-banner-300` | Replaces `BANNER_SIZE_NAME_PLACEHOLDER`. If absent, leave the placeholder and note it in MISSING DATA. |
 | `locale` *(infer)* | `da`, `de`, `es` | Infer from `<html lang>` / visible copy; confirm via `website_getInfo`. Pass it to the tile skill — it localizes the tile copy. |
@@ -75,7 +77,13 @@ State which source you reused and what the adaptation changed.
 
 ### Step 1 — Read the live design
 
-Confirm `website-uuid` + `design-key`. Call `recoms_listDesigns` (or `recoms_list`) to confirm the design key and that it's an **editable company design** (not standard/archived), `website_getInfo` for locale/currency, then `recoms_getDesign(website-uuid, design-key)` **regardless of state** to get your modify-in-place base. The payload can be large and **spills to a file — never read it whole**; extract only the regions you edit. Full rules: **`references/mcp-flow.md`**.
+Confirm `website-uuid`, then resolve the `design-key` from `recoms_list` + `recoms_listDesigns` — it must be an **editable company design** (not standard/archived). Call `website_getInfo` for locale/currency, then `recoms_getDesign(website-uuid, design-key)` **regardless of state** to get your modify-in-place base. The payload can be large and **spills to a file — never read it whole**; extract only the regions you edit. Full rules: **`references/mcp-flow.md`**.
+
+**Read the boxes too** — `recoms_getGeneralSettings`, `recoms_getPlacement`, `recoms_getAlgorithm`, `recoms_getContextCrawlConfig` for each box on this design, into the one inventory table in `references/box-setup.md` → *1*. It is small, it tells you which pages the design must render on (and so where to survey in Step 2), and it shows boxes that are missing or misconfigured against what the operator wants.
+
+### Step 1.5 — Set up the boxes (an onboarding, or the operator asks)
+
+Follow **`references/box-setup.md`**. In order: confirm which recoms on which pages (the ClickUp card's text as a pre-fill), then **for each box ask where it goes first** — a selector, a heading or section, or the customer div — resolve it to a verified selector on the live page, preview the spot and get it confirmed; for **category boxes**, ask whether to hide below N products and while a filter (or sort) is active, and build that into the placement selector (`references/mcp-flow.md` → *Hiding a category recom*); then **how it should pick its products** (best-practice options or the operator's own words, translated into steps and read back in plain words — `references/algorithm-intake.md`), the **heading** (asked for every box; cart and upsell boxes are offered a free-shipping heading) and the **product count** (a general setting, not part of the algorithm — the shop's own slider on that page gives the default; no slider → ask 8, 10 or 12); then one plan table (current → new), explicit go-ahead, write as DRAFT, read back. Do it before the design push, so the draft has a box to render in at Step 7.5. The confirmed page URLs are also where you survey in Step 2. Pure design work with correct boxes → skip.
 
 ### Step 2 — Survey the storefront (use a real browser)
 
@@ -83,9 +91,9 @@ Confirm `website-uuid` + `design-key`. Call `recoms_listDesigns` (or `recoms_lis
 
 Also survey the **box-shell context** on the page type the box will live on (the wrapper is yours, not the tile skill's, so its parity is your job):
 
-- **Content width** — how sibling sections constrain their width. Usually a theme container utility class (max-width + responsive padding); note its class name — you reuse it on `#hello-retail-{{ key }}` in Step 4 so the box aligns with the page instead of rendering full-bleed.
+- **Content width** — how sibling sections constrain their width. Usually a theme container element (max-width + responsive padding); note that element — the box is **placed inside it** (the placement from Step 1.5, `references/box-setup.md` → step 3) so it aligns with the page instead of rendering full-bleed. Its class name is not copied into `templateCode`.
 - **Section headings** — the theme's native section-heading classes/computed size, for the box `<h2>`.
-- **Native carousel nav at mobile widths** — most themes hide carousel arrows below a breakpoint and rely on swipe; note the breakpoint so your arrows match. → `references/slider-structure.md`
+- **The shop's own sliders — arrows and tiles in view** — use the *Survey the shop's own sliders* result from box setup (or run it now on the homepage and a PDP; `references/placement-snippets.md`) at 375 / 768 / 1280 px. Its `prev` / `next` are the arrows the box copies, and hides where the theme hides its own (most themes drop carousel arrows below a breakpoint and rely on swipe); its `perView` values set the box's `breakpoints`. → `references/slider-structure.md` → *Prev/next arrows*
 - **Mouse-wheel scroll on the shop's own sliders** — on the homepage / a PDP, run the detection snippet: does any customer slider scroll sideways with the mouse wheel (Swiper / Splide `mousewheel` on)? **If yes, ask the operator whether to enable it on the HR recoms too**, before Step 4 — never enable it unasked. If no, don't ask. → `references/slider-structure.md` → *Mouse-wheel scroll*
 
 ### Step 3 — Get the product tile from the tile skill
@@ -100,8 +108,9 @@ Using the base template (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/recoms/
 - **Swiper init** — keep the `_.util.swiper_slider(...)` scaffold; tune only `breakpoints` / version / `loop` if the tile width demands it, and add the `on: { afterInit }` ATC hook. → **`references/slider-structure.md`**
 - **Mouse-wheel scroll** — only if the operator said yes in Step 2: Swiper `"11.2.8"`, root class `swiper-container` → `swiper`, and `mousewheel: true` (or `{ forceToAxis: true }` when the customer's slider has it). → `references/slider-structure.md` → *Mouse-wheel scroll*
 - **Add-to-cart JS wiring** — define the platform cart function, triggered from `afterInit` (clones exist by then) and/or via delegated handlers; scoped to the slider root, idempotent. → **`references/add-to-cart-js.md`**
+- **Free-shipping heading** — only for a cart / upsell box where the operator said yes in Step 1.5: the three hidden `{% input %}` fields after the `<h2>` and the heading script after the swiper init, `LOCALE` / `CURRENCY` from `website_getInfo`. → **`references/free-shipping-heading.md`**
 - **Banner** — replace `BANNER_SIZE_NAME_PLACEHOLDER` with `banner-size-name` if supplied; else leave it and flag in MISSING DATA. Never edit the banner markup.
-- **Box-shell parity** — apply the Step 2 shell findings: get the box's width to match sibling sections by **placing it inside the theme's own container element** (a placement change, `recoms_updatePlacement`), not by copying the theme's container class into `templateCode` — a reused-across-domains design shouldn't assume one site's class name exists elsewhere. Give the `<h2>` headline the theme's native section-heading classes so it matches the page's other section titles. → `references/slider-structure.md`
+- **Box-shell parity** — apply the Step 2 shell findings: get the box's width to match sibling sections by **placing it inside the theme's own container element** (a placement change, `recoms_updatePlacement`), not by copying the theme's container class into `templateCode` — a reused-across-domains design shouldn't assume one site's class name exists elsewhere. Give the `<h2>` headline the theme's native section-heading classes so it matches the page's other section titles. Style the prev/next arrows after the shop's own slider arrows from the Step 2 survey, and hide them at the breakpoint where the theme hides its own; no arrows on the shop's sliders → keep the base arrows. → `references/slider-structure.md` → *Prev/next arrows*
 
 `{{ CUSTOM_STYLING_BLOCK }}` stays **empty** — the recom slider is injected into the live page, so the customer's theme CSS styles the tile. Flag genuine styling gaps in NOTES; don't author CSS — except theme rules that provably can't reach the slider because they're ancestor- or media-scoped, which you restate rescoped to the box (Hard rule 6).
 
@@ -117,7 +126,7 @@ Show a **diff of just the regions you changed**, labeled by field — not the wh
 
 `recoms_updateDesign(website-uuid, design-key, …)` with only the changed fields (`templateCode`, `templateStyles`; omit a field to leave it unchanged). Saving **auto-creates a DRAFT** of any LIVE boxes using this design — it cannot publish. **A design may be shared across boxes — editing it drafts every LIVE box that uses it; confirm the design key is the right one first.** If it errors, report once and stop, and offer the inline copy-paste fallback (show full files in chat). → **`references/mcp-flow.md`**
 
-**Verify every push.** The fields are raw HTML/Liquid/CSS — never HTML-entity-escape them (`&lt;div&gt;` saves without error and renders as literal text). After the update, re-fetch with `recoms_getDesign`, extract the pushed field(s), and `diff` against your local copy — only a trailing-newline difference is acceptable. Also spot-check that a field you did **not** push is unchanged. → **`references/mcp-flow.md`**
+**Verify every push.** The fields are raw HTML/Liquid/CSS — never HTML-entity-escape them (`&lt;div&gt;` saves without error and renders as literal text). After the update, re-fetch with `recoms_getDesign`, extract the pushed field(s), and `diff` against your local copy — only a trailing-newline difference is acceptable. Also spot-check that a field you did **not** push is unchanged. Then re-run `recoms_list` and **name every box the push drafted** — more than you expected means a shared design. → **`references/mcp-flow.md`**
 
 > **No MCP coordinates?** If the operator has no `website-uuid` / `design-key` (or the MCP isn't registered), skip Steps 1 and 7 and **output the full modified files inline** for the operator to paste into the dashboard — exactly the old flow. Everything else is unchanged.
 
@@ -161,7 +170,7 @@ A **constant ratio** across all tiles means the feed serves another market's pri
 
 ### Step 8 — Hand off
 
-Repeat the MISSING DATA list if non-empty (incl. an unfilled `BANNER_SIZE_NAME_PLACEHOLDER`, plus anything the tile skill flagged). **List the TEXT INPUTS** the tile carries with their native values (`add_to_cart_label` = "Læg i kurv", …): they are dashboard fields the operator fills per domain when this design is used on another website, and nobody will know they exist unless the hand-off names them. **Every workaround you ported or wrote gets a provenance line here** naming its root cause and removal condition (e.g. "price-sync JS works around the feed pinning `country=DK` — delete once the feed is corrected") — operators may ask you to strip code comments, so the hand-off report is where this knowledge survives. Tell the operator the draft is in **DRAFT/REVIEW** and **they must publish it in the dashboard** — neither the MCP nor you can. Mention the search team can reuse this tile.
+Repeat the MISSING DATA list if non-empty (incl. an unfilled `BANNER_SIZE_NAME_PLACEHOLDER`, plus anything the tile skill flagged). **List every dashboard field value the operator must enter** — the box `headline`s and any free-shipping fields (`references/box-setup.md` → *Hand-off lines*) — and **the TEXT INPUTS** the tile carries with their native values (`add_to_cart_label` = "Læg i kurv", …): they are dashboard fields the operator fills per domain when this design is used on another website, and nobody will know they exist unless the hand-off names them. **Every workaround you ported or wrote gets a provenance line here** naming its root cause and removal condition (e.g. "price-sync JS works around the feed pinning `country=DK` — delete once the feed is corrected") — operators may ask you to strip code comments, so the hand-off report is where this knowledge survives. If Step 1.5 ran, add its hand-off lines (`references/box-setup.md` → *Hand-off lines*): per box its placement — the selector marked **final** or **temporary**, or the **div** the customer's developer pastes and where — and what was created or changed. Tell the operator the design **and every drafted box** are in **DRAFT/REVIEW** and **they must publish them in the dashboard** — neither the MCP nor you can. Mention the search team can reuse this tile.
 
 Then add a short build retro: how many diff/approval rounds it took, what the operator corrected (categories, not full quotes — e.g. "swiper breakpoint," "ATC hook re-init"), and whether anything landed in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/` as a result. Keep it to 2-4 bullets, chat-only. **Then run `customer-handoff` (`../customer-handoff/SKILL.md`; record mode, stage `recommendations`; mandatory — do not ask whether to, do not skip):** every provenance line above becomes a *unique case* in the customer's living hand-off document under `output/handoffs/` (local for now) — chat is not a record.
 
@@ -172,7 +181,7 @@ Don't wait for publish — offer right after the push. Two passes:
 - **Rendered QA** — box inventory across placements, tile parity, pricing, carousel behaviour, page-fit, translations, breakpoints.
 - **Code QA** — click tracking, clone-safe ATC re-binding, load order, hierarchies/urls selectors, no leftover placeholders, localization integrity, known Liquid gotchas.
 
-Auto-fix anything inside `templateCode`/`templateStyles` via the same diff → approval → REVIEW-draft loop; report operator items (dashboard/Supervisor settings). **Cap at 2 fix rounds.** Uses `recom-qa`.
+Auto-fix anything inside `templateCode`/`templateStyles` — and box settings the MCP can write (load order, placement, crawl config, strategy, product count; `references/box-setup.md`) — via the same diff → approval → DRAFT loop; report the rest as operator items (publish, delete/archive, lock). **Cap at 2 fix rounds.** Uses `recom-qa`.
 
 ## Output format (in chat)
 
@@ -180,7 +189,10 @@ Report, then a diff — never full files unprompted (unless in the no-MCP inline
 
 ```
 ### Design edited
-- <design-key> (<title>, <state>)
+- <design-key> (<title>, <state>) — boxes on it: <box names>
+
+### Boxes (only if Step 1.5 ran)
+- <box name> (<type>): <created | changed: field current → new, …> — placement div: <div or "default, already placed">
 
 ### Tile source
 - <surveyed fresh | REUSED from search-developer earlier — adapted: delegated JS, restored ATC, dropped search wiring>
@@ -217,13 +229,15 @@ Then **wait for explicit approval** → push (Step 7) → remind the operator to
 9. **Wire add-to-cart for the inferred platform** — Shopify / Magento / Shopware / Starweb. Undocumented platform → leave the form unbound, note in MISSING DATA. → `references/add-to-cart-js.md`
 10. **Tile survey: Playwright MCP (Claude in Chrome is the fallback when Playwright isn't available) — never `WebFetch`/`curl`.** If no browser MCP is available, ask the operator to paste the tile HTML from DevTools. Use the canonical pagination grid, never a recom widget or existing HR slider.
 11. **Never edit a standard / shared / archived recom design** — those are read-only. Confirm the `design-key` is an editable company design first. A shared design drafts every LIVE box that uses it on save. → `references/mcp-flow.md`
-12. **If unsure, ask.**
+12. **Box writes: read first, whole lists, approval, DRAFT only.** The product count is a general setting (`recoms_updateGeneralSettings`), never part of the algorithm. Read the facet with its `get*` before any `update*`; `recoms_updateAlgorithm` (`steps`, `filters`) and `recoms_updateContextCrawlConfig` replace the **whole** list — send back everything you keep. Show current → new and wait for a go-ahead, exactly as for a design. Never invent a box, algorithm or placement the operator didn't confirm, and never read a placement from a screenshot; never set `locked`; publishing, deleting and archiving stay with the operator. A box key is not a design key. → `references/box-setup.md`
+13. **If unsure, ask.**
 
 ## Self-check before responding
 
 **Intake & MCP**
 
-- [ ] `website-uuid` + `design-key` supplied or asked for; design confirmed editable (not standard/archived); `recoms_getDesign` read first as the modify-in-place base (spilled payload handled out-of-context). No MCP → inline copy-paste fallback.
+- [ ] `website-uuid` supplied or asked for; `design-key` derived from `recoms_list` + `recoms_listDesigns` (asked only when several editable designs are candidates); design confirmed editable (not standard/archived); `recoms_getDesign` read first as the modify-in-place base (spilled payload handled out-of-context). No MCP → inline copy-paste fallback.
+- [ ] Box inventory read (general settings, placement, algorithm, crawl config per box on the design). Onboarding: the set of recoms confirmed, and **for every box the placement asked first** and resolved on the live page — selector verified on 3 pages of the type and after a hard reload, marked final or temporary, spot previewed and confirmed; nothing read from a ClickUp screenshot. Category boxes: hiding below N products / while filtered asked; if yes, conditions in the placement selector (`:nth-child(N of <tile>)` when the grid holds non-tiles, never `:eq()`), checked on a big, a small and a filtered category, and the reload precondition tested. Product count taken from the shop's own slider on the placement page and confirmed, or asked (8 / 10 / 12) when there is none. Algorithm asked (best-practice list or own words), translated, read back in plain words and confirmed before the write, read back after. Heading asked for every box; cart / upsell boxes offered a free-shipping heading — on yes, built from `references/free-shipping-heading.md` and checked below / above the threshold, after an AJAX cart change and on a total over 1,000. Box changes, if any: plan table shown and approved, each facet read before written, whole lists sent back, read back after, placement divs in the hand-off.
 - [ ] Locale confirmed via `website_getInfo`. Tile survey done with the **Claude in Chrome MCP** (Playwright only as fallback) — `WebFetch`/`curl` NOT used. If no browser MCP available, operator pasted tile HTML.
 
 **Tile handoff**
@@ -243,13 +257,13 @@ Then **wait for explicit approval** → push (Step 7) → remind the operator to
 - [ ] Shop's own sliders checked for mouse-wheel scroll; if on, the operator was asked. `mousewheel` added only on a yes — with Swiper `"11.2.8"` and root class `swiper`, called out in the diff, and checked by wheel on the rendered draft.
 - [ ] Swatch/ATC click handlers delegated from `document`; form-level ATC init runs from `afterInit`, scoped to the slider root, idempotent (`data-*` guard). Unsupported platform: form emitted, cart left unbound, MISSING DATA line.
 - [ ] `BANNER_SIZE_NAME_PLACEHOLDER` substituted or flagged. `{{ CUSTOM_STYLING_BLOCK }}` empty — any CSS added falls under a Hard-rule-6 exception (scoping workaround with values copied from theme/Search, or native-card scaffold cleanup) and is called out in the diff.
-- [ ] Box-shell parity applied: width matched by **placing the box inside the theme's own container element** (placement change) rather than copying its class into `templateCode`; native section-heading classes on the `<h2>`; arrows match native carousel behaviour at mobile widths.
+- [ ] Box-shell parity applied: width matched by **placing the box inside the theme's own container element** (placement change) rather than copying its class into `templateCode`; native section-heading classes on the `<h2>`; arrows styled after the shop's own slider arrows (slider survey) and hidden where the theme hides its own; `breakpoints` from the survey's `perView` at 375 / 768 / 1280.
 
 **Output**
 
 - [ ] Structural QA run on the rendered draft: `.swiper-wrapper` has only `.swiper-slide` children, no nested slides. Failure → fix at the tile (escaping), not CSS.
 - [ ] Price-parity spot check run (rendered tile price vs storefront authoritative price); constant-ratio mismatch → price-sync workaround + feed flagged in MISSING DATA.
-- [ ] Push verified: fields sent as raw HTML (not entity-escaped); design re-fetched and diffed clean against local; unpushed field spot-checked unchanged.
+- [ ] Push verified: fields sent as raw HTML (not entity-escaped); design re-fetched and diffed clean against local; unpushed field spot-checked unchanged; `recoms_list` re-run and the drafted boxes named.
 - [ ] Every ported/written workaround has a provenance line (root cause + removal condition) in the hand-off.
 - [ ] Diff of changed regions shown, labeled by field; full fields offered on request. Variations + MISSING DATA present.
 - [ ] No files written to disk. On push: diff approved first; **REVIEW draft** with only changed fields; never published/auto-pushed; operator told to publish in the dashboard.
@@ -257,7 +271,11 @@ Then **wait for explicit approval** → push (Step 7) → remind the operator to
 ## References (read on demand)
 
 - `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` — **the foundation rule**: extend with higher specificity, never rewrite the base CSS/Liquid/JS; how to ask for approval when the foundation must change
-- `references/mcp-flow.md` — `recoms_getDesign`/`recoms_updateDesign`, design-key resolution, shared-design caution, payload-spill handling, REVIEW-draft governance, verify-after-push, `recoms_copyDesign` title rule, box placement (`recoms_updatePlacement`, volatile-selector guidance, and the hide-on-filter/sort pattern for category recom boxes — two generic options, placement selector vs JS guard; **ask the operator which to use**)
+- `references/box-setup.md` — the onboarding intake (which recoms, **placement first**, then what each shows) and creating and configuring the boxes: inventory table, `recoms_create` from a best-practice algorithm, general settings (name, load order, product count, devices), strategy, page context (hierarchies / urls crawl config), placement, design assignment, GA/UTM, read-back, hand-off lines
+- `references/algorithm-intake.md` — asking how a recom should pick its products: best-practice options or the operator's own words, the words → steps and filters tables, the follow-up questions, the plain-words read-back, the write, a worked example
+- `references/free-shipping-heading.md` — the free-shipping heading for cart / upsell boxes: what to ask, the hidden `{% input %}` fields, the script (Shopify `/cart.js`, locale-aware subtotal parsing, AJAX re-run), how to check it, hand-off values
+- `references/placement-snippets.md` — browser snippets that turn the operator's placement answer into a selector: section map, find a section by its text, verify a selector (final vs temporary, late-rendered anchors), preview the spot
+- `references/mcp-flow.md` — the full `recoms_*` tool table (design vs box keys, what the MCP cannot do), `recoms_getDesign`/`recoms_updateDesign`, design-key resolution, shared-design caution, payload-spill handling, REVIEW-draft governance, verify-after-push, `recoms_copyDesign` title rule, box placement (`recoms_updatePlacement`, volatile-selector guidance, and the hide-on-filter/sort pattern for category recom boxes — two generic options, placement selector vs JS guard; **ask the operator which to use**)
 - `references/slider-structure.md` — the slider variant, edit scope (banner branch, slot, empty CUSTOM_STYLING_BLOCK), swiper init tuning, the `afterInit` hook, the `loop: true` clone delegation gotcha, box-shell parity (container width, headline, mobile arrows), and the theme-CSS-scoping exception
 - `references/add-to-cart-js.md` — platform inference + in-slider ATC JS wiring (Shopify / Magento / Shopware / Starweb)
 - `tile-extractor` skill — produces the `{{ TILE_BODY }}` (invoked in Step 3)
