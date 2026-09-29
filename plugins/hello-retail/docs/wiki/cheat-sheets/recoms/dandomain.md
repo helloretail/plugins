@@ -20,7 +20,8 @@ Sums prices out of the basket page using the DanDomain-style `.webshop-showbaske
 var basketAmount = 0;
 document.querySelectorAll(".webshop-showbasket .product_price").forEach((item) => {
     console.log(item.textContent.split("NOK").shift().trim());
-    basketAmount += parseFloat(item.textContent.split("NOK").shift().trim());
+    // "1 499,00 NOK" / "1.499,00 NOK" → 1499: keep digits and the decimal comma, then make it a point.
+    basketAmount += parseFloat(item.textContent.split("NOK").shift().replace(/[^0-9,]/g, "").replace(",", "."));
 });
 
 var heading = jQuery("#hello-retail-{{ key }} h2");   // the base headline <h2> carries no class
@@ -39,6 +40,9 @@ if( !isNaN(basketAmount) ) {
 **Adapt for the customer:**
 
 - Change `NOK` to the customer's currency code.
+- Keep the `replace(/[^0-9,]/g, "")` step: without it `parseFloat` stops at the thousands
+  separator, so a 1 499 kr product counts as 1 kr and the heading asks for more on a cart that
+  already ships free.
 - Change `199` to the customer's free-shipping threshold.
 - Update the Norwegian copy if the customer is in a different language market.
 
@@ -58,3 +62,4 @@ If the customer's theme uses a different parent (custom DanDomain Classic templa
 
 ## Timeline
 - 2026-05-19: Initial DanDomain-specific recoms file created.
+- 2026-09-28: Free Shipping: line prices of 1 000 and more are parsed correctly (`1 499,00` was read as 1, `1.499,00` as 1.499).

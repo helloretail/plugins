@@ -10,6 +10,63 @@ fragments into the version it publishes.
 
 ## Unreleased
 
+## 1.25.2 — 2026-09-29
+
+### Fixed
+
+- `hello-retail-knowledge` and `recom-developer` now give Free Shipping heading snippets that read cart totals and prices of 1,000 and more correctly (`1.234,56 kr`, `1 499,00 kr`). Before, the heading claimed free shipping on any cart, asked for more on a cart that already shipped free, or showed nothing once the currency was changed to one written after the number.
+
+## 1.25.1 — 2026-09-29
+
+### Added
+
+- `recom-qa` records the slide step and transition speed of a recom box next to the shop's own slider, and treats the one-view-per-step default as intended rather than a defect; it only warns when the shop's own sliders stay on the page or the customer asked for a match.
+
+### Changed
+
+- `recom-qa` names trackpad swipe alongside the mouse wheel in the wheel-scroll check, and tests the vertical direction separately when both sliders scroll with the wheel: a Hello Retail box that slides on vertical input while the shop's own slider lets the page scroll past is a FAIL, because the cursor gets trapped inside the box on trackpads.
+
+## 1.25.0 — 2026-09-29
+
+### Added
+
+- `pages-developer` now appends an outside-click listener to the design JS whenever filters or sorting are configured, so an open filter or sorting dropdown closes when the visitor clicks elsewhere on the page. The base Pages design only closed a dropdown when another heading was clicked.
+- `pages-qa` checks that an open filter or sorting dropdown closes on an outside click, and that clicking inside it keeps it open.
+
+## 1.24.1 — 2026-09-29
+
+### Changed
+
+- `search-developer` may add an image `max-width` guard next to the tile-fill rule when the rendered check shows a tile image with an HTML `width` wider than its cell overflowing; it is never added pre-emptively.
+
+### Fixed
+
+- `search-developer` now validates the embedded `placement_selector` on the homepage, a category page and a product page, not only the surveyed page, so a content wrapper whose tag changes per template no longer leaves the results panel with no offset on some pages.
+- `search-developer` spells out the full TILE FILL rule in the drop-in step (`flex`, `width`, `height` and the native `text-align` together), so a customer tile can no longer ship sized to its own content inside the grid cell.
+
+## 1.24.0 — 2026-09-28
+
+Maintenance release — no user-visible changes.
+
+## 1.23.0 — 2026-09-28
+
+### Added
+
+- `search-developer` ships `splice-tile.mjs`: it finds the tile slot in any Search design by parsing the Liquid, replaces the default tile with the customer's, mirrors the parent hooks onto the grid containers and the cell, and refuses to write while a token is unbound or the Liquid would end up unbalanced.
+
+### Changed
+
+- `search-developer` builds every Search variant — desktop overlay, desktop embedded and mobile — on the design Hello Retail attaches when the config is created, read back with `search_getDesign`, instead of on a copy kept in the knowledge base. The copy had fallen behind the platform; the attached design is always current.
+- `search-developer` asks "overlay or embedded?" together with the scope question in the first round, because the create call now takes it (`desktopDesign`) and attaches the matching design. The website's existing search configs are listed in that same question, so one answer settles scope, type and whether to reuse a config.
+- `search-developer` works on the design on disk: the three fields are extracted to files, the tile is spliced in by structure, and the diff against the untouched extract is what the operator approves.
+- `search-developer` renames every search config it creates to `Desktop`, `Embedded Desktop` or `Mobile`, so the on-site widget lists "Overlay search - Desktop" instead of a default name that does not say which design the config holds. On later builds it takes that name as a first guess and confirms it against the design itself, asking when the two disagree; configs that already existed are never renamed.
+- `search-qa` and `qa-checklists` compare a Search design with the pristine design the MCP attaches when deciding whether a defect is template-level or was introduced by the onboarding.
+
+### Removed
+
+- The knowledge base no longer keeps copies of any Search template — desktop overlay, embedded or mobile. Create the config with `search_createConfig` (with `desktopDesign` `OVERLAY` or `EMBEDDED` on desktop) and read the attached design instead.
+- The Search base template carries no `TILE_BODY` marker comment; it kept ending up in pushed designs. `search-developer` describes the slot in words, and `splice-tile.mjs` finds it.
+
 ## 1.22.0 — 2026-09-28
 
 ### Changed

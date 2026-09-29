@@ -798,9 +798,31 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       automation's drag tool (e.g. Playwright `browser_drag` across the slider) — when no
       drag/touch emulation is available, record SKIPPED → operator device check, never
       silently omit
-- [ ] **Mouse-wheel scroll matches the shop** — if the shop's own slider scrolls sideways with
-      the mouse wheel, hover the HR box and scroll: it moves too when the design has
-      `mousewheel` on; when it doesn't, WARN → operator decision (mirroring it is opt-in), never FAIL
+- [ ] **Mouse-wheel / trackpad scroll matches the shop** — if the shop's own desktop slider
+      scrolls sideways with the mouse wheel or a two-finger trackpad swipe, hover the HR box and
+      do the same: it moves too when the design has `mousewheel` on (that one option covers both
+      inputs); when it doesn't, WARN → operator decision (mirroring it is opt-in), never FAIL.
+      A box that only moves with its arrows while the shop's slider swipes is exactly this WARN
+- [ ] **Wheel axis matches the shop — vertical scroll over the box must not get trapped** — when
+      both sliders scroll with the wheel, test the *vertical* direction separately: hover the HR
+      box and scroll down (Playwright `page.mouse.wheel(0, 600)` with the pointer over the box;
+      on a trackpad, a two-finger swipe down). On the shop's own slider a vertical wheel keeps
+      scrolling the page (Swiper `mousewheel.forceToAxis: true`, the common setting); if the HR
+      box instead slides on vertical input too, the cursor is trapped — the page cannot be scrolled
+      past the box without moving the mouse off it (worst on Mac trackpads) → FAIL, fix =
+      mirror the shop's `forceToAxis` (`../recom-developer/references/slider-structure.md` →
+      *Mouse-wheel scroll*). Compare the settings, not just the feel:
+      `[...document.querySelectorAll('.swiper, .swiper-container')].filter(e => e.swiper).map(e => ({ hr: !!e.closest('[id^="hello-retail-"]'), mousewheel: e.swiper.params.mousewheel, speed: e.swiper.params.speed, slidesPerGroup: e.swiper.params.slidesPerGroup }))`.
+      Only when the shop's slider itself slides on vertical wheel input is matching that a PASS.
+- [ ] **Slide step / speed vs the shop — record it, don't grade it** — an HR box usually moves
+      one whole view per arrow click or wheel notch (`slidesPerGroup` = `slidesPerView`), while
+      many native sliders move one tile; ours therefore looks faster. **That is the intended
+      default** (D&TS, 2026-09: CSMs recommend one-view-per-step, and the shop's own sliders are
+      normally removed at go-live, so the two never sit side by side) → not a defect. Read
+      `speed` (transition ms) and `slidesPerGroup` for both from the probe above and put the two
+      values in the report as a NOTE. Raise it to WARN → operator decision only when the shop's
+      own sliders stay on the same pages as the recoms, or the card / customer asked for the
+      recoms to match the native slider — the customer's wish decides, never the default alone.
 - [ ] **Loop** — loops correctly, or stops cleanly at the ends if loop is off
 - [ ] **No empty slide at end** — last page fills completely
 - [ ] **Inter-tile gap matches native** — the gap comes from EITHER the scaffold `.hr-product`
@@ -1274,6 +1296,16 @@ Decisions / Declined / Known-open land in the customer's living hand-off documen
   Known case: Bricks-tabs homepage carousels. Not a tile or breakpoint issue — the fix is
   build-side (`observer: true` or `swiper.update()` on tab activation, see
   `../recom-developer/references/slider-structure.md`).
+- **"Mouse-wheel works" is two checks, not one.** A Shopify store (store-DK, 2026-09) had
+  wheel scroll mirrored onto the recoms and the horizontal test passed on the first try — but the
+  box also slid on *vertical* wheel input, which the shop's own Swiper (`forceToAxis: true`) never
+  does, so on a Mac trackpad the page could not be scrolled past the box; `forceToAxis: true`
+  fixed it. A "hover and scroll sideways" test never shows this — test the vertical axis every
+  time wheel scroll is on. The trap reproduced on a Mac trackpad but not on a Windows trackpad,
+  so record the OS and input device you tested with, and don't grade PASS from one of them
+  alone. The same QA also flagged the box as "too fast" next to the native slider; that turned
+  out to be the intended one-view-per-step default, not a bug — hence the record-don't-grade
+  rule in the Carousel checklist. Ask before grading speed.
 
 ## REFERENCES
 
