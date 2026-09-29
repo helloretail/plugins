@@ -95,7 +95,9 @@ confirm. Several boxes on one page: preview them together, so their order is vis
   where the page shows the cart subtotal. The build is `free-shipping-heading.md`; the normal
   heading above stays as its fallback. On no, the plain heading only.
 - **Load order** — only when several boxes share a page: which gets products first (step 6).
-- **Product count — how many products the box holds.** Run *Survey the shop's own sliders*
+- **Product count — how many products the box holds.** A **general setting**, not part of the
+  algorithm: asked here on its own, written in step 6 with `recoms_updateGeneralSettings`, never
+  through `recoms_updateAlgorithm`. Run *Survey the shop's own sliders*
   (`placement-snippets.md`) on the page the box goes on — homepage and PDP placements usually have
   one. Then:
   - **The shop has a product slider there** → its `products` is the default. Say where it came

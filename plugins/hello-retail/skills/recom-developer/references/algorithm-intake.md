@@ -5,6 +5,13 @@ the box's strategy — ordered steps plus filters — confirm it in plain words,
 Called from `box-setup.md` → step 4 (asking) and step 7 (writing). The step and filter semantics
 are the MCP's own: read `docs_get("docs://product-algorithms/format")` once before translating.
 
+> **How many products the box shows is not part of the algorithm.** It is the box's
+> `productCount`, a general setting — asked separately (`box-setup.md` → step 4, from the shop's
+> own slider or 8 / 10 / 12) and written with `recoms_updateGeneralSettings` (step 6). The algorithm
+> only decides **which** products fill those slots and in what order; `recoms_getAlgorithm`
+> reports `productCount` read-only, and `recoms_updateAlgorithm` has no field for it. A number in
+> the operator's answer ("show 12 bestsellers") goes to the product count, not into a step.
+
 ## 1. Ask — best-practice options first, own words welcome
 
 `recoms_listBestPracticeAlgorithms(websiteUuid, type)` returns the proven setups for the box's
@@ -28,8 +35,8 @@ leave the door open:
 
 ## 2. Translate the words into steps
 
-Steps run top to bottom; each fills the slots the ones before it left, and a step that finds
-nothing just passes to the next. So the operator's first idea is step 1, and every "then …",
+Steps run top to bottom; each fills the slots — the box's product count — that the ones before it
+left, and a step that finds nothing just passes to the next. So the operator's first idea is step 1, and every "then …",
 "otherwise …", "if there aren't enough …" is a later step.
 
 **What to show — the step type:**
@@ -70,7 +77,7 @@ nothing just passes to the next. So the operator's first idea is step 1, and eve
 | "between 100 and 500" | `price GREATER_THAN 100`, `price LESS_THAN 500` | global or step |
 | "only brand X / category Y" | `brand EQUALS "X"` / `hierarchies IN [["y"]]` | global |
 | "their favourite brand" | step filter `brand EQUALS $user.bias.brand`, condition `COMPARE user.bias.brand NE ""` | step, followed by a fallback step |
-| "at most 4 of these" | `productLimit: 4` | the step |
+| "at most 4 of these" | `productLimit: 4` — a cap on **one step**, never the box total | the step |
 | "variants count as one" / "show each colour" | `filterByGroupingKey` `true` (default) / `false` | whole box |
 
 Rules the translation must keep (from the format doc):
