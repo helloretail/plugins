@@ -72,23 +72,82 @@ A design renders nothing until its **box** attaches somewhere. Placement has thr
 - **Shopify section IDs are volatile.** IDs like `shopify-section-template--26550883189082__slideshow_gzQ4aj` regenerate their numeric middle on every theme publish (and can differ between sessions) — an exact-ID selector will match today and silently never match again. Anchor on the **stable suffix** instead, tag-qualified for uniqueness: `section[id$="__slideshow_gzQ4aj"]`. Verify it matches exactly one element (`document.querySelectorAll(...)` — nested inner elements often share the suffix, which is what the tag qualifier is for).
 - **Verify the placement live after setting it** — reload the target page (fresh cache-busting query param), confirm the box appears at the intended spot, and confirm the selector still matches after a hard reload. `REPLACE` on a theme element destroys that element; prefer `BEFORE`/`AFTER` when placing next to native content that should survive.
 
-## Hiding a category recom while a filter or sorting is active
+## Hiding a category recom — too few products, or a filter / sort active
 
-A recurring customer ask for **category recom boxes only** (never front-page / PDP / cart boxes): the recom must not show while a product filter and/or a non-default sorting is active on the category page. Every theme signals that state differently, so the first step is always to survey the live category page and identify the signals — typically an active-filter element that exists only in the filtered state (a filter-chip row, a "clear filters" control, a body/container class) and/or the sort control's selected state, plus whatever `location.search` params the theme uses. Prefer server-rendered signals over JS-rendered ones, and confirm each signal is present in the target state and absent otherwise.
+A recurring ask for **category recom boxes only** (never front-page / PDP / cart boxes), on every
+platform: don't show the recom on a category with fewer than **N** products (8 and 12 are common),
+and don't show it while a filter — and, when asked, a non-default sort — is active. Asked in
+`box-setup.md` → step 3; checked with *Check the hide conditions* in `placement-snippets.md`.
 
-There are two ways to build it, and the choice is not yours: **ask the operator which option to use before implementing — placement selector or JS.**
-
-**Option A — placement selector (no design code).** Prefix the box's selector with a condition on the identified DOM signal, so that in the filtered/sorted state the selector matches nothing and helloretail.js never injects the box (no empty gap, nothing to clean up). The generic shape, with the theme's own signals substituted in:
+**The team's way: conditions in the placement selector.** The box's selector gets conditions in
+front of its anchor, so on a page where they fail the selector matches nothing and helloretail.js
+never inserts the box — no empty gap, no design code, and no served impression. The shape, with
+the theme's own selectors substituted in:
 
 ```
-body:not(:has(<active-filter signal>)):not(:has(<active-sort signal>)) #hr-recom-<key>
+<page scope>:has(<tile>:nth-child(<N>)):not(:has(<filter active>)) <anchor>
 ```
 
-The engine resolves selectors with plain `document.querySelectorAll` (when `jquery_enabled` is false), so modern CSS like `:has()` / `:not()` works — needs ~2023+ browsers. Preconditions to verify on the live theme before choosing this: every filter/sort change must be a **full page load** (`NORMAL` selectorMode evaluates once per load — an AJAX-filtering theme needs Option B), and the signal must exist **before** HR evaluates placement. Server-rendered signals are race-free; JS-rendered signals are normally safe because HR inserts only after its own network round-trips — but confirm empirically that the engine reports the element unmatched in the filtered state.
+The two conditions can also sit on **two different ancestors** — the count on one that holds the
+grid, the filter check on one between it and the anchor:
 
-**Option B — JS guard in the design (`templateCode`).** At the top of the design's script, detect the filtered/sorted state and bail: hide the box's outer wrapper and skip the swiper init. The race-free signal when filtering navigates is `location.search` — treat **any** query param as "filtered" except a benign allowlist (the sort param if sorting shouldn't hide, paging, `utm_*`, click-tracking ids); a DOM signal works too if it exists by the time the template script runs. This option also works for AJAX-filtering themes (hook the filter events). Two costs Option A doesn't have: the box still registers a served impression (suppression is client-side), and it needs a **page-specific design** — if the box shares its design with other pages, `recoms_copyDesign` a dedicated one first; never put a page-specific guard in a shared design.
+```
+<count scope>:has(<tile>:nth-child(<N>)) <filter scope>:not(:has(<filter active>)) <anchor>
+```
 
-Whichever option the operator picks, verify all three rendered states on a live category via the staff widget: unfiltered → box shows; filter applied → gone; sorting applied → gone — with no empty gap left behind. Remember the box only serves where its own strategy conditions pass (e.g. a minimum-product-count context variable), so verify on a category where the box actually renders.
+Two real shapes (class names generic, box key replaced):
+
+- `.catalog-page:has(.product-card:nth-child(12)):not(:has(.catalog-filter input:checked)) #catalog-container`
+  — one scope: at least 12 product cards and no filter ticked, anchored on a theme element.
+- `body:has(ol.products li.product:nth-child(12)) .page-wrapper:not(:has(.filter-current)) #hr-recom-<key>`
+  — the count on `body`, the filter check on the page wrapper (`.filter-current` exists only while
+  a filter is applied), anchored on the customer div.
+
+- **`<page scope>`** — an element that exists on category pages and contains both the product grid
+  and the filters: the catalog wrapper, a category body class, or `body`. In the two-ancestor
+  form, the **count scope** must contain the grid and the **filter scope** must contain both the
+  filter signal and the anchor.
+- **`<tile>:nth-child(<N>)`** — "the Nth product tile exists", i.e. at least N products. "Hide below
+  8" → `:nth-child(8)`. `:nth-child` counts **every** child of the grid, so when the grid holds
+  anything besides tiles (a promo banner, a heading) use **`:nth-child(<N> of <tile>)`**, which
+  counts tiles only — otherwise a banner shifts the count, and a banner that happens to be the Nth
+  child hides the box on every category. Never jQuery's `:eq()`: the engine resolves selectors
+  with plain `document.querySelectorAll` (when `jquery_enabled` is false), where `:eq()` is invalid
+  and the box never attaches anywhere.
+- **`:not(:has(<filter active>))`** — an element that exists **only** while a filter is on: a
+  checked filter input (`.catalog-filter input:checked`), an active-filter chip row, a "clear all"
+  link, a body class. Sorting: add a second `:not(:has(<active sort>))` when the operator wants the
+  box hidden while sorted too.
+- **`<anchor>`** — the placement anchor from `box-setup.md` → step 3: the customer div
+  `#hr-recom-<key>` or the theme element.
+- A category level that shows no product grid at all (a landing category) has no tiles, so the box
+  hides there too — the "only on levels that show products" rule comes for free.
+- `:has()`, `:not()` and `:nth-child(… of …)` need ~2023+ browsers. The whole selector stays under
+  2000 characters.
+
+**Two preconditions — check both before writing it:**
+
+1. **Filtering reloads the page.** The selector is evaluated when the page loads (`NORMAL`); a theme
+   that filters without a reload leaves an already-inserted box in place. *Check the hide
+   conditions* includes the reload test.
+2. **The tiles and the filter state are in the page when HR places the box** — server-rendered is
+   race-free (*Verify a selector* → `inServerHtml`). A grid rendered by JavaScript: confirm on the
+   live page that the box stays out on a small category.
+
+**When filtering doesn't reload the page — JS guard in the design (`templateCode`).** Tell the
+operator why the selector can't do it on this theme and ask before building this instead. At the
+top of the design's script, detect the filtered/sorted state and bail: hide the box's outer
+wrapper and skip the swiper init. The race-free signal when filtering navigates is `location.search`
+— treat **any** query param as "filtered" except a benign allowlist (the sort param if sorting
+shouldn't hide, paging, `utm_*`, click-tracking ids); for AJAX filtering, hook the filter events.
+Two costs the selector doesn't have: the box still registers a served impression (suppression is
+client-side), and it needs a **page-specific design** — if the box shares its design with other
+pages, `recoms_copyDesign` a dedicated one first; never put a page-specific guard in a shared design.
+
+**Verify on live categories via the staff widget**, whichever route: a category with at least N
+products → box shows; one with fewer → gone; filter applied → gone; sort applied → gone (when
+included) — with no empty gap left behind. The box only serves where its own strategy can return
+products, so test on a category where it actually renders.
 
 ## Reads aren't gated on state
 
