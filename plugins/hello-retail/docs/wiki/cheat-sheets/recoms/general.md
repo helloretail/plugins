@@ -258,9 +258,13 @@ var shippingAmount = document.querySelector("");     // ← customer's shipping 
 var freeShippingAmount = 499;
 var header = document.querySelector("");             // ← HR's heading selector inside the recom
 
+// "1.234,56 DKK" → 1234.56: keep digits and the decimal comma, then make it a point.
+// A shipping line that reads "Gratis" has no digits and counts as 0.
+var toAmount = function (el) { return el ? Number(el.textContent.replace(/[^0-9,]/g, "").replace(",", ".")) : 0; };
+
 if (totalAmount) {
-    var cartTotal = Number(totalAmount.textContent.replace("DKK", "").trim().replace(",", "."));
-    var shippingTotal = Number(shippingAmount.textContent.replace("DKK", "").trim().replace(",", "."));
+    var cartTotal = toAmount(totalAmount);
+    var shippingTotal = toAmount(shippingAmount);
     cartTotal = cartTotal - shippingTotal;
     if (cartTotal < freeShippingAmount) {
         var helloRetailTotal = freeShippingAmount - cartTotal;
@@ -278,6 +282,14 @@ if (totalAmount) {
 
 - Use this when **shipping is already included** in the displayed total → subtract it.
 - Use the simpler versions when the displayed total is **subtotal only** → no subtraction.
+
+**Parsing the total — every snippet on these pages.** Strip everything except the digits and the
+decimal separator before converting, so the thousands separator can't break the number:
+`.replace(/[^0-9,]/g, "").replace(",", ".")` for decimal-comma prices (`1.234,56 kr`,
+`1 499,00 kr`), `.replace(/[^0-9.]/g, "")` for decimal-point prices (`$1,234.56`). Swapping one
+character (`.replace(",", ".")` alone) turns `1.234,56` into `1.234.56`: `Number()` makes that
+`NaN`, so the heading claims free shipping on any cart, and `parseFloat()` makes it `1.234`. Check
+the parse on a total of 1,000 or more before handing a snippet over.
 
 ---
 
@@ -319,6 +331,7 @@ if (grandTotalNode !== null) {
 - 2026-05-21: Added Price-formatting conventions and Free-Shipping-with-shipping-subtraction skeleton.
 - 2026-06-02: Documented Swiper version upgrade via `_.util.swiper_slider(version, selector, options)` — bump the first arg (e.g. `"6.5.6"` → `"11.2.10"`).
 - 2026-08-06: Added Free-Shipping re-run-on-cart-update MutationObserver (AJAX/drawer carts where the total changes without a page reload).
+- 2026-09-28: Free Shipping (subtracting shipping): cart totals and shipping lines of 1.000 and more are parsed correctly (they came out as `NaN`), and the parsing rule for every snippet is written down.
 - 2026-08-20: Added Mousewheel/touchpad-scroll section (from an onboarding): `cssMode: true` (+ `loop: false`) as the preferred native-scroll route, `mousewheel: true` + `forceToAxis` as the alternative; fractional `slidesPerView` for the native "peek" look; arrow-hiding guidance.
 - 2026-09-25: Added the team's mouse-wheel method (Swiper 11 + root class `swiper` + `mousewheel: true`), used when the customer's own slider scrolls with the wheel and the operator opts in; `cssMode` stays the route for native scroll-container carousels.
 - 2026-09-25: Corrected the Swiper 11 pin to `"11.2.8"` throughout — Hello Retail serves no `"11.2.10"`.
