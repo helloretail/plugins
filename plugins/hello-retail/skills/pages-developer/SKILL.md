@@ -259,6 +259,37 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    schema. Hide irrelevant filters
    (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/pages/general.md` has the field-proven snippet), and
    structure `extraDataList` values per the same cheat sheet's `data-filters` note.
+5b. **Dropdowns close on an outside click — the base JS does not do this.** Field-proven
+   2026-09-28: the default design's `templateJs` hides an open filter or sorting dropdown
+   only when another heading is clicked; the one `container` click listener it has is the
+   ≤ 767 px slide-panel path. On desktop an opened dropdown therefore stays open until the
+   visitor opens another one, and the operator reports it. Whenever the design offers
+   filters or sorting, append this listener inside the existing `if (filters.length > 0)`
+   block of `post_insert` (after the "Display handlers for filters" loop, so
+   `hide_filter_options` is in scope) — an addition, never a rewrite of the block:
+
+   ```javascript
+   // Close open dropdowns when clicking outside a filter or the sorting control
+   if (document.documentElement.dataset.hrPagesOutsideClick != "true") {
+   	document.documentElement.dataset.hrPagesOutsideClick = "true";
+   	document.addEventListener("click", function(e) {
+   		if (e.target.closest(".aw-filter__single-wrapper, .hr-category-page-results__sorting-content")) {
+   			return;
+   		}
+   		var open_dropdown = document.querySelector(".aw-filter-dropdown-content:not(.hr-hidden), .aw-sorting-dropdown-content:not(.hr-hidden)");
+   		if (open_dropdown) {
+   			hide_filter_options();
+   			filtersScrollTop = 0;
+   			querystring_storage.put("active_filter", "");
+   		}
+   	});
+   }
+   ```
+
+   The `dataset` guard keeps one listener per page across re-renders; clearing
+   `active_filter` stops the design re-opening the dropdown on the next refresh. Verify it
+   in the browser during step 7: open a filter, click the product grid → closed; open the
+   sorting dropdown, click elsewhere → closed; clicking inside an open dropdown keeps it open.
 6. **Write EXACTLY.** `pages_updateDesign` with ONLY the template fields you changed
    (filter/sorting facets go through their own update tools per step 5). Then
    **read-back verify**: `pages_getDesign` (and the facet reads, if written) again and
