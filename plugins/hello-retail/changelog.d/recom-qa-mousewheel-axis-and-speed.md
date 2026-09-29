@@ -1,7 +1,7 @@
 ### Added
 
-- `recom-qa` checks the slide speed and step of a recom box against the shop's own slider — one arrow click or wheel notch should move about as far and as fast on both — and reports a clear difference as a warning for the operator, with both speeds recorded in the report.
+- `recom-qa` records the slide step and transition speed of a recom box next to the shop's own slider, and treats the one-view-per-step default as intended rather than a defect; it only warns when the shop's own sliders stay on the page or the customer asked for a match.
 
 ### Changed
 
-- `recom-qa` now tests the vertical wheel direction separately when both sliders scroll with the mouse wheel: a Hello Retail box that slides on vertical input while the shop's own slider lets the page scroll past is a FAIL, because the cursor gets trapped inside the box on trackpads.
+- `recom-qa` names trackpad swipe alongside the mouse wheel in the wheel-scroll check, and tests the vertical direction separately when both sliders scroll with the wheel: a Hello Retail box that slides on vertical input while the shop's own slider lets the page scroll past is a FAIL, because the cursor gets trapped inside the box on trackpads.
