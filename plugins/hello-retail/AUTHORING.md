@@ -92,7 +92,9 @@ share a call.
   in prose, one per message, the options as a numbered list. No operator to answer at all → don't
   ask: take the recommended option and record the question under OPEN QUESTIONS.
 
-The worked example is `recom-developer` → `references/box-setup.md` → *How to ask*.
+The worked example is `recom-developer` → `references/box-setup.md` → *How to ask*. Adopted so far by
+`search-developer`, `recom-developer` and `pages-developer`; the other skills still ask in prose and
+move over as they are next touched.
 
 ## 4. Push deep detail into `references/`
 

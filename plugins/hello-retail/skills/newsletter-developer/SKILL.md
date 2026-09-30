@@ -148,12 +148,6 @@ You need the customer's **category-page URL** (a page showing the product
 tiles). Helpful but optional: a CSS selector for the product card if the page is
 unusual.
 
-**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of sensible options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's `AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line description each, the recommended one first and marked "(Recommended)", `multiSelect: true` when several may apply; *Other* is added automatically for free text. Up to four independent questions per call; a question whose options depend on an earlier answer waits for the next call. Options come from what you already read, never from guesswork, and nothing the prompt, the card or an earlier answer already settled is asked again. Free text with nothing to suggest (a URL, a UUID) stays a prose question. No `AskUserQuestion` tool in the session → the same questions in prose, the options as a numbered list; no operator to answer at all → take the recommended option and record the question under OPEN QUESTIONS.
-
-The URL and a card selector are free text. The questions this skill asks with the
-picker are which design to work on and the canvas (step 2), a change to the
-default's foundation (the rules that bite) and the save (step 7).
-
 ### 2. Load the default design (the starting point)
 
 Read the shared default newsletter template, which lives in the wiki at:
@@ -179,21 +173,11 @@ In the same breath, pull the website's ground truth via the MCP:
   Note its id, state, and **canvas width×height** (build for that canvas, not an
   assumed one), and whether its template is the untouched default (safe to
   replace) or someone's live work (stop and surface it before overwriting).
-  Surface it with `AskUserQuestion`, header *Design*: *"Design \<name\> (\<state\>)
-  \<has custom work / is rendered by live campaigns\> — which one do we work on?"* —
-  *Copy it and edit the copy* (first, and "(Recommended)" when live campaigns render
-  it — the write-path cautions above), *Edit it in place*, *Create a new design*; the
-  design named is the one `listDesigns` returned, nothing invented.
 - `newsletterContent_listStarterTemplates` — only when there is **no existing
   design and no canvas was given**. The starters are named for the newsletter
-  layout they suit and carry the width×height they were authored for; the
-  customer's ESP layout (e.g. 3 tiles per row in Mailchimp) picks the canvas — not
-  known from the prompt → ask with `AskUserQuestion`, header *Canvas*: the starters
-  as the options, each labelled with its name and described with its width×height
-  and the layout it suits (more than four → the four that fit what the prompt or
-  the existing designs say about the newsletter, the rest named in the chat line
-  before the call; none recommended) — and build the shared default onto that
-  canvas. If a construct you need isn't in
+  layout they suit and carry the width×height they were authored for; pick the
+  one matching the customer's ESP layout (e.g. 3 tiles per row in Mailchimp) and
+  build the shared default onto that canvas. If a construct you need isn't in
   the shared default — a layout the renderer accepts, a marker form — read that
   starter with `getStarterTemplate` and copy the idiom from it rather than
   inventing one. The shared default stays the base for parameter conventions.
@@ -346,11 +330,7 @@ alone when the MCP render is available.
 
 Show the **full template inline** in chat so the operator can review it, and
 save the `.liquid` to the working/output folder. Then, **with the operator's
-explicit approval** — asked with `AskUserQuestion`, header *Save*: *"Save this
-template to design \<name\> (\<state\>)?"* — *Yes, save it* / *No, change something
-first*, no option recommended (the gate is the operator's), the campaign-adoption
-warning in the description when live campaigns render the design — write it
-straight to the customer's design:
+explicit approval**, write it straight to the customer's design:
 
 - existing design → `newsletterContent_updateDesign` (designId + template;
   partial update, leave width/height/name alone unless asked);
@@ -380,15 +360,13 @@ have to scroll to the reference sections to remember them:
 - **Newsletter-design edits land in place — no linked draft is created** (the
   designs have their own lifecycle states, but there's no draft-of-LIVE
   mechanic like Search/Recoms): render-verify first, save only on the
-  operator's explicit go (the *Save* picker, step 7), and warn about campaign
-  adoption when live campaigns use the design.
+  operator's explicit go, and warn about campaign adoption when live campaigns
+  use the design.
 - **Extend the default, don't rewrite it.** Unless the operator explicitly says
   otherwise, keep the default's structure, CSS approach and variable names and
   **restyle** — never regenerate the template from scratch. If the design can't be
   reached that way, **ask the operator for approval before altering the
-  foundation** — `AskUserQuestion`, header *Foundation*: *"Reaching this look means
-  changing the default's \<what\> — go ahead?"* — *Yes, change it* / *No, stay within
-  the default* (no option recommended). → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md`
+  foundation**. → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md`
 - The tile is rendered to an **image** server-side → build simple HTML/CSS like
   the default; **no** layout tables, MSO comments, or `bgcolor` (that's
   live-HTML-email hardening this pipeline doesn't need).
@@ -755,8 +733,8 @@ that rendered as an icon instead of text.
 ## Delivering
 
 Show the full template inline in chat for review and save the `.liquid` to the
-working/output folder — then, on the operator's explicit approval (the *Save*
-picker, step 7), save it directly to the customer's design with `newsletterContent_updateDesign` (or
+working/output folder — then, on the operator's explicit approval, save it
+directly to the customer's design with `newsletterContent_updateDesign` (or
 `createDesign`) and re-render the saved design to confirm (see step 7; the edit
 lands in place — no linked draft — so the approval gate is mandatory). Manual dashboard copy-paste
 is only the fallback when the MCP tools are unavailable. Do not write to the

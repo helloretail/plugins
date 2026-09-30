@@ -13,12 +13,8 @@ Feed text fields (`title`, `extraData.shortDescription`, any subtitle/descriptio
 
 Check first whether the field actually carries HTML: look for `<` in the `productData_get` value of
 2–3 products. Plain text → no question, use the plain-text filter chain. HTML present → **ask the
-operator** before choosing, with `AskUserQuestion` — one question per HTML-bearing field, up to four
-fields in one call, header *Free text*: *"`<field>` carries HTML — strip it or render it?"* —
-*Strip to plain text (Recommended)* (`strip_html | truncate | escape`) / *Render the HTML* (`rawHtml`;
-only when the element sits outside any `<a>`). No tool in the session → the same question in prose
-with the two options numbered; running as a subagent: default to **strip** and list the choice under
-OPEN QUESTIONS:
+operator** before choosing (running as a subagent: default to **strip** and list the choice under
+OPEN QUESTIONS):
 
 - **Render the HTML** (operator wants formatting preserved): `{{ product.extraData.shortDescription | rawHtml }}` — outputs the raw HTML as markup (`rawHtml` is the Hello Retail custom filter; there is no `raw` filter — the QA skills flag it as a FAIL). Only safe if the field is trusted and the element is not placed inside an existing `<a>`.
 

@@ -105,23 +105,18 @@ real Search tile and looked at the live storefront.
 You need the customer's **category-page URL**, and ideally the **website UUID +
 Search key** (so you can pull the authoritative tile markup via MCP).
 
-**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of sensible options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's `AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line description each, the recommended one first and marked "(Recommended)", `multiSelect: true` when several may apply; *Other* is added automatically for free text. Up to four independent questions per call; a question whose options depend on an earlier answer waits for the next call. Options come from what you already read, never from guesswork, and nothing the prompt, the card or an earlier answer already settled is asked again. Free text with nothing to suggest (a URL, a UUID) stays a prose question. No `AskUserQuestion` tool in the session → the same questions in prose, the options as a numbered list; no operator to answer at all → take the recommended option and record the question under OPEN QUESTIONS.
+Then ask the operator **which design(s) to build** using the question picker. The
+picker presents **every design plus an "All"** — but the question tool allows at
+most **4 options per question**, so the six choices (Base Design, Abandoned Cart,
+Price Drop, Back in Stock, Post Conversion, All) won't fit in one list. Split it
+into two questions so the operator still sees all designs and the "All" option:
 
-Then ask the operator **which design(s) to build** with `AskUserQuestion` — unless the
-prompt already names the flow(s): take those and say so. The picker presents **every
-design plus an "All"** — but the question tool allows at most **4 options per
-question**, so the six choices (Base Design, Abandoned Cart, Price Drop, Back in Stock,
-Post Conversion, All) won't fit in one list. Split it into two questions, in two calls
-because the second depends on the first, so the operator still sees all designs and
-the "All" option:
-
-- **Question 1 (single-select) — scope**, header *Scope*, its own call:
-  - **All — base design + all four triggers (Recommended)** — first
+- **Question 1 (single-select) — scope:**
+  - **All — base design + all four triggers** (recommended default to surface first)
   - **Base Design only**
   - **Specific trigger design(s)**
-- **Question 2 (`multiSelect: true`, only if "Specific trigger design(s)" was chosen,
-  in the next call) — which triggers**, header *Triggers*: Abandoned Cart, Price Drop,
-  Back in Stock, Post Conversion (none recommended).
+- **Question 2 (multi-select, only if "Specific trigger design(s)" was chosen) —
+  which triggers:** Abandoned Cart, Price Drop, Back in Stock, Post Conversion.
 
 If **All** is chosen, produce every file: `base-design`, `abandoned-cart`,
 `price-drop`, `back-in-stock`, `post-conversion`. Always list all designs to the
@@ -238,8 +233,7 @@ customer-specific decision are recorded in the customer's living hand-off docume
   keep the parameter block, variable names, and section skeleton and **restyle** — never
   regenerate a design from scratch, drop a section, or refactor the structure to fit the
   design. If the request can't be met without altering that foundation, **ask the operator
-  for approval first** (name what has to change and why) — `AskUserQuestion`, header
-  *Foundation*: *Yes, change it* / *No, stay within the base*, no option recommended. →
+  for approval first** (name what has to change and why). →
   `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md`
 - It's a **live HTML email**, not an image → tables, `role="presentation"`, MSO
   ghost tables, `bgcolor`, and **fully inline styles**. Never depend on a `<style>`
@@ -257,9 +251,8 @@ customer-specific decision are recorded in the customer's living hand-off docume
 - **Mirror the Search tile** for fields, price format, sale/sold-out treatment.
 - **Preserve each trigger's structure** → related products, `{% break %}`,
   `cart_url`, voucher exactly where the base has them.
-- **Offer every design + "All"** in the `AskUserQuestion` picker (split across two
-  calls to fit the 4-option limit — *Scope*, then *Triggers*); never drop a design from
-  the choices.
+- **Offer every design + "All"** in the picker (split across two questions to fit
+  the 4-option limit); never drop a design from the choices.
 - **Base Design = colours + logo only.** SVG logos are unreliable in email →
   recommend PNG/JPG.
 - **No SVG/icon fonts/emoji/JS**; always a web-safe font fallback.

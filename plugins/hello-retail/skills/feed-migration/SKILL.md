@@ -56,24 +56,12 @@ What never changes: which source field a value comes from (Step 3), and the pric
 |---|---|
 | The V1 configuration | Required. Crawl strings or crawlSpec JSON. If someone says a feed "has custom logic" without pasting it, ask — never guess at old behaviour. |
 | `websiteUuid` | To read the V1 config and to create the feed. `internal_feeds_listV1Configs` finds the ACTIVE feed; migrate each ACTIVE one, and say so if there are several. |
-| In place, or alongside? | `feeds_update` on an existing V2 feed, or `feeds_create` a new one. Ask with the picker — header *Target*: one option per V2 feed `feeds_list` returns (*Update \<id\> in place*) plus *Create a new feed alongside*; nothing recommended. It changes Step 9. |
+| In place, or alongside? | `feeds_update` on an existing V2 feed, or `feeds_create` a new one. Ask; it changes Step 9. |
 
 The feed's url, auth and run settings all come out of the V1 config — it carries the url,
 any bearer token or API key, the interval and the cache-busting flag. You do not need
 anything else, and you do not download the feed. A Shopify feed needs nothing extra either:
 its transform is the template in Appendix D, applied as Step 7b says.
-
-**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of sensible
-options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's
-`AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line
-description each, the recommended one first and marked "(Recommended)", `multiSelect: true` when
-several may apply; *Other* is added automatically for free text. Up to four independent questions
-per call; a question whose options depend on an earlier answer waits for the next call. Options
-come from what you already read, never from guesswork, and nothing the prompt, the card or an
-earlier answer already settled is asked again. Free text with nothing to suggest (a URL, a UUID)
-stays a prose question. No `AskUserQuestion` tool in the session → the same questions in prose,
-the options as a numbered list; no operator to answer at all → take the recommended option and
-record the question under the Step 8 *Unmapped* bucket.
 
 ---
 
@@ -206,11 +194,7 @@ Appendix B. Check it whenever a chain seems far too convoluted for what it compu
   currency suffix, still needs the hierarchy built — port that logic, pointed at the new
   field.
 - **Where nothing plausibly corresponds**, do not invent it. Add it to a "couldn't map"
-  list and ask. Never guess at something that affects price, stock or ranking. The asking is
-  the Step 8 report's picker: one question per unmapped property, up to four per call, the
-  header the V1 property name (12 characters at most, else *Unmapped*) — *Leave it out of V2* /
-  *Settle it in the feed editor* (a human checks it against the live feed), *Other* = the feed
-  field or rule to read; nothing recommended.
+  list and ask. Never guess at something that affects price, stock or ranking.
 
 **A feed field that equals the old value is not the same as porting the old logic.** When
 the feed appears to offer the finished article — a `raw_price_with_tax` next to a V1 chain
@@ -619,8 +603,7 @@ Summarise in three buckets:
 3. **Unmapped** — nothing plausibly corresponds; needs a decision.
 
 Add any **deliberate deviation** and what it changes. Do not proceed while bucket 3 is
-unresolved — its questions are the Step 3 picker, asked here. For a Shopify feed the deviations
-are the table in Step 7b, one line per field
+unresolved. For a Shopify feed the deviations are the table in Step 7b, one line per field
 the V1 config read differently.
 
 State the expected **item-to-product ratio** when it is not 1:1. A config whose `url` is a
@@ -748,7 +731,7 @@ If the feed has no equivalent field for one of these, do not invent one — flag
 | `asTags()` | `[a,b] → [[a],[b]]` | `arr.map(x => [x])` |
 | `asHierarchy()` | `[a,b] → [[a,b]]` | `[arr]` |
 | `fns(innerFn, …)` | apply a proc to every element | write it out per element |
-| `EXPERIMENTALexplodeWords()` | every suffix substring, a fuzzy-search hack | ask before reproducing (header *explodeWords*: *Drop it — V2 search covers it* "(Recommended)" / *Reproduce the suffix hack*); V2 search is better than this |
+| `EXPERIMENTALexplodeWords()` | every suffix substring, a fuzzy-search hack | ask before reproducing; V2 search is better than this |
 
 ## Other shapes
 

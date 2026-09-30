@@ -13,7 +13,7 @@ Two facts decide who writes CSS:
   cannot rely on the site stylesheet either — styles are injected per page and per rendered state,
   so the same tile renders differently depending on which page the overlay opens from. Prove it with
   the two checks in `centra.md`, then ask the operator whether the customer can make the tile CSS
-  global (the *Global CSS* picker in `centra.md`; as a subagent, an OPEN QUESTION); only if not, return a `CSS BLOCK` that is a copy of the customer's own rules — never a
+  global; only if not, return a `CSS BLOCK` that is a copy of the customer's own rules — never a
   reconstruction from computed styles — verified on a category page **and** a PDP. Details: `centra.md`.
 
 What you report under `SHELL CSS NOTES` for every build (the shell decides and writes the rule):

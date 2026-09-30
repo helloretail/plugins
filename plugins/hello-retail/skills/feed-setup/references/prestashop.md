@@ -104,8 +104,7 @@ The `getHierarchies()` function in the template handles this automatically via t
 Standard pagination applies (`page` starting at 0). However, some PrestaShop installs
 may return all products in a single page regardless of pagination parameters — if the
 feed's `last-page-number` attribute is `0`, `SINGLE_REQUEST` may be more appropriate.
-Check with the user if unsure — header *Pagination*: *PAGE_BASED* / *SINGLE_REQUEST*, the one
-the observed `last-page-number` points at first, "(Recommended)".
+Check with the user if unsure.
 
 ---
 
