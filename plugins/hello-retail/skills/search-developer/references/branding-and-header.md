@@ -12,22 +12,33 @@ The base templates ship with placeholder branding that **must never reach the cu
 {# color primary_shop_color = "#F13658" #}   {# placeholder pink — see THEME COLOR below #}
 ```
 
-For **every** onboarding, in **every** variant you generate (`desktop-overlay`, `desktop-embedded`, **and** `mobile-overlay` — each has its own header), replace all three:
+For **every** onboarding, replace every branding placeholder **the design actually declares — and nothing else.** The designs differ, and a wrong assumption here is a foundation violation, so **first list the declarations**: grep the three fields (`resultTemplate`, `resultStyles`, `initializationCode`) for `{# … #}` lines and set only tokens on that list. A value written for a token the design does not declare is silently ignored; a declaration you add yourself is a base edit and needs operator approval.
 
-1. **`header_logo_url`** → the customer's real logo URL. Grab it from the surveyed storefront header (the `<img>` inside the site's logo `<a href="/">`, an SVG/`<img>` in `header .logo` / `.site-header__logo` / `.hr-logo`-equivalent, or an `og:image`/`apple-touch-icon` as a last resort). Prefer a transparent PNG/SVG that reads on the overlay's background. If you genuinely can't find one, **flag it in MISSING DATA** and ask the operator for the logo URL — do not ship the `helloretailcdn.com/static/images/logo.png` placeholder.
+| Design | Logo / shop name | Theme colour | Panel background | Also declared |
+|---|---|---|---|---|
+| `desktop-overlay` | `header_logo_url`, `webshop_name` — has an overlay header bar | `primary_shop_color` | `background_color_rgba` | text colours in `resultStyles` |
+| `mobile-overlay` | `header_logo_url`, `webshop_name` — header row with the logo (renders only when the URL is non-empty) | `primary_shop_color` | `background_color_rgba` | text colours in `resultStyles` |
+| `desktop-embedded` (v1.2) | **none — no header bar, neither token is declared; never add them** | `primary_shop_color` (redirect bar, selected-filter count bubble, range-slider handle) | `background_color_rgba` — **declared and load-bearing**: the panel is a body-level `.hr-overlay-search` with its own background, covering the page below the header | `general_text_color`, `product_tile_*`, `product_price_*` in `resultStyles`; `button_icon_colors` in `resultTemplate` |
+
+(Embedded row verified on a v1.2 embedded design, store-SE-7, 2026-09: `header_logo_url` / `webshop_name` absent from all three fields; `background_color_rgba` present with the base grey, which would have shipped.)
+
+Then, for the tokens on the list:
+
+1. **`header_logo_url`** *(overlay and mobile — not declared on embedded)* → the customer's real logo URL. Grab it from the surveyed storefront header (the `<img>` inside the site's logo `<a href="/">`, an SVG/`<img>` in `header .logo` / `.site-header__logo` / `.hr-logo`-equivalent, or an `og:image`/`apple-touch-icon` as a last resort). Prefer a transparent PNG/SVG that reads on the overlay's background. If you genuinely can't find one, **flag it in MISSING DATA** and ask the operator for the logo URL — do not ship the `helloretailcdn.com/static/images/logo.png` placeholder.
    - Note: the **mobile-overlay** template only renders the logo when `header_logo_url != ""`, so setting it also switches the mobile logo on.
 
-2. **`webshop_name`** → the customer's actual shop name (used as the logo `alt` text and elsewhere). Take it from the storefront `<title>`, `og:site_name`, or the logo `alt`. Set the single real shop name regardless of locale — a brand name is usually not translated (e.g. `webshop_name = "Acme"`). The header is a flat single-locale block now; there are no `__Language` variants to remove.
+2. **`webshop_name`** *(overlay and mobile — not declared on embedded)* → the customer's actual shop name (used as the logo `alt` text and elsewhere). Take it from the storefront `<title>`, `og:site_name`, or the logo `alt`. Set the single real shop name regardless of locale — a brand name is usually not translated (e.g. `webshop_name = "Acme"`). The header is a flat single-locale block now; there are no `__Language` variants to remove.
 
-3. **Theme color** → set `primary_shop_color` (mobile-overlay) to the customer's primary brand/accent color. See THEME COLOR below.
+3. **Theme color** *(every design)* → set `primary_shop_color` to the customer's primary brand/accent color. See THEME COLOR below.
 
-All three are quick wins the operator should never have to fix by hand. Treat them as required output, same status as the trigger selector.
+Whatever the design declares of these is a quick win the operator should never have to fix by hand. Treat them as required output, same status as the trigger selector — and treat a token the design does *not* declare as off-limits, same status as a base rule.
 
 ### Theme color — never ship the placeholder `#F13658`
 
 `#F13658` is the base scaffold's placeholder pink (`primary_shop_color` in the mobile design's `resultStyles`). **It must never reach a customer's dashboard.** Identify the customer's primary brand/accent color from the surveyed storefront and set `primary_shop_color` to it:
 
 - **mobile-overlay** — `{# color primary_shop_color = … #}` drives the close / filter / search / back / reset button colors (the base header derives `close_button_color`, `filters_button_color`, etc. from it).
+- **desktop-embedded** — the same token (shipped as a different placeholder pink, `#ee268c`, in the v1.2 design — same rule) drives the redirect bar background, the selected-filter count bubble and the range-slider handle; none of these render until a filter is used, so a screenshot of the initial panel never shows the placeholder — check the token, not the picture.
 
 For now this is the **only** color token to change. Leave `button_icon_colors`, `primary_text_color`, `secondary_shop_color`, and the other color declarations at their base values.
 
@@ -46,7 +57,7 @@ Convert to a hex string. If the site is genuinely monochrome (black/white) use t
 
 Wait for the answer before emitting the affected file. The other artifacts don't depend on it.
 
-## Overlay background — match the customer's page background (standard step, overlay variants)
+## Panel background — match the customer's page background (standard step, every design that declares `background_color_rgba`: overlay, mobile and embedded)
 
 The base scaffold's overlay background is a light blue-gray (`{# color background_color_rgba = "rgba(241, 244, 248, 0.8)" #}`) that looks foreign on any shop that isn't white/gray. **Match it to the customer's page background as a standard build step** so the overlay reads as a native page of the shop:
 
@@ -54,7 +65,7 @@ The base scaffold's overlay background is a light blue-gray (`{# color backgroun
 2. Set `background_color_rgba` to that color with **high opacity (≈0.97)** — near-solid so the overlay reads as a real page, while keeping a hint of the blurred page behind (the base ships `enable_background_blur = true`).
 3. Sanity-check contrast: the shell's own chrome (result subtitle, filter chips, content links) still legible on the new background; the tile's image-box/badge colors were surveyed on this same background so they're safe by construction.
 
-Overlay variants only — the embedded variant renders inline on the customer's page and inherits the real page background.
+**Embedded is not exempt.** The embedded panel is not an inline element inheriting the page: it is a body-level `.hr-overlay-search` with `background-color: {{ background_color_rgba }}` that covers the page content below the header, so the base grey ships on embedded exactly as on overlay unless matched. Same measurement, same ≈0.97 alpha (embedded ships `enable_background_blur = false`, so there is no blurred page behind it to keep a hint of — a near-solid match is what reads as native).
 
 ## Header style matching — match the HR overlay header to the customer's site header
 

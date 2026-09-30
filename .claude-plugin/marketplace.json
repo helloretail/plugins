@@ -27,9 +27,9 @@
       ]
     },
     {
-      "name": "hello-retail-unmanaged",
-      "displayName": "Hello Retail (unmanaged)",
-      "source": "./plugins/hello-retail-unmanaged",
+      "name": "hello-retail-rest-api",
+      "displayName": "Hello Retail (REST API)",
+      "source": "./plugins/hello-retail-rest-api",
       "description": "Hello Retail's public REST APIs for AI agents: the intricacies and edge cases of Search, Recommendations, Pages and the four tracking endpoints, so a customer's own frontend calls them correctly. The unmanaged counterpart to the hello-retail plugin — it builds no Hello Retail design and writes no configuration.",
       "category": "ecommerce",
       "keywords": [
