@@ -45,11 +45,13 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
   theme's own `.pagination` / `.page-link` rules): active page in the shop's active colour, not
   HR's blue; prev/next arrows are styled like the number buttons and have the **same rendered
   height** (SVG-only buttons come out shorter unless the design fixes the height); the row is
-  centred and fits a phone width. Fix: `pages-developer` step 4g.
+  centred and fits a phone width. Two quick clicks on next land on the page the products show;
+  a reload on page 3 keeps page 3 active and next goes to 4. Fix: `pages-developer` step 4g.
 - [ ] Numbered pagination with ellipsis (when the shop wants `1 2 3 … 20`): click page 1, next a few
   times, a middle page, the last page, prev twice — exactly one active page at every step, `…`
-  only where pages are skipped, prev hidden on page 1 and next on the last page, no gaps
-  around the `…`, one row at phone width. Fix: `pages-developer` step 4h.
+  only where two or more pages are skipped (never `1 … 3`), prev hidden on page 1 and next on the
+  last page, no gaps around the `…`, one row at phone width; a reload on a middle page shows the
+  same window. Fix: `pages-developer` step 4h.
 - [ ] "Load more" button (when the shop wants a button instead of infinite scroll): nothing loads on
   scroll, each click appends exactly one page (also after a reload), the "shown of total" counter
   and the URL state follow, no duplicates, the block disappears on the last page, the button is
