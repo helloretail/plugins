@@ -91,12 +91,17 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
 
 ## Workflow
 
+**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of sensible options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's `AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line description each, the recommended one first and marked "(Recommended)", `multiSelect: true` when several may apply; *Other* is added automatically for free text. Up to four independent questions per call; a question whose options depend on an earlier answer waits for the next call. Options come from what you already read, never from guesswork, and nothing the prompt, the card or an earlier answer already settled is asked again. Free text with nothing to suggest (a URL, a UUID) stays a prose question. No `AskUserQuestion` tool in the session → the same questions in prose, the options as a numbered list; no operator to answer at all → take the recommended option and record the question under OPEN QUESTIONS.
+
 0. **Establish the integration mode before anything else.** Pages ships in three modes
    (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/features/pages/pages.md`): client-side JS render,
    API with an HTML response, API with a JSON response. Take it from the operator, the
    platform's wiki page (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/`; some platforms
    run Pages through the API only), or the on-site widget label **"Pages (API)"**. Not
-   settled → ask; never assume.
+   settled → ask with `AskUserQuestion`, header *Pages mode*, the three modes from the wiki
+   page as the options — *Client-side JS render* / *API, HTML response* / *API, JSON response*,
+   each described in one line; on an SEO-sensitive store *API, HTML response* goes first as
+   "(Recommended)", otherwise none is; never assume.
    - **Client-side** or **API-HTML** → Steps 1–8 below. Hello Retail renders the markup
      in both, so the template, tile and grid work applies.
    - **API-JSON** → the customer's frontend renders the products; follow *API (JSON)
@@ -144,8 +149,9 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    so the customer's grid cell is never copied.
 
    **Starweb shops:** once the platform is known to be Starweb (tile-extractor's
-   PLATFORM section), ask the operator whether the shop has customer-unique prices,
-   several currencies, or other price quirks — don't assume the answer. Yes → the
+   PLATFORM section), ask the operator with `AskUserQuestion` (header *Prices*,
+   `multiSelect: true`): *None of these* / *Customer-unique prices* / *Several currencies* /
+   *Another price quirk* (*Other* says which) — don't assume the answer. Yes → the
    tile's price block uses the markup in
    `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/dynamic-price-handler.md` and the
    design JS calls the handler once products have rendered (*Search and Pages* on that
@@ -687,10 +693,15 @@ The caller (the customer's backend or frontend) requests `/serve/pages/{key}` wi
    - leave `productFilters` empty;
    - add an INPUT filter only when the operator confirms the caller sends that exact
      field on **every** request (an INPUT filter's value is mandatory; see *Page
-     configs*);
+     configs*) — confirmed with `AskUserQuestion`, header *Input filter*: *"Does the
+     caller send `<field>` on every request?"* — *Yes, on every request* / *No, leave the
+     page without it* (no option recommended);
    - add a LITERAL filter only for a fixed rule the operator asks for.
 
-   Out-of-stock handling, product score boost and boosts are the operator's call. Report
+   Out-of-stock handling, product score boost and boosts are the operator's call — not
+   settled by the prompt or the card → out-of-stock with `AskUserQuestion`, header *Out of
+   stock*: *Hide out-of-stock products* / *Show them* (none recommended); the boost fields
+   and values in prose. Report
    personalized boosts on a field the catalog leaves empty (e.g. `hierarchies`) as having
    no effect.
 5. **Read-back verify** the facets, the indexing state and the config with its product
@@ -720,6 +731,7 @@ click, `hello_retail_id` bootstrap) are in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/chea
   after the push is a tile fix, a hook or a restated theme rule — never CSS that re-creates the look.
 - Settings from real fields + live tool schema — never from memory.
 - Integration mode first (Step 0). API-JSON: no template edits, no product conditions
-  unless the operator confirms the caller always sends that field.
+  unless the operator confirms the caller always sends that field. Both asked with the
+  `AskUserQuestion` picker when the prompt, the card or the widget hasn't settled them.
 - Platform guides exist for Shopify and DanDomain Classic Pages setups — read them
   before touching those platforms (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/features/pages/pages.md` → guides).

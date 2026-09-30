@@ -1,0 +1,5 @@
+### Changed
+
+- `search-developer`, `recom-developer` and `pages-developer` ask their operator questions as multiple-choice pickers — the same picker plan mode uses — instead of prose: a header, two to four options with the recommended one first, and "Other" for free text. Options come from what the skill already read (the page's sections, the MCP's designs and configs, the best-practice list, the shop's own slider), at most four independent questions per round, and only true free text such as a URL or a UUID is still typed.
+- `recom-developer` runs its box-setup intake in rounds: which recoms, then per box its placement (the live page's sections as options), the hide conditions, the algorithm, the follow-ups it leaves open, the heading, the free-shipping offer and the product count, then the plan go-ahead.
+- `search-developer` keeps its two batched intake rounds but presents them as pickers, with the config list, the layout choices and the mobile toggles as options; approval gates such as "push as a REVIEW draft" never mark a recommended option.

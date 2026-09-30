@@ -8,11 +8,11 @@ Every value below is one of three things: a **design token** (`{{ … }}`), a **
 
 **Verification status** per recipe: **verified live** = measured on store-SE-1 (desktop-embedded, LIVE, 1440×900, 2026-09-04 and 2026-09-07) — store-SE-1's own rule, or a rule/function injected on that page and exercised with real clicks; **derived** = read from the base templates, not rendered yet.
 
-**Capture-back convention.** Anything in this file that is not fully certain carries a `<!-- capture-back: … -->` comment plus a 🧪 callout saying what to record. `grep -n "capture-back" references/layout-options.md` lists them. When a build applies a marked recipe and its Step 17b check passes, **you must propose the capture in the hand-off** (SKILL.md Step 18): the flag flip, the measured values, the site and date — as an edit to this file, made on the operator's approval and committed by them. Never leave the learning in private memory only (SKILL.md rule 11; `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/` gets the platform-generic patterns, this file gets the recipe status and the field log).
+**Capture-back convention.** Anything in this file that is not fully certain carries a `<!-- capture-back: … -->` comment plus a 🧪 callout saying what to record. `grep -n "capture-back" references/layout-options.md` lists them. When a build applies a marked recipe and its Step 17b check passes, **you must propose the capture in the hand-off** (SKILL.md Step 18): the flag flip, the measured values, the site and date — as an edit to this file, made on the operator's approval (the `Capture` gate, SKILL.md Step 18) and committed by them. Never leave the learning in private memory only (SKILL.md rule 11; `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/` gets the platform-generic patterns, this file gets the recipe status and the field log).
 
 ## How a request reaches this file
 
-Requests arrive in three places only: a `Layout:` line on the card, the operator's reply to the round-2 intake, or QA / review feedback on the draft. Map the wording to the recipe; when the wording fits none of the rows, ask which recipe is meant instead of picking one.
+Requests arrive in three places only: a `Layout:` line on the card, the operator's reply to the round-2 intake, or QA / review feedback on the draft. Map the wording to the recipe; when the wording fits none of the rows, ask which recipe is meant instead of picking one — `AskUserQuestion`, header `Recipe`, the two to four closest recipes from the table as the options (their one-line effect in the description), none recommended.
 
 | Operator says (any language, any of these) | Recipe |
 |---|---|
@@ -465,7 +465,7 @@ All four are value edits on declarations the base already has; the map, defaults
 
 JS: no change — the mobile base binds by class anywhere in the overlay (`overlay.querySelectorAll("button.hr-filters")` / `"button.hr-close"` — grep them in the mobile design's `initializationCode`). One behaviour to know: a filters button that is **not** inside `.hr-header` is hidden with `display: none` (not disabled) when the query has no filters (`btn.closest(".hr-header") ? disabled : display none`, `:190, :252`), so the row shows only the close button on such queries — say so in the report.
 
-**Header interaction.** With ML5b **and** no logo (ML3 = `""`) **and** `hide_header = false`, the header row is an **empty 90px band** (nothing left in it). Ask the operator which they want: `hide_header = true` (20px spacer) or keep the logo. Never resolve this yourself.
+**Header interaction.** With ML5b **and** no logo (ML3 = `""`) **and** `hide_header = false`, the header row is an **empty 90px band** (nothing left in it). Ask the operator which they want — `AskUserQuestion`, header `Header row`: *Keep the logo* / *Hide the header row (`hide_header = true`, 20px spacer)*, none recommended. Never resolve this yourself.
 
 <!-- capture-back: ML5b status=derived -->
 > 🧪 **Capture-back ML5b:** never rendered. First build that ships it: verify on a real mobile viewport that the field, filters and close sit in one row in that order, the count bubble renders on the inline filters button, the keyboard doesn't cover the row, and the header row is not an empty band; then flip to *verified live*, log site/date and the `hide_header` / logo choice that went with it.

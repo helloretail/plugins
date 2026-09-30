@@ -67,6 +67,35 @@ The body is **agent-facing instructions**: imperative voice ("Fetch the feed", "
 5. **Style / output rules** — the exact shape of what to produce, with a copy-paste template (hr-feed-setup's "Transform code style guide").
 6. **A verification / safe-default step** — what "done correctly" looks like, and what must never happen without explicit user say-so.
 
+### Questions to the operator — the `AskUserQuestion` tool
+
+Whenever a skill needs an answer that has a finite set of sensible options — which pages, which
+algorithm, 8 / 10 / 12 products, yes / no — it asks with Claude Code's **`AskUserQuestion`** tool,
+not a prose question. The tool shows the operator a header, two to four options with a one-line
+description each, and an automatic *Other* for free text, and steps through the questions of one
+call one at a time — the same picker plan mode uses. Write the question into the skill as: the
+header (12 characters at most), the options (a label of one to five words, the recommended one
+first and marked "(Recommended)", `multiSelect: true` when several may apply), and which questions
+share a call.
+
+- **One call holds up to four questions, and only questions that don't depend on each other.** A
+  question whose options come from an earlier answer (which section on *that* page, which
+  algorithm for *that* page type) goes in the next call, after the answer has been used.
+- **Options come from what the skill already found** — the live page's sections, the MCP's
+  best-practice list, the shop's own slider count — never invented; *Other* covers the rest.
+- **Ask nothing twice.** An answer already in the prompt, the ClickUp card's text or an earlier
+  reply is taken, and the skill says what it took.
+- **Free text with no sensible options** (a URL, a UUID, a heading with nothing to suggest) stays
+  a prose question. An approval gate ("write these as drafts?") uses the tool but marks no option
+  as recommended — the choice is the operator's.
+- **Fallback.** No `AskUserQuestion` tool in the session (a subagent, the SDK) → the same question
+  in prose, one per message, the options as a numbered list. No operator to answer at all → don't
+  ask: take the recommended option and record the question under OPEN QUESTIONS.
+
+The worked example is `recom-developer` → `references/box-setup.md` → *How to ask*. Adopted so far by
+`search-developer`, `recom-developer` and `pages-developer`; the other skills still ask in prose and
+move over as they are next touched.
+
 ## 4. Push deep detail into `references/`
 
 Keep `SKILL.md` scannable. Anything long or platform-specific — per-platform quirks, big snippet libraries — goes in `references/<topic>.md`, and the body tells the model when to read it: hr-feed-setup ends with *"Read the relevant file before writing transformation code: WooCommerce → `references/woocommerce.md`…"*. The model loads reference files on demand, so this keeps the main instructions cheap and focused. We organise by **job** (Search, Recom, Feed, QA), not by platform — platform nuance is a reference file inside the relevant skill, never a separate platform skill.
@@ -110,7 +139,8 @@ description: >
 |---|---|
 | `field` | `value` |
 
-If any of these are missing, ask before proceeding.
+If any of these are missing, ask before proceeding — with the `AskUserQuestion` picker when the
+answer has options (§3 → *Questions to the operator*), in prose only for free text such as a URL.
 
 ## Execution flow
 
