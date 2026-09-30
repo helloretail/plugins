@@ -31,7 +31,7 @@ list, the shop's own slider — never from guesswork. The rounds:
 | **C** — per box: the spot | Confirm the previewed spot; category box: hide below N, hide while filtered / sorted (step 3) | fixed |
 | **D** — per box: what | Algorithm (step 4; `algorithm-intake.md` §1) | `recoms_listBestPracticeAlgorithms` for the page type |
 | **E** — per box: left open | Fallback, stock, exclusions, price — only the ones the words left open (`algorithm-intake.md` §3) | fixed |
-| **F** — per box: the rest | Read-back yes / no (`algorithm-intake.md` §4); cart / upsell: free-shipping offer; product count; Retargeted box: load order (step 4) | the slider survey, the shop's section heading |
+| **F** — per box: the rest | Read-back yes / no (`algorithm-intake.md` §4); cart / upsell: free-shipping offer; product count; load order when the page holds more than one recom (step 4) | the slider survey, the shop's section heading |
 | **G** — the plan | Go-ahead for the plan table (step 5) | fixed |
 
 Rounds B–F run for **one box at a time — finish a box before starting the next**. Skip a question
@@ -144,11 +144,11 @@ a reload are in `mcp-flow.md` → *Hiding a category recom*.
 ## 4. Ask: what each recom shows (rounds D–F)
 
 Three calls per box, in this order: **D** the algorithm; **E** the follow-ups its answer left
-open; **F** the read-back, the free-shipping offer (cart / upsell), the product count and — for a
-Retargeted box only — the load order together. Devices, arrows and the heading are not questions:
+open; **F** the read-back, the free-shipping offer (cart / upsell), the product count and — when the
+page holds more than one recom — the load order together. Devices, arrows and the heading are not questions:
 the heading is a dashboard field the MCP cannot write, so the operator enters it after the write
-(step 12). Load order is asked only for a Retargeted box; every other box keeps its default
-(step 6 → `priority`).
+(step 12). Load order is asked whenever the page holds more than one recom; a box alone on its page keeps
+its default (step 6 → `priority`).
 
 - **Round D — algorithm: how the recom should pick its products.** One call, header *Algorithm*,
   the best-practice algorithms for the page type as the options (the fitting one first,
@@ -180,18 +180,24 @@ the heading is a dashboard field the MCP cannot write, so the operator enters it
      - **No slider on that page** → *8* / *10* / *12*, none recommended.
 
      The count must fit the non-supervisor limit (step 6 → `productCount`).
-  4. **Load order — Retargeted boxes only** (the algorithm confirmed in round D is *Retargeted*,
-     or its first step is `RETARGETED`). A Retargeted box should load first so it gets the
-     visitor's retargeted products before other boxes on the page take them. Header *Load order*:
-     *"Should this box load first on the \<page\>, so it gets the visitor's retargeted products?"*
-     — *Load first — priority 1* "(Recommended)" / *Keep the default* (the value the box has now,
-     read with `recoms_getGeneralSettings`, usually 5), with the page's other boxes and their
-     priorities in the descriptions. **Another Retargeted box already on the same page** (from
-     the step 1 inventory: same `type`, algorithm *Retargeted* or a first step `RETARGETED`) →
-     say so in the question: both compete for the same products, and whichever loads first takes
-     them. Name the other box and its priority, add the option *Load after \<other box\> —
-     priority \<its value + 1\>*, and repeat the warning in the plan table (step 5) and the
-     hand-off.
+  4. **Load order — whenever the page holds more than one recom** (the box's page type already has
+     a box in the step 1 inventory, or this onboarding adds another). Recoms that share a load
+     order load in no fixed order — box A first some of the time, box B first the rest — so which
+     box gets which products changes from visit to visit, and debugging gets harder. Show the
+     page's recoms in chat first, as a list of name, algorithm and current load order (the new
+     box as "new"), and **flag every tie**. Then header *Load order*: *"Which load order should
+     \<box\> get on the \<page\>?"* — the options are concrete priorities that fit it around the
+     listed recoms, each described by where it lands ("loads before *Top products* (5)"):
+     - **Retargeted box** (algorithm *Retargeted*, or a first step `RETARGETED`) → *Priority 1 —
+       loads first* "(Recommended)", so it gets the visitor's retargeted products before other
+       boxes take them. **Another Retargeted box already on the page** → say so in the question:
+       both compete for the same products and whichever loads first takes them; offer *Load after
+       \<other box\> — priority \<its value + 1\>*.
+     - **Any other box** → the free priority after the page's existing boxes (the team's usual 4 or
+       5 when free) "(Recommended)", and one before them.
+     - Never recommend a value another box on the page already has. An existing tie between other
+       boxes is reported in the plan table and the hand-off as an operator item — the skill does
+       not change those boxes unless asked.
 - **Arrows — from the same survey.** Keep the `prev` / `next` it reports for the design step
   (SKILL.md Step 4 → *Box-shell parity*; `slider-structure.md` → *Prev/next arrows*): visible
   arrows → the box copies their design; arrows hidden at 375 px → the box hides its arrows at the
@@ -225,8 +231,9 @@ Send only the fields that change.
 - **`name`** — the customer-facing name (the card's, or page + purpose: "PDP – Alternatives"). No `DK` / `TEST` / `[NOTE]` style tags;
   QA fails those.
 - **`priority`** is the load order: 1 loads first and gets the **first batch of products**. Send it
-  **only for a Retargeted box**, with the value confirmed in round F. Every other box keeps the value
-  it was created with (a box drafted from scratch usually gets 5) — don't send it. The operator can
+  **whenever the page holds more than one recom**, with the value confirmed in round F. A box alone
+  on its page keeps the value it was created with (a box drafted from scratch usually gets 5) —
+  don't send it. The operator can
   change any box's load order at any time in the dashboard, or ask you to; then write it here. Load
   order is about product allocation, not the box's position on the page.
 - **`productCount`** — the count confirmed in step 4 (the shop's own slider, or the operator's 8 / 10 / 12). A non-supervisor cannot go above the greater of 20 and
