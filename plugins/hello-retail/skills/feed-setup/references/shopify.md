@@ -700,7 +700,8 @@ product ID is already matched through `productNumber`, so they can be dropped.
   one for multi-market stores since `contextual_pricing` respects `country=` — but note
   it's the *cheapest variant's* price, so a product with a wide variant price range shows
   its "from" price. Confirm that's what the customer wants before reusing it on a store
-  with big intra-product price spreads.
+  with big intra-product price spreads — header *Price*: *Cheapest variant — "from" price*
+  (the default, "(Recommended)") / *Main variant's price*.
 - `variants_sellable` is used by the default but hasn't been seen in a captured payload
   sample here — its exact shape beyond `inventory_policy` / `inventory_quantity` is
   unconfirmed.

@@ -53,13 +53,13 @@ Every box write, like a design write, **auto-drafts a LIVE box** and cannot publ
 3. If neither is known, derive it — don't ask first. `recoms_list` + `recoms_listDesigns`, then group the LIVE/DRAFT boxes by `designKey`:
    - **one editable company design** behind the boxes under work → that is the design-key; say so and proceed.
    - **only standard designs** (no company design yet) → propose `recoms_copyDesign` from the standard one the boxes use (confirm the title first, below), then `recoms_updateSelectedDesign` to point the boxes at the copy.
-   - **several editable designs** → show the grouping (design title → box names) and ask which one to edit. Don't guess.
+   - **several editable designs** → show the grouping (design title → box names) and ask which one to edit with `AskUserQuestion` — header *Design*, one option per editable design (its title as the label, its boxes in the description), none recommended. Don't guess.
 
 > **Shared-design caution.** One design can back several boxes. Because `recoms_updateDesign` drafts **every** LIVE box using the design, confirm the key is the intended one before pushing — you may be drafting more boxes than you think. If the customer wants the change on one box only, they need a dedicated design; flag that rather than editing a shared one.
 
 ## Copying a design — confirm the title FIRST
 
-`recoms_copyDesign` is the route to an editable design when the box sits on a read-only standard one. **The title can only be set at copy time**: no MCP tool renames a design (`recoms_updateGeneralSettings` renames a *box*, not its design), and there is no MCP delete — a mis-titled copy means either a manual dashboard rename by the operator, or an orphaned design cluttering the list forever. So before calling it, confirm the intended design title with the operator (they often have a naming convention — "Main Design", per-page names, per-brand names). After copying, point the target box(es) at the new key with `recoms_updateSelectedDesign`.
+`recoms_copyDesign` is the route to an editable design when the box sits on a read-only standard one. **The title can only be set at copy time**: no MCP tool renames a design (`recoms_updateGeneralSettings` renames a *box*, not its design), and there is no MCP delete — a mis-titled copy means either a manual dashboard rename by the operator, or an orphaned design cluttering the list forever. So before calling it, confirm the intended design title with the operator (they often have a naming convention — "Main Design", per-page names, per-brand names): `AskUserQuestion`, header *Title*, the options being the titles the website's existing designs suggest (their convention applied to this box — "Main Design", "PDP – Alternatives") with the best fit first "(Recommended)"; *Other* takes their own title. After copying, point the target box(es) at the new key with `recoms_updateSelectedDesign`.
 
 ## Box placement — `recoms_updatePlacement`
 
@@ -135,7 +135,9 @@ Two real shapes (class names generic, box key replaced):
    live page that the box stays out on a small category.
 
 **When filtering doesn't reload the page — JS guard in the design (`templateCode`).** Tell the
-operator why the selector can't do it on this theme and ask before building this instead. At the
+operator why the selector can't do it on this theme and ask before building this instead —
+`AskUserQuestion`, header *Hide method*: *JS guard in a dedicated design* / *Drop the filter
+condition — hide below N only*, neither recommended (each has a cost, named in the descriptions). At the
 top of the design's script, detect the filtered/sorted state and bail: hide the box's outer
 wrapper and skip the swiper init. The race-free signal when filtering navigates is `location.search`
 — treat **any** query param as "filtered" except a benign allowlist (the sort param if sorting

@@ -34,11 +34,23 @@ and the **next developer** who meets the same problem on another shop (unique ca
 |---|---|---|
 | Storefront domain **or** `website-uuid` | `example-shop.com` / `0f3c…` | One resolves the other via `website_getInfo`. Multi-website companies: one document per website |
 | ClickUp card (URL or ID) | `https://app.clickup.com/t/…` | **Ask once.** "None" is acceptable only when the operator says so — then §2 reads `no card (operator confirmed)` |
-| What just finished, and its stage | "recom-developer build, REVIEW draft pushed" → stage `recommendations` | Usually known from the session; otherwise ask |
+| What just finished, and its stage | "recom-developer build, REVIEW draft pushed" → stage `recommendations` | Usually known from the session; otherwise ask — header *Stage*, the options the plan's stages not yet `done` (the document's front matter, else the card's sold features), the one the session points at first "(Recommended)" |
 | Mode | **record** (default) or **close** ("close the onboarding", "final handoff") | See *Two modes* in `references/sources.md` |
 
 If the domain/UUID is missing, ask before doing anything else. Everything else is gathered by
 tools first and asked only when the tools come back empty (Step 3).
+
+**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of sensible
+options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's
+`AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line
+description each, the recommended one first and marked "(Recommended)", `multiSelect: true` when
+several may apply; *Other* is added automatically for free text. Up to four independent questions
+per call; a question whose options depend on an earlier answer waits for the next call. Options
+come from what you already read, never from guesswork, and nothing the prompt, the card or an
+earlier answer already settled is asked again. Free text with nothing to suggest (a URL, a UUID)
+stays a prose question. No `AskUserQuestion` tool in the session → the same questions in prose,
+the options as a numbered list; no operator to answer at all → take the recommended option and
+record the question under §8 *Open items at hand-off*.
 
 ## Where the document lives — and where it never goes
 
@@ -75,7 +87,8 @@ not offering it. When that happens:
 3. Keep the interview to **one** batched round, and only for: the stage plan on the first run,
    roles and start date on the first run, unique-case confirmation, platform ambiguity. Accept
    "skip" for any answer — write `not recorded` and move on. Never block the operator's day on
-   the record.
+   the record. The round is the Step 3 picker; "skip" comes through *Other*. No operator at all
+   (a subagent run) → no interview: `not recorded`, the questions under §8.
 4. Detect the platform only on the first run for the website; later runs reuse the recorded value
    unless the calling skill reported a different platform.
 5. Close mode is never entered from another skill.
@@ -107,13 +120,15 @@ the exact wording when a source is unavailable. In short:
   `../tile-extractor/references/platform-detection.md`, run in the Playwright MCP (Claude in Chrome
   as fallback). Value from the *Platform vocabulary*, plus theme / frontend flavour and version when
   visible. Ambiguous → carry both candidates to Step 3, never pick one silently. On an update, keep
-  the recorded platform unless detection shows a replatform — then ask.
+  the recorded platform unless detection shows a replatform — then ask: header *Platform*, the
+  detected value first "(Recommended)", the recorded one second.
 - **Configuration snapshot:** hello-retail MCP list/get tools for the stage just finished (and a
   light refresh of the others). Keys, IDs, states, types, selectors — never template code.
 - **ClickUp card:** the two-lane fetch in `../qa-checklists/SKILL.md` → *Step 1.5* (compact task,
   then `description`, then `custom_fields` **alone and last**, expecting it to fail on large
   Customer dropdowns). Then `clickup_get_task_time_in_status` for §3-B, and for §3-C in close mode.
-  Card in a list other than Onboarding → confirm with the operator before using it.
+  Card in a list other than Onboarding → confirm with the operator before using it — header
+  *Card*: *Use this card* / *Not this card* (*Other* names the right one); nothing recommended.
 - **Disk:** `QA/<customer>/` — every `*-qa-*.md`, the `*-qa-brief-*.md`, `coverage-*.md`;
   `output/<domain>/` — prior artefacts. Decisions / Declined / Known-open come from the brief with
   author + date intact.
@@ -124,20 +139,33 @@ Every fact carries a **Source** tag from the fixed set in `references/sources.md
 
 ### Step 3 — One batched interview for what no tool knows
 
-Ask **once**, all questions together, only those still open after Step 2:
+Ask **once**, all questions together, only those still open after Step 2 — through the
+`AskUserQuestion` tool: up to four questions per call, a second call straight after for the rest
+(the roles), the free-text ones (dates, how an unlisted case was solved) in prose in the same
+reply. Nothing here is marked recommended: these are facts only the operator holds.
 
 1. **Stage plan** (first run) — "The card sells X and Y; the MCP shows Z. Plan: setup-data, X, Y,
    launch — correct?" Later runs: only when a new feature appears on the card or in the MCP.
+   Header *Stage plan*: *Yes, that plan* / *No, change it* (*Other* says what).
 2. **Unique cases** — "What did this customer need that the standard setup did not cover, and how
    did we solve it?" Prompt with what you already found (workarounds, Declined items, MISSING DATA)
-   so the operator confirms and adds rather than recalls from zero.
+   so the operator confirms and adds rather than recalls from zero. Header *Cases*,
+   `multiSelect: true`: one option per candidate you found (`references/sources.md` → §5; at most
+   four, the rest named in the chat line), *Other* for a case not listed — how that one was solved
+   is asked in prose. No candidates found → prose.
 3. **Roles** — project owner / developer / CSM when custom fields or assignees did not settle them
-   (several assignees → who held which role; never guess).
+   (several assignees → who held which role; never guess). One question per unsettled role,
+   headers *Owner* / *Developer* / *CSM*, the card's assignees as the options; no assignees to
+   offer → prose.
 4. **Dates** — start when the card has none; stage started / handed off when the task log does not
-   settle them.
+   settle them. Prose — a date has nothing to suggest.
 5. **Manual dashboard work** — anything published, toggled or configured by hand that the MCP
    snapshot cannot show (redirects, synonyms, boosts, feature flags, publishing a REVIEW draft).
-6. **Platform** — only if detection was ambiguous.
+   Header *Manual work*, `multiSelect: true`: *None* / *Published a REVIEW draft* / *Search data by
+   hand — synonyms, redirects, boosts* / *Settings or feature flags*; *Other* for anything else,
+   the details in prose.
+6. **Platform** — only if detection was ambiguous. Header *Platform*: the candidates detection
+   carried over, nothing recommended.
 
 Take the answers verbatim into the document with `Source: operator`.
 
@@ -187,12 +215,14 @@ front matter `closed` + `final: true`, §2 close date, and a task-log entry `sta
 ### Step 5 — Show, approve, write, index
 
 1. Show the full document (create) or the changed sections plus the new task-log entry (update).
-2. On approval write `handoff.md` (and the company `README.md` when new or changed).
+2. Ask the go-ahead with the picker — header *Write*: *"Write the document?"* — *Yes, write it* /
+   *No, change something first* (*Other* says what); no option recommended. On approval write
+   `handoff.md` (and the company `README.md` when new or changed).
 3. Regenerate the index: `bash "<skill-base-dir>/scripts/build-index.sh" "<root>"` — it rewrites
    `INDEX.md` from every document's front matter.
 4. Remind the operator to attach the file to the ClickUp card (the store is local for now). When the
-   root is a git checkout, also show `git status` and propose `handoff(<domain>): <stage> — <YYYY-MM-DD>`. A record run that just finished the last feature stage offers close mode — it never closes
-   on its own.
+   root is a git checkout, also show `git status` and propose `handoff(<domain>): <stage> — <YYYY-MM-DD>`. A record run that just finished the last feature stage offers close mode (header *Close*: *Not yet* / *Close the onboarding now*; nothing recommended)
+   — it never closes on its own.
 
 ## Hard rules
 
@@ -211,7 +241,8 @@ front matter `closed` + `final: true`, §2 close date, and a task-log entry `sta
    propose — the operator commits.
 8. **Never grade or fix.** Verdicts come from the QA reports; fixes go through the `*-developer`
    skills. This skill records.
-9. **Ask once, batched.** One interview round after the tools have run.
+9. **Ask once, batched.** One interview round after the tools have run — the `AskUserQuestion`
+   calls back to back, prose only for free text.
 10. **If unsure, ask.**
 
 ## Self-check before writing
