@@ -1,0 +1,3 @@
+### Added
+
+- `pages-developer` now matches the chrome around the grid to the shop as well: the filter sidebar (width, gap, heading and option rows, checkboxes), a facet shown as pills above the grid, and the sort control with its panel, each measured on the shop's category page and verified by computed style at desktop and phone width.
