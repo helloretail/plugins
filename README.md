@@ -18,11 +18,11 @@ Merging to `main` is publishing: Claude Code installs straight from this reposit
 .claude-plugin/marketplace.json   # the marketplace: name + list of plugins (source paths)
 plugins/hello-retail/             # the managed plugin (see plugins/hello-retail/README.md)
 plugins/hello-retail-rest-api/   # the REST API plugin (see plugins/hello-retail-rest-api/README.md)
-plugins/<plugin>/CHANGELOG.md     # release notes, written per PR under `## Unreleased`
+plugins/<plugin>/CHANGELOG.md     # released versions only; notes are written per PR under `changelog.d/`
 PLUGIN-TEMPLATE.md                # the plugin layout, file templates and conventions — start a new plugin from it
 scripts/validate.mjs              # structural checks + `claude plugin validate --strict`
 scripts/bump-version.mjs          # bumps changed plugins' versions (level from the merge commit title)
-scripts/changelog.mjs             # rolls `## Unreleased` into `## <version>`, reads it back for the Release
+scripts/changelog.mjs             # folds `changelog.d/` fragments into `## <version>`, reads it back for the Release
 .github/workflows/ci.yml          # validate · markdown lint · shellcheck · secret scan · version preview
 .github/workflows/release.yml     # on main: auto-bump → commit → tag <plugin>-v<version> → GitHub Release
 ```
@@ -115,13 +115,16 @@ npm run check      # validate + lint — the same checks CI runs
 2. Open a PR with a [Conventional Commits](https://www.conventionalcommits.org) title —
    `fix: …` (patch), `feat: …` (minor), `feat!: …` or a `BREAKING CHANGE` footer (major). The
    "Version bump preview" check shows what will be released.
-3. Add your entry to `plugins/hello-retail/CHANGELOG.md` under `## Unreleased` — that section
-   becomes the GitHub Release body. `CLAUDE.md` → "Release notes" has the structure; skip it only
-   for root-only changes (README, CI, scripts).
+3. Add your release note as a new file under `plugins/hello-retail/changelog.d/`, named after
+   your branch — it becomes part of the GitHub Release body. `CLAUDE.md` → "Release notes" has
+   the structure; skip it only for root-only changes (README, CI, scripts). Never edit
+   `CHANGELOG.md` itself: it holds released versions only.
 4. Squash-merge when CI is green. The Release workflow bumps `plugin.json` → `version` for every
-   plugin the PR touched, rolls `## Unreleased` into `## <version>`, commits both to `main`, tags
-   `hello-retail-v<version>` and publishes a GitHub Release carrying those notes. It is live for
-   everyone on their next marketplace update.
+   plugin the PR touched, folds that plugin's fragments into a new `## <version>` section of its
+   `CHANGELOG.md`, commits both to `main`, tags `hello-retail-v<version>` and publishes a GitHub
+   Release carrying those notes. Each plugin is versioned and released on its own, so one PR
+   touching both plugins produces two releases. It is live for everyone on their next
+   marketplace update.
 5. To choose the version yourself, bump `plugin.json` in the PR; a version that already changed
    is left alone. `[bump minor]` / `[bump major]` in the title also override the level.
 
