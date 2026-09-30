@@ -224,6 +224,55 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    (strict parity); anything the design's rules genuinely cannot express is reported
    authoring new CSS rules.
 
+4k. **Chrome parity — the sidebar, the top bar and the sort control are the shop's too.**
+   4b/4e/4f match the grid; everything around it still renders as the base design's own
+   chrome, so the page reads as Hello Retail's even with a perfect tile. Field-proven
+   2026-09-29 on a Shopify Impact theme. Give the chrome the same measure → value-swap →
+   verify treatment, at the shop's own change points (this fixture: sidebar only ≥ 1000 px):
+
+- **Left sidebar.** Measure the shop's sidebar width and its gap to the grid (fixture
+  305 px + 32 px) and swap `.hr-filters-container` flex-basis/max-width and
+  `.hr-results-container` margin-left/flex-basis to them. Then the rows: the title row
+  (`.hr-category-page-filter-title` — the shop's "Filter by:" with the result count
+  appended, `{{ totalResults }} {{ product_title_multiple }}`, and its divider), the group
+  heading (font/weight/padding — fixture 16 px/500, 16 px top and bottom — with the
+  shop's chevron as a data-URI on `span.arrow-fix:after`, rotated in the open state via
+  `.aw-filter__single-wrapper:has(> .aw-filter-dropdown-content:not(.hr-hidden))`, since
+  the base never toggles `.rotated`), the option rows (min-height and gap — fixture 27 px
+  and 8 px — with the count right after the label, `float: none`), the checkbox
+  (`span.checkbox-span`: size, border, radius, filled state, the shop's tick as a
+  data-URI on `:after`) and the range inputs. All of it inside the existing rules'
+  values; new rules only for the icons, scoped under `.hr-filters-container`.
+- **Top-bar pills.** When the shop shows one facet as pills above the grid (sizes here),
+  pull that facet out of the sidebar loop (`{% if filter[1].name != "<field>" %}` around
+  the loop body) and render it in `sorting_container` as a pill row: a heading
+  (`h4.hr-category-page-filter__heading.hr-top-filter-title`, `pointer-events: none`), an
+  empty `div.aw-filter-dropdown-content.hr-hidden` stub, then the options as
+  `label.hr-top-filter-item` with the checkbox inside. The wrapper carries
+  `class="hr-top-filter"` and `data-filter-name` — the base's `register_filter` binds
+  `input[name^=aw-filter-]` under the heading's parent and calls `hide()` on the dropdown
+  sibling, so the stub and a class starting with `aw-filter-` on the list
+  (`aw-filter-top-list`) are what keep it from throwing. Style the pills from the shop's
+  (fixture 141×48, 16 px gap, radius 32, base/hover/selected colours, `order: -1` on
+  selected), scroll them horizontally with the shop's scrollbar, and sort them in
+  `post_insert` with `localeCompare(…, "<lang>", {numeric: true})` so "140x200" precedes
+  "160x200". Above the shop's sidebar breakpoint the sorting line becomes a two-column
+  grid (heading left, sort control right, pills spanning the second row); below it, a
+  column (sort first, heading, pills) — with `min-width: 0` on the results, sorting and
+  line containers, or the pill row widens the whole column to its scroll width.
+- **Sort control and panel.** The base heading becomes the shop's: its sort icon as a
+  data-URI `::before`, the chosen option as the label (`span.hr-sort-current`, filled in
+  `post_insert` from `.aw-sorting-tag-list > label.selected`), the chevron hidden. The
+  panel (`div.aw-sorting-dropdown-content`) takes the shop's width, right alignment,
+  border, radius, shadow and offset; option rows the shop's font, the unselected ones
+  dimmed (fixture opacity .7), the selected one full with the shop's check icon on
+  `span.checkbox-span:after`.
+- **Verify by computed style, not by screenshot**, at the shop's desktop and both sides
+  of its sidebar breakpoint (fixture 1440 / 999 / 390): sidebar width and gap, title and
+  heading font, option row pitch, checkbox size, pill size and gap, sort weight and panel
+  width, and the vertical rhythm heading → pills → grid (fixture 16 px and 48 px). A 10 px
+  spacing difference is invisible by eye and obvious in numbers.
+
 4c. **Tile hover — capture the MECHANISM, never guard blindly.** Two harness-proven
    facts (fixture, 2026-08-18):
 
