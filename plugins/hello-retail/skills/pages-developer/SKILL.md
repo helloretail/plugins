@@ -274,6 +274,74 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
   rendered height and top edge at 1440 and 375px; the active page uses the shop's active
   colour; the row is centred and does not overflow a phone width.
 
+4h. **Numbered pagination with ellipsis — opt-in, when the operator asks for it.** Some shops
+   want `1 2 3 … 20` instead of the base's sliding window of five neighbours. Field-proven
+   2026-09-30. The behaviour: page 1 and the last page always shown, the current page ±
+   `paginations_per_side` (the existing JS number, default 2) around it, a `…` cell only where
+   pages are actually skipped, prev hidden on page 1 and next hidden on the last page — e.g.
+   `‹ 1 … 8 9 [10] 11 12 … 20 ›`. Liquid still renders every page item; the JS only toggles
+   which are visible, so no extra requests. Three edits, value- and slot-level only:
+
+- **Liquid** — inside the base `{% for item in (1..totalPages) %}` loop (1-based; keep it —
+  a 0-based rewrite needs an off-by-one correction for exact multiples of the page size): put
+  `{% if item == totalPages and totalPages > 1 %}<span id="end-ellipsis" class="hr-pagination-ellipsis hr-hidden">...</span>{% endif %}`
+  before the button and `{% if item == 1 %}<span id="start-ellipsis" class="hr-pagination-ellipsis hr-hidden">...</span>{% endif %}`
+  after it.
+- **JS** — replace the body of `handle_pagination_limit()` (it already runs after the first
+  render and after every page load):
+
+  ```javascript
+  function handle_pagination_limit() {
+  	if (!paginated) {
+  		return;
+  	}
+  	var paginations = pagination_container.querySelectorAll(".pagination-item");
+  	var total_pages = paginations.length;
+  	if (total_pages === 0 || !pagination_container.querySelector(`.pagination-item[name='${current_page}']`)) {
+  		return;
+  	}
+  	paginations.forEach(function(element) {
+  		var page = parseInt(element.getAttribute("name"));
+  		var visible = page === 1 || page === total_pages ||
+  			(page >= current_page - paginations_per_side && page <= current_page + paginations_per_side);
+  		visible ? show(element) : hide(element);
+  		var link = element.querySelector(".page-link");
+  		if (link) {
+  			link.classList.toggle("active", page === current_page);
+  		}
+  	});
+  	var start_ellipsis = pagination_container.querySelector("#start-ellipsis");
+  	var end_ellipsis = pagination_container.querySelector("#end-ellipsis");
+  	if (start_ellipsis) {
+  		current_page - paginations_per_side > 2 ? show(start_ellipsis) : hide(start_ellipsis);
+  	}
+  	if (end_ellipsis) {
+  		current_page + paginations_per_side < total_pages - 1 ? show(end_ellipsis) : hide(end_ellipsis);
+  	}
+  	var prev_page = pagination_container.querySelector("#prev-page");
+  	var next_page = pagination_container.querySelector("#next-page");
+  	if (prev_page) {
+  		current_page > 1 ? show(prev_page.parentElement) : hide(prev_page.parentElement);
+  	}
+  	if (next_page) {
+  		current_page < total_pages ? show(next_page.parentElement) : hide(next_page.parentElement);
+  	}
+  }
+  ```
+
+  The `active` toggle is not optional: the base prev-arrow handler never clears `active` from
+  the page it leaves, so without it two pages show as active after a prev click.
+- **CSS** (scoped to `.hr-pagination-container`, values from step 4g) — the `…` cell gets the
+  page buttons' own box: same height, border, font, `-1px` overlap, not clickable; the page
+  items become `display: inline-flex` (the base `li { display: inline }` renders the
+  whitespace between the `…` and its button as a visible gap); and at the shop's mobile band
+  shrink the cells (e.g. `min-width: 30px; padding: 6px 4px`) — a middle page is 11 cells,
+  ~400 px at desktop size, which wraps on a 375 px phone.
+
+Verify on-site by clicking, not by reading the code: page 1, next several times, a middle page,
+the last page, prev twice, back to 1 — at each step exactly one active page, a `…` only where
+pages are skipped, arrows hidden at the ends, one row of equal-height cells at 1440 and 375 px.
+
 5. **Filters & sorting.** Read the current facets with `pages_getDesignFilters` /
    `pages_getDesignSorting`, then write with `pages_updateDesignFilters` /
    `pages_updateDesignSorting` — enable the flag only when configuring real settings,
