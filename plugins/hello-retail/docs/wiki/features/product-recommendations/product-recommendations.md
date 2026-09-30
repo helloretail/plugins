@@ -92,6 +92,10 @@ gets **5** — so a new Retargeted box has to be set to 1 by hand, or it compete
 the page's other boxes. Two Retargeted boxes on one page compete for the same products: whichever
 loads first takes them, so give them different values on purpose.
 
+**Give every recom on a page its own load order.** Recoms that share a value load in no fixed
+order: box A loads first some of the time and box B the rest, so which products each shows changes
+from visit to visit — an unintended side effect that also makes debugging harder.
+
 The operator or the customer can change any box's load order at any time in the dashboard.
 
 ## Filters on a box
