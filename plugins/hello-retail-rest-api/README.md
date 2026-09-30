@@ -1,4 +1,4 @@
-# hello-retail-unmanaged
+# hello-retail-rest-api
 
 A Claude Code plugin that teaches AI coding assistants the intricacies and edge
 cases of Hello Retail's public REST APIs, so customers can build custom ("unmanaged")
@@ -13,7 +13,7 @@ from client-side symptoms.
 This marketplace carries two Hello Retail plugins, and they cover opposite
 integration models. Install whichever matches the work; they do not overlap.
 
-| | [`hello-retail`](../hello-retail/) — **managed** | `hello-retail-unmanaged` — **unmanaged** |
+| | [`hello-retail`](../hello-retail/) — **managed** | `hello-retail-rest-api` — **unmanaged** |
 |---|---|---|
 | What gets built | Liquid designs Hello Retail hosts and renders — the Search overlay, the Recommendations slider, Pages designs, newsletter and triggered-email templates | The customer's own frontend, in the customer's own codebase and tech stack |
 | Where the code runs | Hello Retail's servers and the managed widget on the storefront | The customer's application, calling `core.helloretail.com/serve/…` over HTTP |
@@ -85,7 +85,7 @@ rather than only re-reading its own request code. See
 You don't need the skill names. Describe the job in your own words — "build a
 search box against the Hello Retail API", "why is my recom box empty", "how do I
 track a click on my own product tile" — and the matching skill fires from its
-description. The names are for `/hello-retail-unmanaged:<skill>` if you want to
+description. The names are for `/hello-retail-rest-api:<skill>` if you want to
 be explicit.
 
 | Skill | What it covers |
@@ -165,7 +165,7 @@ plugin loader.
 
 ```
 /plugin marketplace add helloretail/plugins
-/plugin install hello-retail-unmanaged@helloretail
+/plugin install hello-retail-rest-api@helloretail
 ```
 
 Then connect Hello Retail's MCP server in the same client and run `/mcp` once to
