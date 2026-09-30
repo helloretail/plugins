@@ -91,12 +91,18 @@ const manifestAt = (ref, name) => {
 
 /** Does the plugin's CHANGELOG.md already have a `## <version>` section? */
 function releasedBefore(name, version) {
+  let text;
   try {
-    const text = readFileSync(join(ROOT, "plugins", name, "CHANGELOG.md"), "utf8");
-    return new RegExp(`^## +${version.replace(/\./g, "\\.")}(?:[ \\t][^\\n]*)?$`, "m").test(text);
+    text = readFileSync(join(ROOT, "plugins", name, "CHANGELOG.md"), "utf8");
   } catch {
     return false;
   }
+  // A plain line scan, not a regex built from the version: "## 1.2.3" followed by nothing
+  // or a space-separated date — and "## 1.2.30" must not count as "## 1.2.3".
+  return text.split("\n").some((line) => {
+    const m = /^## +(\S+)/.exec(line);
+    return m !== null && m[1] === version;
+  });
 }
 
 const bumped = [];
