@@ -1,6 +1,6 @@
 # changelog.d — release notes, one file per PR
 
-Changed something under `plugins/hello-retail-unmanaged/`? Add **a new file here**, named after
+Changed something under `plugins/hello-retail-rest-api/`? Add **a new file here**, named after
 your branch: `changelog.d/pages-input-filters.md`. Do not edit `CHANGELOG.md` — the Release
 workflow writes that file, and editing it is what used to make every second PR conflict.
 
@@ -29,7 +29,7 @@ The full house style is in `CLAUDE.md` → "Release notes".
 See what the next release will say:
 
 ```
-node scripts/changelog.mjs preview hello-retail-unmanaged
+node scripts/changelog.mjs preview hello-retail-rest-api
 ```
 
 On merge, the Release workflow folds every fragment here into `CHANGELOG.md` under the
