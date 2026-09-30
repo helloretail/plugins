@@ -532,6 +532,61 @@ image (`img[alt="loading"]`) must be hidden at every step — idle, during a cli
    page until a sale/badge tile shares a row): in every row, all cards have the same
    rendered height and none is taller than its cell, at 1440, 1024 and 375 px.
 
+4l. **Phone filter drawer — a bottom sheet, when the shop's is one.** Below the mobile
+   breakpoint the base slides `.hr-category-page-results__filter-wrapper` in from the left,
+   80 % wide, under a dark overlay, with a small round close button pinned to the page
+   corner. Most shops open a sheet from the bottom instead, with a title, a close icon and
+   a clear/apply footer. Field-proven 2026-09-30 (Shopify Impact). Measure the shop's drawer
+   open (sheet height and radius, title font, footer button sizes and colours) and build:
+
+- **Sheet (CSS, inside the existing `@media (max-width: <mobile>)` block).** The wrapper
+  becomes `display: flex; flex-direction: column; top: auto; bottom: 0; left: 0; right: 0;
+  width: 100%; height: 75dvh !important` (with a `75vh` fallback), `box-sizing: border-box`,
+  the shop's padding and top radius (fixture `24px 16px 0` / `24px 24px 0 0`),
+  `overscroll-behavior: contain`, `transition: transform 0.3s ease`; the hidden state
+  (`.hr-slide-hidden … .hr-category-page-results__filter-wrapper`) is `left: 0;
+  transform: translateY(100%)` instead of the base's `left: -100%`. Drop the base's dark
+  overlay (`.hr-filters-container:not(.hr-slide-hidden) .hr-category-page-filters.hr-filters::after
+  { background-color: transparent }`) when the shop has none. Each
+  `.aw-filter__single-wrapper` gets `flex: 0 0 auto !important; width: 100% !important;
+  padding: 0`, so the column does not squash the groups.
+- **Title and close (JS in `post_insert`, first batch).** Prepend a `p.hr-drawer-title` to
+  the wrapper with the mobile filter button's own text (`.hr-mobile-filter-button`), styled
+  to the shop's drawer heading (fixture 18 px/600, 24 px below). Restyle the base's
+  `.hr-category-page-mobile-close` as the shop's × — a data-URI icon, no circle, placed at
+  the sheet's top-right corner (`top: calc(25dvh + <sheet padding>)`, `right: 16px`) with
+  a z-index above the sheet. Its click handler is the base's; leave it.
+- **Footer (JS + CSS).** Append a `div.hr-drawer-footer` with two buttons. The clear
+  button (`button.hr-drawer-clear`: the shop's outlined pill with its trash icon inline as
+  SVG, label from the design's `#clear-filters-button` text) forwards its click to that
+  base button — the base already clears filters and sorting and refreshes. The apply
+  button (`button.hr-drawer-apply`: the shop's filled pill, label from a new
+  `{# text apply_button_text #}` token plus a count `(n)` where n is
+  `page_container.querySelectorAll(".aw-search-overlay-selected-filter").length`)
+  calls `slide_out(filters_container)` and clears `active_filter`. The footer is
+  `display: flex; position: sticky; bottom: 0; flex: none; margin-top: auto` inside the
+  sheet, with the shop's gap and padding, so it sits at the sheet's bottom edge whether
+  the groups are collapsed or scrolling. At desktop `.hr-drawer-title` and
+  `.hr-drawer-footer` are `display: none` — the sidebar is untouched.
+- **Scroll lock.** `slide_in` adds the theme's own body-lock class on `<html>` (Impact:
+  `lock`; read it from the shop's open drawer) and `slide_out` removes it, guarded by a
+  flag so the design never strips a lock the theme set itself. Without it the page
+  scrolls behind the sheet.
+- **Row fixes that only bite in the sheet.** The base makes `.aw-filter-tag-count`
+  `position: absolute` and `span.aw-filter-tag-title` 80 % wide below the breakpoint, so
+  "Katoen (11)" splits to the two edges; reset both (`position: static`, `width: auto`)
+  when the shop keeps the count next to the label. Group headings take the shop's row
+  height through their padding (fixture 17 px → 58 px rows).
+- **Known gap to state in the hand-off.** The shop applies filters only on the apply
+  button; the design applies on every tick, and apply merely closes the sheet. Matching
+  that means rewriting the base's `register_filter` binding — do not; report it.
+- **Verify at the shop's phone size (fixture 390×844) by doing:** the sheet's position,
+  height and radius equal the shop's; title and × sit where the shop's do; the footer is
+  at the sheet's bottom edge with the shop's button sizes; a wheel on the page behind
+  moves nothing; × / apply / a tap outside each close the sheet and release the lock;
+  clear returns the full result count; then at desktop and just below the breakpoint the
+  title, footer and × are hidden and the sidebar matches step 4k unchanged.
+
 5. **Filters & sorting.** Read the current facets with `pages_getDesignFilters` /
    `pages_getDesignSorting`, then write with `pages_updateDesignFilters` /
    `pages_updateDesignSorting` — enable the flag only when configuring real settings,
