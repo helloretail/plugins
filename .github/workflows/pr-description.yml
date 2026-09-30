@@ -1,0 +1,45 @@
+name: PR description
+
+# The PR title becomes the squash-merge title, which decides the version bump and the
+# release-note line; the What / Why is what a reviewer reads first. GitHub's defaults pass
+# on neither: a title made from the branch name ("Feat/pages skill fixes") and the template
+# left as its HTML comments. Runs on `edited` as well, so fixing the title or the body
+# re-runs this check alone instead of the whole CI.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  pr-description:
+    name: PR title & description
+    # Dependabot and other bots write their own title and body.
+    if: github.event.pull_request.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the title and the What / Why sections
+        # Title and body go in through env, never interpolated into the script.
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          node - <<'EOF'
+          const title = process.env.TITLE || "";
+          const body = (process.env.BODY || "").replace(/\r\n/g, "\n");
+          const errors = [];
+          const types = "feat|fix|docs|chore|refactor|test|ci|build|perf|style|revert";
+          if (!new RegExp(`^(${types})(\\([^)]+\\))?!?: \\S`).test(title)) {
+            errors.push(`The title "${title}" is not Conventional Commits. Write it as "fix: …" (patch), "feat: …" (minor) or "feat!: …" (major), optionally with a scope: "feat(pages-developer): …".`);
+          }
+          for (const heading of ["What", "Why"]) {
+            const section = body.match(new RegExp(`^## ${heading}[ \\t]*$([\\s\\S]*?)(?=^## |(?![\\s\\S]))`, "m"));
+            const text = section ? section[1].replace(/<!--[\s\S]*?-->/g, "").trim() : "";
+            if (!text) {
+              errors.push(`"## ${heading}" is ${section ? "empty (only the template comment)" : "missing"}. Fill it in the PR description; the template is .github/pull_request_template.md.`);
+            }
+          }
+          for (const error of errors) console.log(`::error title=PR description::${error}`);
+          if (errors.length === 0) console.log("Title is Conventional Commits; What and Why are filled.");
+          process.exit(errors.length ? 1 : 0);
+          EOF
