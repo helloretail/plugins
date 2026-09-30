@@ -8,8 +8,6 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
-## Unreleased
-
 ## 1.28.0 — 2026-09-30
 
 ### Added

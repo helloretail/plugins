@@ -68,9 +68,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-      # Fragment format, and that nobody hand-edited CHANGELOG.md -> "## Unreleased". Editing
-      # that section conflicts with every other open PR, and after a release the edit lands in
-      # the already-published section where no release will ever read it.
+      # Fragment format, and that nobody wrote notes into CHANGELOG.md by hand — it holds
+      # released versions only. A note written there conflicts with every other open PR and is
+      # tied to no version, so no release will ever read it.
       - run: npm run lint:changelog
 
       # Informational: a PR that changes a plugin usually owes a release note. Pure refactors,
