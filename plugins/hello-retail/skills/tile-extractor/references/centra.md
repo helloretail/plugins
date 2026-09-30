@@ -43,8 +43,9 @@ you write no CSS:
 
 ### Then, in this order
 
-1. **Ask the operator first** — put it under OPEN QUESTIONS: *can the customer make the tile's CSS
-   global?* Most CSS-in-JS setups can extract the product-card styles into a plain stylesheet loaded
+1. **Ask the operator first** — *can the customer make the tile's CSS global?* With an operator, ask
+   with `AskUserQuestion`, header *Global CSS*: *Yes, the customer makes it global (Recommended)* /
+   *No, copy the customer's own rules*; as a subagent, put it under OPEN QUESTIONS. Most CSS-in-JS setups can extract the product-card styles into a plain stylesheet loaded
    on every page (a static CSS export, or a global style block for the card component). That fixes
    every Hello Retail surface at once and keeps the tile CSS-free.
 2. **Only if the answer is no, copy the customer's own rules.** Collect the actual declarations that

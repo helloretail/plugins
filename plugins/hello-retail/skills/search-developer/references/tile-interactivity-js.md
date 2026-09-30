@@ -132,7 +132,7 @@ These behaviors vary customer-to-customer (a 3rd-party app or a bespoke solution
 2. **Plan** — check the KB for that exact library/functionality first (see *Reference files* — there's already coverage for **Lipscore ratings**, **Magento configurable-product swatches**, and **Lightspeed wishlist**). Hit → apply it. Miss → draft a binding approach (usually: re-trigger the widget's own DOM-scan / re-init function after each `fix_links`).
 3. **Discuss** — present the plan to the operator and get the precise re-init call / snippet for anything unclear. **Don't guess** — this is the riskiest wiring and a wrong handler can silently break tracking or double-fire.
 4. **Execute** — wire it after every `fix_links`, scoped + idempotent, exactly like ATC.
-5. **Capture** — once it works on a real onboarding and it isn't already in the KB, **ask the operator to approve a cheat-sheet entry** and write it to `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/<swatches|reviews|wishlist>/<lib>.md`. Never file the learning only in private memory — the cheat-sheet is the shared, team-visible source of truth.
+5. **Capture** — once it works on a real onboarding and it isn't already in the KB, **ask the operator to approve a cheat-sheet entry** (`AskUserQuestion`, header `Cheat sheet`: *Write the cheat-sheet entry* / *Not this time*, neither recommended) and write it to `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/<swatches|reviews|wishlist>/<lib>.md`. Never file the learning only in private memory — the cheat-sheet is the shared, team-visible source of truth.
 
 If a behavior is **undocumented and the binding can't be clarified**, leave the markup unbound and add a MISSING DATA line (same rule as an undocumented ATC platform).
 

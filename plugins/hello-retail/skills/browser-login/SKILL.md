@@ -56,6 +56,21 @@ All scripts are idempotent. A failed run never overwrites a valid `~/.hr-auth.js
 
 ## Procedure
 
+**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of sensible
+options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's
+`AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line
+description each, the recommended one first and marked "(Recommended)", `multiSelect: true` when
+several may apply; *Other* is added automatically for free text. Up to four independent questions
+per call; a question whose options depend on an earlier answer waits for the next call. Options
+come from what you already read, never from guesswork, and nothing the prompt, the card or an
+earlier answer already settled is asked again. Free text with nothing to suggest (a URL, a UUID)
+stays a prose question. No `AskUserQuestion` tool in the session → the same questions in prose,
+the options as a numbered list; no operator to answer at all → take the recommended option and
+record the question under OPEN QUESTIONS.
+
+Here that means the "tell me when done" waits below: a *Login* / *Profile* picker, nothing
+recommended. Logging in itself is never a question — the operator's own action, no credentials.
+
 ### 1. Diagnose — run `check-hr-auth`
 
 ```bash
@@ -75,7 +90,8 @@ bash "<skill-base-dir>/scripts/refresh-hr-auth"
 - **Exit 2** ("profile is logged out") → step 3.
 - **Exit 3** ("profile is open in another Chrome") → call `browser_close` on the
   `playwright-profile` server if this session opened it; otherwise ask the operator to close the
-  Chrome window that uses `~/.hr-playwright-profile`. Then re-run.
+  Chrome window that uses `~/.hr-playwright-profile` (header *Profile*: *Closed it — re-run* /
+  *Can't find it*; nothing recommended). Then re-run.
 
 ### 3. Log in — the operator's own action, in a window they can see
 
@@ -88,7 +104,8 @@ Pick the route:
 - **The playwright servers are already connected (installed machine)** — use the
   `playwright-profile` server from this session: `browser_navigate` to
   `https://my.helloretail.com/`. A headed Chrome opens on the shared profile. Ask the operator
-  to log in there and tell you when done. Then `browser_navigate` the same server to
+  to log in there and tell you when done — header *Login*: *Done, logged in* / *Something went
+  wrong* (*Other* says what); nothing recommended. Then `browser_navigate` the same server to
   `https://my.helloretail.com/` once more: the dashboard, or a redirect to `/supervisor/…`, means
   logged in (leave immediately — that is the only sanctioned my.helloretail.com navigation, and
   nothing under `/company/…` or `/supervisor/…` is ever read or screenshotted). Now
@@ -104,7 +121,9 @@ Pick the route:
 
   On **native Windows** Claude runs the PowerShell twin inline (the window opens on the
   operator's desktop with network) — see `references/windows.md`. Wait for the line
-  `Saved N Hello Retail cookies to ~/.hr-auth.json — session auth cookie present`.
+  `Saved N Hello Retail cookies to ~/.hr-auth.json — session auth cookie present` — in the
+  operator's terminal, ask with the same *Login* picker whether it printed; inline on Windows,
+  read it yourself.
 
 ### 4. Make the running sessions pick the login up
 
@@ -186,4 +205,5 @@ Never block a QA task on this setup. If no `playwright*` server exposes tools an
 cannot be run right now, fall back per `${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md`: Claude in
 Chrome first (the operator's own Chrome, usually already logged in), the in-app Browser pane
 strictly last (no Hello Retail login; record the downgrade). Then offer this skill to restore
-the parallel path.
+the parallel path — header *Browsers*: *Set up Playwright now* / *Later, stay on the fallback*;
+nothing recommended.

@@ -6,7 +6,8 @@ adds a marker in **your** browser that a reload removes. Nothing here writes to 
 
 ## Section map — when there is no selector and no match
 
-Lists the page's top-level sections in order, so the operator can answer "number 4, after it".
+Lists the page's top-level sections in order — they become the options of the placement question
+(`box-setup.md` → round B), and the operator can still answer "number 4, after it".
 
 ```js
 (() => {
@@ -29,7 +30,8 @@ Lists the page's top-level sections in order, so the operator can answer "number
 })()
 ```
 
-Show the result as a numbered list (`n`, heading, position). Pass the chosen section's element to
+Offer the likely sections as the options of the placement question; show the whole result as a
+numbered list (`n`, heading, position) when none of them fits. Pass the chosen section's element to
 *Find the section by its text* using its heading, or build the selector from its `id` / classes
 and run *Verify a selector*.
 

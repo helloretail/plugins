@@ -148,7 +148,9 @@ Body shape, in order (the full reasoning is in `AUTHORING.md`):
 
 1. **One-line purpose** — turns input X into output Y.
 2. **Preconditions gate** — a table of what is needed from the user, ending "if any of these are
-   missing, ask before proceeding".
+   missing, ask before proceeding". A question with a finite set of answers is asked with the
+   `AskUserQuestion` picker — options from what the skill read, the recommended one first
+   (`AUTHORING.md` → *Questions to the operator*); only true free text (a URL, a UUID) is prose.
 3. **Numbered execution flow** — `Step 1 … Step N`, each a concrete action with a clear outcome.
 4. **Reference tables** for anything the model would otherwise guess (field names, allowed values).
 5. **Output / style rules** with a copy-paste template of the exact shape to produce.

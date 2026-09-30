@@ -15,22 +15,18 @@ are the MCP's own: read `docs_get("docs://product-algorithms/format")` once befo
 ## 1. Ask — best-practice options first, own words welcome
 
 `recoms_listBestPracticeAlgorithms(websiteUuid, type)` returns the proven setups for the box's
-page type, each with a name and one line on what it shows. Offer them as a numbered list, with
-the one that fits the page (or the ClickUp card's algorithm name) marked as the suggestion, and
-leave the door open:
+page type, each with a name and one line on what it shows. Ask with one `AskUserQuestion` call
+(`box-setup.md` → *How to ask*, round D), header *Algorithm*: *"How should the \<page\> recom
+pick its products?"* — one option per best-practice algorithm, its name as the label and the
+MCP's line as the description, the one that fits the page (or the ClickUp card's algorithm name)
+first and marked "(Recommended)". More than four → the four that fit the page type best, and name
+the rest in the chat line before the call. *Other* is the door for the operator's own words — say
+so in the question: *"Other: describe it in your own words, e.g. products often bought with this
+one, then others from the same category, only in stock"*.
 
-> How should the **\<page\>** recom pick its products?
->
-> 1. \<name\> — \<one line\> *(suggested)*
-> 2. \<name\> — \<one line\>
-> 3. …
->
-> Pick one, or tell me in your own words — e.g. *"products often bought with this one, then
-> others from the same category, only in stock"*.
-
-- **A number, nothing else** → that best-practice algorithm as it stands (§5, first case).
-- **A number plus changes** ("2, but only in-stock products") → start from its steps, apply the
-  changes (§2), and ask only what §3 still needs.
+- **An option, nothing else** → that best-practice algorithm as it stands (§5, first case).
+- **An option plus changes** ("the second one, but only in-stock products", via *Other*) → start
+  from its steps, apply the changes (§2), and ask only what §3 still needs.
 - **Own words** → translate them (§2), then §3.
 
 ## 2. Translate the words into steps
@@ -93,16 +89,17 @@ Rules the translation must keep (from the format doc):
 
 ## 3. Ask only what the words left open
 
-Ask these **together, in one message**, and only the ones the answer didn't settle:
+One `AskUserQuestion` call (`box-setup.md` → round E) holding only the questions the answer
+didn't settle — they are independent, so up to four in the call, and the tool shows them one at a
+time. Nothing open → no call. The recommended option is the default the operator gets when they
+have no view:
 
-1. **Fallback** — when the first idea finds too little (a new product with no purchase history, a
-   first-time visitor): *top products in this category*, *top products overall*, or *show fewer*?
-   Default when the operator has no view: top in category on category / PDP boxes, top overall
-   elsewhere.
-2. **Stock** — only in-stock products? Default yes.
-3. **Leave anything out?** — what's already in the cart (cart / upsell boxes), what they bought
-   recently, a brand or category.
-4. **Price** — any range, or relative to the product on the page?
+| Question | Header | Options, recommended first |
+|---|---|---|
+| **Fallback** — when the first idea finds too little (a new product with no purchase history, a first-time visitor): *"What fills the box when that finds too little?"* | *Fallback* | Category / PDP box: *Top products in this category* (Recommended), *Top products overall*, *Show fewer*. Elsewhere: *Top products overall* (Recommended), *Show fewer*. |
+| **Stock** — *"Only in-stock products?"* | *Stock* | *Only in stock* (Recommended), *Include out-of-stock* |
+| **Leave anything out?** — `multiSelect: true`, nothing recommended | *Exclude* | *Nothing*, *What's already in the cart* (cart / upsell boxes), *What they bought recently*, *A brand or category* (*Other* says which) |
+| **Price** — *"Any price rule?"* | *Price* | *No price rule* (Recommended), *Similar price to the page product* (PDP), *Cheaper than the page product* (PDP), *A range* (*Other* says which) |
 
 ## 4. Read it back in plain words and get a yes
 
@@ -117,8 +114,11 @@ names:
 >
 > Only in-stock products. Variants count as one product. Right?
 
-A correction → change that step, read it back again. Wait for the yes before any write. This
-read-back is also what goes into the hand-off.
+Show this in chat, then ask the yes with `AskUserQuestion` (`box-setup.md` → round F), header
+*Algorithm*: *"Is this how the \<page\> recom should pick its products?"* — *Yes* / *No, I'll
+correct a step*; the correction comes through *Other*. A correction → change that step, read it
+back again, ask again. Wait for the yes before any write. This read-back is also what goes into
+the hand-off.
 
 ## 5. Write it
 
