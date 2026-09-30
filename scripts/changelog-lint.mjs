@@ -6,9 +6,9 @@
  *   - every changelog.d/*.md fragment carries only `### Added / Changed / Fixed / Removed`,
  *     has at least one bullet, and no prose outside one;
  *   - fragment filenames are kebab-case `.md`;
- *   - `CHANGELOG.md` → `## Unreleased` is empty. Notes go in a fragment: an edit to that
- *     section conflicts with every other open PR, and once the release bot has rolled it the
- *     edit lands in the already-published section instead, where nothing will ever read it.
+ *   - `CHANGELOG.md` has no `## Unreleased` section. Released versions only live there;
+ *     notes for the next release go in a fragment. A note written into CHANGELOG.md directly
+ *     conflicts with every other open PR and is not tied to any version, so nothing releases it.
  *
  * Run from `npm run lint:changelog`, and as part of `npm run check`.
  */
@@ -81,19 +81,12 @@ function lintPlugin(name) {
 
   if (!existsSync(changelog)) return;
   const text = readFileSync(changelog, "utf8");
-  const m = /^## +Unreleased *$/m.exec(text);
-  if (!m) {
-    return fail(changelog, `no "## Unreleased" heading — add one back, the release reads from it`);
-  }
-  const rest = text.slice(m.index + m[0].length);
-  const next = /^## /m.exec(rest);
-  const body = (next ? rest.slice(0, next.index) : rest).trim();
-  if (body) {
+  if (/^## +Unreleased *$/m.test(text)) {
     fail(
       changelog,
-      `"## Unreleased" is not empty — move these lines to a new file under ` +
-        `plugins/${name}/changelog.d/ (see its README). Editing this section conflicts with ` +
-        `every other open PR, and after a release it lands in the published section instead.`,
+      `has a "## Unreleased" section — CHANGELOG.md holds released versions only. Move any ` +
+        `notes under it to a new file under plugins/${name}/changelog.d/ (see its README) and ` +
+        `delete the heading.`,
     );
   }
 }
@@ -109,4 +102,4 @@ if (errors > 0) {
   console.error(`\n${errors} problem(s) in the release notes.`);
   process.exit(1);
 }
-console.log(`  ✓ ${names.length} plugin(s) — fragments well-formed, Unreleased clean`);
+console.log(`  ✓ ${names.length} plugin(s) — fragments well-formed, no Unreleased section`);
