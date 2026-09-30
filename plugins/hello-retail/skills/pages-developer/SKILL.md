@@ -366,10 +366,14 @@ pages are skipped, arrows hidden at the ends, one row of equal-height cells at 1
   ```
 
 - **JS** — `/* boolean */ var load_more_button = true;` next to `paginated` (which stays
-  `false`), then six guarded edits, none of them a rewrite: (1) the scroll listeners are
+  `false`), then seven guarded edits, none of them a rewrite: (1) the scroll listeners are
   registered only `if (!paginated && !load_more_button)`; (2) the same guard on the viewport
   check in `load_more()`; (3) the auto-fill `if (options.hasMore) load_more()` at the end of
-  `insert_results` becomes `options.hasMore && !load_more_button`; (4) on the first batch,
+  `insert_results` becomes `options.hasMore && !load_more_button`; (3b) the placeholder
+  guard at the top of `insert_results` becomes
+  `if (!options.hasMore || paginated || load_more_button) hide(options.placeholder)` — the
+  animated loader image is infinite scroll's "more is coming" cue; left in place it sits
+  under the button as a stray row of dots (operator-reported); (4) on the first batch,
   `load_more_container = page_container.querySelector(".hr-load-more-container")` — remove it
   when `paginated || !load_more_button` (the way the base removes the pagination container
   in infinite mode), otherwise bind its button:
@@ -391,7 +395,8 @@ Verify on-site by doing, at desktop and phone width: the first page renders with
 and the button, scrolling to the bottom loads **nothing**, each click appends exactly one page
 and updates the counter and the `hr-page` URL state, a reload restores what was loaded and the
 next click still adds one page, no duplicate products across clicks, and on the last page the
-whole block disappears. Pagination must not render in this mode.
+whole block disappears. Pagination must not render in this mode, and the base's loading
+image (`img[alt="loading"]`) must be hidden at every step — idle, during a click and after.
 
 5. **Filters & sorting.** Read the current facets with `pages_getDesignFilters` /
    `pages_getDesignSorting`, then write with `pages_updateDesignFilters` /
