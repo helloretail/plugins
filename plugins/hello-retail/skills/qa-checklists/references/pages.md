@@ -41,6 +41,22 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
 - [ ] Navigation (e.g. shown in multiple places)
 - [ ] Navigate to a new page → adds 'Clear all' text to the page…
 - [ ] Navigate (and go back) → marks both the previous page and the current page as active
+- [ ] Pagination looks like the shop's own pagination (or, when the shop has none, follows the
+  theme's own `.pagination` / `.page-link` rules): active page in the shop's active colour, not
+  HR's blue; prev/next arrows are styled like the number buttons and have the **same rendered
+  height** (SVG-only buttons come out shorter unless the design fixes the height); the row is
+  centred and fits a phone width. Two quick clicks on next land on the page the products show;
+  a reload on page 3 keeps page 3 active and next goes to 4. Fix: `pages-developer` step 4g.
+- [ ] Numbered pagination with ellipsis (when the shop wants `1 2 3 … 20`): click page 1, next a few
+  times, a middle page, the last page, prev twice — exactly one active page at every step, `…`
+  only where two or more pages are skipped (never `1 … 3`), prev hidden on page 1 and next on the
+  last page, no gaps around the `…`, one row at phone width; a reload on a middle page shows the
+  same window. Fix: `pages-developer` step 4h.
+- [ ] "Load more" button (when the shop wants a button instead of infinite scroll): nothing loads on
+  scroll, each click appends exactly one page (also after a reload), the "shown of total" counter
+  and the URL state follow, no duplicates, the block disappears on the last page, the button is
+  styled like the shop's own button and centred under the grid; the base's animated loading image
+  never shows under the button. Fix: `pages-developer` step 4i.
 - [ ] Navigate to a new page → can't open the filter
 - [ ] Main menu: when opened, icons/wishlist button pop up on top of the menu window
 - [ ] Mobile/tablet: not responsive / design breaks at those widths
@@ -147,7 +163,10 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
 
 - [ ] Total amount of products differs from the customer's own pages
 - [ ] Not shown on some category pages (finds 0 products…)
-- [ ] Make sure the tiles have the same height
+- [ ] Make sure the tiles have the same height — measure a row that contains the tallest variant
+  (sale price pair, badge, long title): every card in the row reaches the same bottom edge at
+  1440/1024/375, none taller than its cell. Uneven cards = the card does not fill its stretched
+  cell. Fix: `pages-developer` step 4j.
 - [ ] When 0 products… starts to act strange
 - [ ] When 0 products shown… all selected filters are no longer shown
 - [ ] When 0 products… only shows navigation arrows
