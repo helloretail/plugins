@@ -24,10 +24,11 @@ Node.js is used only for `scripts/validate.mjs` and markdownlint.
   are still warnings while the wiki cleanup is in progress.
 - `PLUGIN-TEMPLATE.md` — the canonical plugin layout, file templates and conventions. Scaffold
   a new plugin from it, and keep it current when a structural convention changes.
-- `scripts/changelog.mjs` — collects `changelog.d/` fragments into `CHANGELOG.md`, rolls and
-  reads it for the Release workflow. Never edit `CHANGELOG.md` by hand.
+- `scripts/changelog.mjs` — folds `changelog.d/` fragments into a `## <version>` section of
+  `CHANGELOG.md` and reads it back for the Release workflow. `CHANGELOG.md` holds released
+  versions only, per plugin. Never edit it by hand.
 - `scripts/changelog-lint.mjs` — gate on the release notes: fragment format, and that
-  `## Unreleased` was left alone. Part of `npm run check`.
+  `CHANGELOG.md` has no `## Unreleased` section. Part of `npm run check`.
 
 ## Rules to apply when editing
 
@@ -63,9 +64,12 @@ A PR that touches only root files (README, CI, scripts) needs no entry.
 **Never edit `CHANGELOG.md`.** The Release workflow owns that file: on merge it folds every
 fragment into the version it publishes, deletes the fragments, and passes the assembled section
 to `gh release create`. A fragment is a new file, so two PRs open at the same time never conflict
-over it — and it cannot land in an already-released section, which an edit to `## Unreleased`
-did silently once the workflow had rolled that section. `npm run check` fails on a hand-edited
-`## Unreleased`.
+over it — and it is tied to the version that releases it, which a note written into
+`CHANGELOG.md` directly is not. `CHANGELOG.md` has no `## Unreleased` section: released versions
+only, so a reader never sees notes that are not in a release. `npm run check` fails if one appears.
+The two plugins are versioned and released separately: a fragment under
+`plugins/hello-retail/changelog.d/` only ever lands in a `hello-retail` release, and the same for
+`hello-retail-rest-api`, even when one PR touches both.
 
 Write the entry in the same session as the change, while the reason for it is still in context.
 `npm run changelog` prints what the next release will say.

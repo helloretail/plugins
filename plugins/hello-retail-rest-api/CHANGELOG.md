@@ -8,7 +8,7 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
-## Unreleased
+## 1.0.2 — 2026-09-30
 
 ### Changed
 
@@ -42,4 +42,3 @@ fragments into the version it publishes.
 - `troubleshooting-with-hello-retail-mcp` points an integration that "isn't working" at the API
   log and audit log before it re-reads its own request code. It needs Hello Retail's MCP server
   connected in the same client, which installing this plugin does not do on its own.
-
