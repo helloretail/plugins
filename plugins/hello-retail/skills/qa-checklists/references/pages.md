@@ -50,6 +50,10 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
   times, a middle page, the last page, prev twice — exactly one active page at every step, `…`
   only where pages are skipped, prev hidden on page 1 and next on the last page, no gaps
   around the `…`, one row at phone width. Fix: `pages-developer` step 4h.
+- [ ] "Load more" button (when the shop wants a button instead of infinite scroll): nothing loads on
+  scroll, each click appends exactly one page (also after a reload), the "shown of total" counter
+  and the URL state follow, no duplicates, the block disappears on the last page, the button is
+  styled like the shop's own button and centred under the grid. Fix: `pages-developer` step 4i.
 - [ ] Navigate to a new page → can't open the filter
 - [ ] Main menu: when opened, icons/wishlist button pop up on top of the menu window
 - [ ] Mobile/tablet: not responsive / design breaks at those widths
