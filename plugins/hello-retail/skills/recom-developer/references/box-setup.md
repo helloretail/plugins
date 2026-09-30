@@ -31,9 +31,8 @@ list, the shop's own slider — never from guesswork. The rounds:
 | **C** — per box: the spot | Confirm the previewed spot; category box: hide below N, hide while filtered / sorted (step 3) | fixed |
 | **D** — per box: what | Algorithm (step 4; `algorithm-intake.md` §1) | `recoms_listBestPracticeAlgorithms` for the page type |
 | **E** — per box: left open | Fallback, stock, exclusions, price — only the ones the words left open (`algorithm-intake.md` §3) | fixed |
-| **F** — per box: the rest | Read-back yes / no (`algorithm-intake.md` §4); heading; cart / upsell: free-shipping offer; product count (step 4) | the slider survey, the shop's section heading |
-| **G** — per page | Load order, when several boxes share a page (step 4) | the boxes |
-| **H** — the plan | Go-ahead for the plan table (step 5) | fixed |
+| **F** — per box: the rest | Read-back yes / no (`algorithm-intake.md` §4); cart / upsell: free-shipping offer; product count; Retargeted box: load order (step 4) | the slider survey, the shop's section heading |
+| **G** — the plan | Go-ahead for the plan table (step 5) | fixed |
 
 Rounds B–F run for **one box at a time — finish a box before starting the next**. Skip a question
 the prompt, the card's text or an earlier answer already settled, and say what you took. Round E
@@ -76,8 +75,8 @@ Nothing about placement or algorithms yet: those options need the pages first.
 
 ## 3. Ask: where does each recom go — placement first (rounds B and C)
 
-**One box at a time, and placement before anything else about that box** — the algorithm,
-heading and count wait until the spot is confirmed.
+**One box at a time, and placement before anything else about that box** — the algorithm and
+count wait until the spot is confirmed.
 
 **Round B — the placement question, with the page's own sections as the options.** Open a page
 of the box's type in the browser MCP first — the homepage; the surveyed category; a product from
@@ -142,12 +141,14 @@ conditions* (`placement-snippets.md`) on a big category, a small one and a filte
 goes into the plan. The pattern, the preconditions and the fallback for themes that filter without
 a reload are in `mcp-flow.md` → *Hiding a category recom*.
 
-## 4. Ask: what each recom shows (rounds D–G)
+## 4. Ask: what each recom shows (rounds D–F)
 
 Three calls per box, in this order: **D** the algorithm; **E** the follow-ups its answer left
-open; **F** the read-back, the heading, the free-shipping offer (cart / upsell) and the product
-count together. Then **G** once per page that holds several boxes. Devices and arrows are not
-questions.
+open; **F** the read-back, the free-shipping offer (cart / upsell), the product count and — for a
+Retargeted box only — the load order together. Devices, arrows and the heading are not questions:
+the heading is a dashboard field the MCP cannot write, so the operator enters it after the write
+(step 12). Load order is asked only for a Retargeted box; every other box keeps its default
+(step 6 → `priority`).
 
 - **Round D — algorithm: how the recom should pick its products.** One call, header *Algorithm*,
   the best-practice algorithms for the page type as the options (the fitting one first,
@@ -161,18 +162,13 @@ questions.
      header *Algorithm*: *"Is this how the \<page\> recom should pick its products?"* — *Yes* /
      *No, I'll correct a step* (*Other* carries the correction). A correction → change the step,
      read back again, ask this question again on its own.
-  2. **Heading** — every box, header *Heading*: *"What should the heading be?"* Options in the
-     shop's language: the heading of the shop's own section the box replaces or sits next to (the
-     slider survey's `heading`) "(Recommended)", a plain one for the algorithm ("Others also
-     bought"), the card's headline when it names one; *Other* = the operator's own text. It
-     becomes the value of the box's `{% input headline %}` field.
-  3. **Cart and upsell boxes — the free-shipping heading**, header *Free ship*: *"Should the
+  2. **Cart and upsell boxes — the free-shipping heading**, header *Free ship*: *"Should the
      heading show how far the shopper is from free shipping — 'Add 120 kr. more for free
      shipping'?"* — *Yes, show the amount left* / *No, the plain heading*. On yes, the threshold,
      the two texts (with `{amount}`) and — non-Shopify — where the page shows the cart subtotal
      are asked in prose afterwards (`free-shipping-heading.md`); the plain heading stays as the
      fallback.
-  4. **Product count — how many products the box holds.** A **general setting**, not part of the
+  3. **Product count — how many products the box holds.** A **general setting**, not part of the
      algorithm: written in step 6 with `recoms_updateGeneralSettings`, never through
      `recoms_updateAlgorithm`. Run *Survey the shop's own sliders* (`placement-snippets.md`) on
      the page the box goes on first — homepage and PDP placements usually have one. Header
@@ -184,9 +180,18 @@ questions.
      - **No slider on that page** → *8* / *10* / *12*, none recommended.
 
      The count must fit the non-supervisor limit (step 6 → `productCount`).
-- **Round G — load order**, only when several boxes share a page, once after that page's last
-  box: header *Load order*: *"Which box gets products first on the \<page\>?"* — one option per
-  box; on the PDP, *Alternatives* first "(Recommended)" (step 6 → `priority`).
+  4. **Load order — Retargeted boxes only** (the algorithm confirmed in round D is *Retargeted*,
+     or its first step is `RETARGETED`). A Retargeted box should load first so it gets the
+     visitor's retargeted products before other boxes on the page take them. Header *Load order*:
+     *"Should this box load first on the \<page\>, so it gets the visitor's retargeted products?"*
+     — *Load first — priority 1* "(Recommended)" / *Keep the default* (the value the box has now,
+     read with `recoms_getGeneralSettings`, usually 5), with the page's other boxes and their
+     priorities in the descriptions. **Another Retargeted box already on the same page** (from
+     the step 1 inventory: same `type`, algorithm *Retargeted* or a first step `RETARGETED`) →
+     say so in the question: both compete for the same products, and whichever loads first takes
+     them. Name the other box and its priority, add the option *Load after \<other box\> —
+     priority \<its value + 1\>*, and repeat the warning in the plan table (step 5) and the
+     hand-off.
 - **Arrows — from the same survey.** Keep the `prev` / `next` it reports for the design step
   (SKILL.md Step 4 → *Box-shell parity*; `slider-structure.md` → *Prev/next arrows*): visible
   arrows → the box copies their design; arrows hidden at 375 px → the box hides its arrows at the
@@ -199,9 +204,9 @@ questions.
 ## 5. Plan, show, wait for approval
 
 Show one plan table for all boxes — box, page, placement (selector, `insertMode`, final /
-temporary, hide conditions for category boxes), algorithm (the plain-words read-back), product count (and where it came from), heading (free-shipping or plain), then every other field as current → new — and wait for an explicit
+temporary, hide conditions for category boxes), algorithm (the plain-words read-back), product count (and where it came from), free-shipping heading (cart / upsell, when offered), then every other field as current → new — and wait for an explicit
 go-ahead. A change to a **LIVE** box drafts it; say which ones will turn DRAFT. The go-ahead is
-**round H**: one call, header *Plan*: *"Write these boxes as drafts?"* — *Yes, write them* / *No,
+**round G**: one call, header *Plan*: *"Write these boxes as drafts?"* — *Yes, write them* / *No,
 change something first* (*Other* says what). No option is marked recommended: this gate is the
 operator's.
 
@@ -219,9 +224,11 @@ Send only the fields that change.
 
 - **`name`** — the customer-facing name (the card's, or page + purpose: "PDP – Alternatives"). No `DK` / `TEST` / `[NOTE]` style tags;
   QA fails those.
-- **`priority`** is the load order: 1 loads first and gets the **first batch of products**. On the
-  PDP, **Alternatives gets the lowest value**. Load order is about product allocation, not the
-  box's position on the page.
+- **`priority`** is the load order: 1 loads first and gets the **first batch of products**. Send it
+  **only for a Retargeted box**, with the value confirmed in round F. Every other box keeps the value
+  it was created with (a box drafted from scratch usually gets 5) — don't send it. The operator can
+  change any box's load order at any time in the dashboard, or ask you to; then write it here. Load
+  order is about product allocation, not the box's position on the page.
 - **`productCount`** — the count confirmed in step 4 (the shop's own slider, or the operator's 8 / 10 / 12). A non-supervisor cannot go above the greater of 20 and
   the current value; if the list asks for more, flag it.
 - **`responsiveMode`** — `BOTH` unless the operator or the card splits devices. A sidebar / drawer cart recom
@@ -298,6 +305,9 @@ dashboard's UTM suggestion is
 - Render check through the staff widget (SKILL.md Step 7.5) on a page where the placement matches
   and the strategy can return products.
 
+After the read-back, tell the operator the boxes are written and ask them to set each box's heading
+in the dashboard (*Hand-off lines*, below) — the MCP cannot write it.
+
 ## Hand-off lines
 
 - Per box: name, key, state, page, and its placement — the selector with `insertMode` and
@@ -305,9 +315,12 @@ dashboard's UTM suggestion is
   temporary selector carries "move to the `#hr-recom-<key>` div once the customer places it".
 - Per box, the algorithm in plain words, as the operator confirmed it.
 - Boxes created or changed. All of them are DRAFT: **the operator publishes them in the dashboard.**
-- **Dashboard field values per box** — the MCP writes the design, not what goes in its
-  `{% input %}` fields: list `headline` (and, with a free-shipping heading, `free_shipping_threshold`,
-  `free_shipping_left`, `free_shipping_reached`) with the value the operator confirmed, for them to
-  enter in the dashboard.
+- **Ask the operator to set each box's heading.** The MCP writes the design, not what goes in its
+  `{% input %}` fields, so the heading was not asked during the intake. Per box, tell the operator to
+  open it in the dashboard and fill in `headline`, with a suggestion in the shop's language — the
+  heading of the shop's own section the box sits next to, or a plain one for the algorithm ("Others
+  also bought", "Recommended for you"). With a free-shipping heading, also list
+  `free_shipping_threshold`, `free_shipping_left` and `free_shipping_reached` with the values the
+  operator confirmed.
 - Operator-only items: publishing, deleting or archiving boxes and designs, renaming a design,
   locking, and the `{% input %}` field values above.

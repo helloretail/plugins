@@ -43,7 +43,7 @@ Each has its own "Review …" article in the General Setup → Review and Testin
 | **Fixed products** | Force specific products into a recommendation slot. |
 | **Pinned products** | Pin a product to a position globally. |
 | **Titles** | Customizable per-box title. |
-| **Load order** | Control the order recommendation boxes load on a page. |
+| **Load order** | Control the order recommendation boxes load on a page — see [Load order](#load-order). |
 | **Page-level de-duplication** | A product URL appears in at most one box per page — see [One product per page](#one-product-per-page-across-all-boxes). |
 | **CLS / "jumping recs"** | Specific guides exist for fixing layout shift issues caused by recommendations loading in. |
 
@@ -71,6 +71,28 @@ What to do instead:
 This is also worth checking when a box renders short or empty **only on pages that carry several
 boxes**: the products it would have shown may already be taken by a box that rendered before it.
 Check **Load order** and rule this out before digging into the strategy or the feed.
+
+## Load order
+
+*(Field knowledge — not in the public docs.)*
+
+A box's load order (`priority` in the MCP, 1 loads first) decides which box on a page picks its
+products first — with [one product per page](#one-product-per-page-across-all-boxes), the box that
+loads first gets the first choice. It is about product allocation, not the box's position on the page.
+
+The team's usual values:
+
+| Box | Load order |
+|---|---|
+| Retargeted (products the visitor has looked at) | **1**, so it loads first and gets the visitor's retargeted products before other boxes take them |
+| Every other type | **4 or 5**, depending on the kind of recommendation |
+
+A box drafted from a best-practice algorithm may get a fitting value, but a box drafted from scratch
+gets **5** — so a new Retargeted box has to be set to 1 by hand, or it competes on equal terms with
+the page's other boxes. Two Retargeted boxes on one page compete for the same products: whichever
+loads first takes them, so give them different values on purpose.
+
+The operator or the customer can change any box's load order at any time in the dashboard.
 
 ## Filters on a box
 
