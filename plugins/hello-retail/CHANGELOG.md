@@ -10,6 +10,26 @@ fragments into the version it publishes.
 
 ## Unreleased
 
+## 1.27.0 — 2026-09-30
+
+### Added
+
+- `pages-developer` can build numbered pagination with an ellipsis (`1 … 8 9 10 11 12 … 20`) when a shop asks for it: first and last page always shown, a window around the current page, arrows hidden at the ends. An ellipsis never stands in for a single page, and a stale page number in the URL no longer shows every page button in one row.
+- `pages-qa` clicks through the ellipsis pagination and checks one active page, correct ellipses, the same window after a reload and a single row at phone width.
+- `pages-developer` can build a "load more" button as a third loading mode: the first page renders, a centred button under the grid appends one page per click with a "shown of total" counter, nothing loads on scroll, and the button disappears on the last page. It reuses the base design's request and reload-restore logic and documents the reload quirk that otherwise makes later clicks load more than one page.
+- `pages-qa` checks the load-more mode: no scroll loading, one page per click also after a reload, counter and URL state, no duplicates, block gone at the end.
+- `pages-developer` restyles the pagination to the shop when the design paginates: it measures the shop's own pagination (or the theme's pagination rules when the shop has none), writes the values scoped to the design's pagination, styles the prev/next arrows like the number buttons and gives all buttons one fixed height. Previously every build shipped the base's blue active page and unstyled, shorter arrow buttons.
+- `pages-qa` checks that the pagination matches the shop's style and that the prev/next arrows have the same rendered height as the number buttons.
+
+### Changed
+
+- `pages-qa` checks equal tile heights on a row that contains the tallest tile variant, at desktop, tablet and phone width.
+
+### Fixed
+
+- `pages-developer` now makes every product card fill its grid cell, so cards in a row share one height; before, a tile with more content (a sale price with a "save" line, a badge, a long title) stood taller than its neighbours.
+- `pages-developer` fixes three base pagination bugs on every paginated build: two pages shown as active after the previous-page arrow, the active page ending up one off from the products after two quick clicks, and "next" jumping to the wrong page after a reload.
+
 ## 1.26.0 — 2026-09-29
 
 ### Added
