@@ -91,9 +91,11 @@ the plugin.
   becomes the GitHub Release body, so write it for whoever installs the plugin: the format is
   in `changelog.d/README.md`, the house style in `CLAUDE.md` → "Release notes". Preview the
   next release with `npm run changelog`.
-- Fill the PR template; CODEOWNERS get requested automatically.
-- CI must be green: validate, markdown lint, shellcheck, secret scan. The version preview is
-  informational.
+- Fill the PR template — `## What` and `## Why` are required — and give the PR a Conventional
+  Commits title, not GitHub's default made from the branch name. CI checks both. CODEOWNERS get
+  requested automatically.
+- CI must be green: validate, markdown lint, shellcheck, secret scan, PR title & description. The
+  version preview is informational.
 - Squash-merge. The merge commit is what ships: its title is the release-note line **and** decides
   the version bump (`fix:` patch · `feat:` minor · `feat!:` major).
 
