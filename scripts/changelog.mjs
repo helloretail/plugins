@@ -6,24 +6,24 @@
  * The notes are written by hand (with Claude Code) in the PR that makes the change, as
  * one **fragment file** per PR under `plugins/<plugin>/changelog.d/` — see CLAUDE.md →
  * "Release notes". A fragment is a new file, so two PRs open at the same time never
- * conflict over it, and a fragment cannot land in an already-released section the way an
- * edit to `## Unreleased` silently could. This script only moves and reads the prose; it
- * never writes any of its own beyond a maintenance fallback.
+ * conflict over it. CHANGELOG.md holds released versions only: there is no `## Unreleased`
+ * section, so a reader never sees notes that are not in a release yet. This script only moves
+ * and reads the prose; it never writes any of its own beyond a maintenance fallback.
  *
  * Commands:
- *   collect <plugin>            fold every changelog.d/*.md into `## Unreleased`, merging
- *                               them by heading, then delete the fragments. Idempotent:
- *                               with no fragments it changes nothing.   [release.yml]
- *   preview <plugin>            print what collect would write. Changes nothing.  [npm run changelog]
- *   roll <plugin> <version>     rename `## Unreleased` to `## <version> — <date>` and leave a
- *                               fresh empty `## Unreleased` above it. Idempotent: a changelog
- *                               that already has a `## <version>` section is left alone.  [release.yml]
+ *   preview <plugin>            print the notes the next release will carry. Changes nothing.  [npm run changelog]
+ *   roll <plugin> <version>     fold every changelog.d/*.md into a new `## <version> — <date>`
+ *                               section at the top of CHANGELOG.md and delete the fragments.
+ *                               A leftover `## Unreleased` heading (the old layout) is folded in
+ *                               and removed. Idempotent: a changelog that already has a
+ *                               `## <version>` section is left alone — but if fragments are still
+ *                               waiting, that is an error, because they would never be released.  [release.yml]
  *   extract <plugin> <version>  print that version's section body to stdout, for --notes-file. [release.yml]
  *
  * extract never fails a release: a missing file or section falls back to a one-line note,
  * because a thin release note is better than a release that did not happen.
  *
- * Env:  DRY_RUN=1   collect and roll report what they would write, and write nothing
+ * Env:  DRY_RUN=1   roll reports what it would write, and writes nothing
  */
 import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -34,7 +34,7 @@ const DRY = process.env.DRY_RUN === "1" || process.argv.includes("--dry-run");
 
 const [cmd, plugin, version] = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 if (!cmd || !plugin || (cmd === "roll" && !version) || (cmd === "extract" && !version)) {
-  console.error("usage: changelog.mjs <collect|preview> <plugin>");
+  console.error("usage: changelog.mjs preview <plugin>");
   console.error("       changelog.mjs <roll|extract> <plugin> <version>");
   process.exit(2);
 }
@@ -108,19 +108,35 @@ function fragmentFiles() {
     .map((f) => join(FRAGMENTS, f));
 }
 
-/** Merge the current `## Unreleased` body with every fragment. */
-function assemble() {
-  const text = existsSync(FILE) ? readFileSync(FILE, "utf8") : null;
-  if (text === null) return null;
+/**
+ * Everything waiting for the next release: every fragment, plus the body of a leftover
+ * `## Unreleased` heading if the file still has one (the old layout). `before` and `tail` are
+ * the text around the point where the new version section goes.
+ */
+function pending(text) {
+  const { sections, files } = readFragments();
   const m = UNRELEASED.exec(text);
-  if (!m) {
-    console.error(`${FILE}: no "## Unreleased" heading — add one back, releases read from it`);
-    process.exit(1);
+  if (m) {
+    const { body, tail } = splitSection(text, m.index + m[0].length);
+    const legacy = parseSections(body).sections;
+    for (const [heading, t] of Object.entries(legacy)) {
+      sections[heading] = sections[heading] ? `${t}\n${sections[heading]}` : t;
+    }
+    return { sections, files, before: text.slice(0, m.index), tail, hadLegacy: true };
   }
-  const head = m.index + m[0].length;
-  const { body, tail } = splitSection(text, head);
-  const { sections } = parseSections(body);
+  const next = /^## /m.exec(text);
+  return {
+    sections,
+    files,
+    before: next ? text.slice(0, next.index) : text,
+    tail: next ? text.slice(next.index) : "",
+    hadLegacy: false,
+  };
+}
 
+/** Parse every fragment into one { Added: "…", … } map, in a stable order. */
+function readFragments() {
+  const sections = {};
   const files = fragmentFiles();
   for (const file of files) {
     const { sections: add, preamble } = parseSections(readFileSync(file, "utf8").trim());
@@ -135,38 +151,17 @@ function assemble() {
       sections[heading] = sections[heading] ? `${sections[heading]}\n${text}` : text;
     }
   }
-  return { text, head, tail, sections, files };
+  return { sections, files };
 }
 
-// ---------------------------------------------------------------- collect / preview
-if (cmd === "collect" || cmd === "preview") {
-  const a = assemble();
-  if (a === null) {
-    console.log(`${plugin}: no CHANGELOG.md — nothing to collect`);
+// ---------------------------------------------------------------- preview
+if (cmd === "preview") {
+  if (!existsSync(FILE)) {
+    console.log(`${plugin}: no CHANGELOG.md — nothing to preview`);
     process.exit(0);
   }
-  const { text, head, tail, sections, files } = a;
-  const body = renderSections(sections);
-
-  if (cmd === "preview") {
-    process.stdout.write(body ? `${body}\n` : `${FALLBACK}\n`);
-    process.exit(0);
-  }
-
-  if (files.length === 0) {
-    console.log(`${plugin}: no fragments in changelog.d — nothing to collect`);
-    process.exit(0);
-  }
-
-  const updated = `${text.slice(0, head)}\n\n${body}\n\n${tail}`;
-  const names = files.map((f) => f.slice(FRAGMENTS.length + 1)).join(", ");
-  if (DRY) {
-    console.log(`${plugin}: would collect ${files.length} fragment(s) into Unreleased — ${names}`);
-  } else {
-    writeFileSync(FILE, updated);
-    for (const f of files) rmSync(f);
-    console.log(`${plugin}: collected ${files.length} fragment(s) into Unreleased — ${names}`);
-  }
+  const body = renderSections(pending(readFileSync(FILE, "utf8")).sections);
+  process.stdout.write(body ? `${body}\n` : `${FALLBACK}\n`);
   process.exit(0);
 }
 
@@ -177,30 +172,36 @@ if (cmd === "roll") {
     process.exit(0);
   }
   const text = readFileSync(FILE, "utf8");
+  const { sections, files, before, tail, hadLegacy } = pending(text);
+  const body = renderSections(sections);
 
   if (versionHeading(version).test(text)) {
+    // Release notes waiting behind a version that is already published would never ship:
+    // this is the silent miss a rename once caused (the version did not move, so the
+    // notes stayed where they were). Say so instead of carrying on.
+    if (body) {
+      console.error(
+        `${plugin}: CHANGELOG.md already has a ${version} section, but release notes are still ` +
+          `waiting (${files.length} fragment(s)${hadLegacy ? " and an Unreleased section" : ""}). ` +
+          `They would never be released — the version did not move. Bump the version in plugin.json, ` +
+          `or write the notes into a release that has not been cut yet.`,
+      );
+      process.exit(1);
+    }
     console.log(`${plugin}: CHANGELOG.md already has a ${version} section — leaving it alone`);
     process.exit(0);
   }
 
-  const m = UNRELEASED.exec(text);
-  if (!m) {
-    console.error(`${FILE}: no "## Unreleased" heading — add one back, releases read from it`);
-    process.exit(1);
-  }
-
-  const head = m.index + m[0].length;
-  const { body, tail } = splitSection(text, head);
-  // An Unreleased section with no bullets means nobody claimed a user-visible change.
-  const notes = /^[-*] /m.test(body) ? body : FALLBACK;
   const date = new Date().toISOString().slice(0, 10);
-  const updated = `${text.slice(0, head)}\n\n## ${version} — ${date}\n\n${notes}\n\n${tail}`;
+  const section = `## ${version} — ${date}\n\n${body || FALLBACK}`;
+  const updated = `${[before.trimEnd(), section, tail.trimEnd()].filter(Boolean).join("\n\n")}\n`;
 
   if (DRY) {
-    console.log(`${plugin}: would roll Unreleased → ${version} — ${date}`);
+    console.log(`${plugin}: would roll ${files.length} fragment(s) → ${version} — ${date}`);
   } else {
     writeFileSync(FILE, updated);
-    console.log(`${plugin}: rolled Unreleased → ${version} — ${date}`);
+    for (const f of files) rmSync(f);
+    console.log(`${plugin}: rolled ${files.length} fragment(s) → ${version} — ${date}`);
   }
   process.exit(0);
 }
@@ -222,5 +223,5 @@ if (cmd === "extract") {
   process.exit(0);
 }
 
-console.error(`unknown command "${cmd}" — expected collect, preview, roll or extract`);
+console.error(`unknown command "${cmd}" — expected preview, roll or extract`);
 process.exit(2);

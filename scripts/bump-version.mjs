@@ -89,6 +89,16 @@ const manifestAt = (ref, name) => {
   try { return JSON.parse(raw); } catch { return null; }
 };
 
+/** Does the plugin's CHANGELOG.md already have a `## <version>` section? */
+function releasedBefore(name, version) {
+  try {
+    const text = readFileSync(join(ROOT, "plugins", name, "CHANGELOG.md"), "utf8");
+    return new RegExp(`^## +${version.replace(/\./g, "\\.")}(?:[ \\t][^\\n]*)?$`, "m").test(text);
+  } catch {
+    return false;
+  }
+}
+
 const bumped = [];
 const lines = [];
 for (const name of plugins) {
@@ -104,11 +114,20 @@ for (const name of plugins) {
   try { after = JSON.parse(readFileSync(path, "utf8")); } catch { after = null; }
 
   if (!after) { lines.push(`${name}: removed — nothing to bump`); continue; }
-  if (!before) { lines.push(`${name}: new plugin at ${after.version} — keeping its initial version`); continue; }
-  if (before.version !== after.version) { lines.push(`${name}: ${before.version} → ${after.version} (set by hand — kept)`); continue; }
+  // A plugin with no history at the base is new — unless its CHANGELOG.md already carries a
+  // section for the current version. Then it was released before under another name (a
+  // rename), and keeping the version would leave that release's notes with no release to
+  // land in, because the changelog roll skips a version that already has a section.
+  if (!before && !releasedBefore(name, after.version)) {
+    lines.push(`${name}: new plugin at ${after.version} — keeping its initial version`);
+    continue;
+  }
+  if (before && before.version !== after.version) { lines.push(`${name}: ${before.version} → ${after.version} (set by hand — kept)`); continue; }
 
   const next = bump(after.version, level);
-  const since = from === mergeBase ? "no release tag yet" : `since ${from}`;
+  const since = from === mergeBase
+    ? (before ? "no release tag yet" : "renamed — released before under another name")
+    : `since ${from}`;
   lines.push(`${name}: ${after.version} → ${next} (${level}, ${since}${DRY ? ", dry run" : ""})`);
   bumped.push({ name, from: after.version, to: next });
   if (!DRY) {
