@@ -27,21 +27,7 @@ a non-technical person can open and understand.
 | `format` | `XML` or `JSON` |
 | `customHeaders` | `Authorization: Bearer tok_xxx` (if required) |
 
-If any of these are missing, ask before proceeding — `format` with the picker (header *Format*:
-*XML* / *JSON*, the one the URL's extension or a first fetch shows first, "(Recommended)");
-`websiteUuid`, `name`, `url` and `customHeaders` are free text, asked in prose in the same reply.
-
-**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of sensible
-options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's
-`AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line
-description each, the recommended one first and marked "(Recommended)", `multiSelect: true` when
-several may apply; *Other* is added automatically for free text. Up to four independent questions
-per call; a question whose options depend on an earlier answer waits for the next call. Options
-come from what you already read, never from guesswork, and nothing the prompt, the card or an
-earlier answer already settled is asked again. Free text with nothing to suggest (a URL, a UUID)
-stays a prose question. No `AskUserQuestion` tool in the session → the same questions in prose,
-the options as a numbered list; no operator to answer at all → take the recommended option and
-record the question under OPEN QUESTIONS.
+If any of these are missing, ask before proceeding.
 
 ---
 
@@ -70,10 +56,7 @@ Go through every field in the feed and decide where it belongs:
 
 If a field's purpose is unclear, make a reasonable call and leave a comment in the code
 explaining what it is. Only stop and ask the user if you genuinely cannot determine the
-right mapping — with the picker, one question per field, up to four per call: the header is
-the feed field's name (12 characters at most, else *Mapping*), the options the destinations
-that fit what the samples show — a named native field (`oldPrice`, `brand`, …), `extraData`,
-`extraDataNumber`, `extraDataList` — the likeliest first, "(Recommended)".
+right mapping.
 
 ### Step 3 — Write the transformation code
 

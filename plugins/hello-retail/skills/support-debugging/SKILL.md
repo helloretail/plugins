@@ -43,12 +43,9 @@ the operator's answer**. It is the whole reply; there is no investigation narrat
 
 1. **Settle who, where and what** — the customer id, the website and the feature. All three, on
    every ticket, *including* when the ticket already states them: they are produced upstream by a
-   model and by an automatic lookup, and none of them is verified. Gate check 1 does this — one
-   `AskUserQuestion` call (the *Website* and *Feature* questions there), then the wait.
+   model and by an automatic lookup, and none of them is verified. Gate check 1 does this.
 2. **Ask for every gap in the same message.** A header line marked `UNRESOLVED` is a genuine gap in
-   what we know, not a formatting quirk. Ask for all of them at once, so the operator answers once:
-   the picker questions in the one call, the free-text gaps (a customer id, a URL, a search term)
-   in prose in the same reply.
+   what we know, not a formatting quirk. Ask for all of them at once, so the operator answers once.
 3. **Name the outcome** — SOLVE, ASK, HAND IT BACK, CANNOT SOLVE — in the first line. Early, not
    after a long investigation. A hand-back names *which* tool or surface is out of reach instead of
    investigating around it.
@@ -68,22 +65,6 @@ stop — reply template **B**.
 | ClickUp card, if one exists | `https://app.clickup.com/t/…` | Its **title carries the scope** — see the prefix table below |
 
 Ask for whatever is missing in the first reply — *The first reply*, above.
-
-**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of sensible
-options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's
-`AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line
-description each, the recommended one first and marked "(Recommended)", `multiSelect: true` when
-several may apply; *Other* is added automatically for free text. Up to four independent questions
-per call; a question whose options depend on an earlier answer waits for the next call. Options
-come from what you already read, never from guesswork, and nothing the prompt, the card or an
-earlier answer already settled is asked again. Free text with nothing to suggest (a URL, a UUID)
-stays a prose question. No `AskUserQuestion` tool in the session → the same questions in prose,
-the options as a numbered list; no operator to answer at all → take the recommended option and
-record the question under OPEN QUESTIONS.
-
-The gate is the exception to that last fallback: the customer, the website and the feature are
-never taken from a recommended option. No operator to confirm them → the wait stands — reply
-template **B** and nothing customer-specific.
 
 ## The brief — what it is, and what it is not
 
@@ -136,8 +117,7 @@ client-side, so a static fetch shows the page *without* the thing you are debugg
 
 If **neither** browser is connected, do not fetch the page yourself. Either ask the operator to
 enable one, or continue on the MCP alone — and say plainly in the reply that the storefront half
-is unverified. If you ask, it is a picker — header *Browser*: *Browser enabled — retry* /
-*Continue on the MCP alone*; nothing recommended.
+is unverified.
 
 **The dashboard is never a browser target.** my.helloretail.com goes through the MCP, always; the
 plugin's hook blocks it and the storefront is the only site these tools visit.
@@ -169,25 +149,6 @@ turns "which domain?" into a shortlist to pick from, and usually into a single p
 the operator choose. State what you have, ask for a one-line confirmation, and **wait** — then ask
 for everything else marked `UNRESOLVED` in the same breath, so the operator answers once.
 
-**The confirmation is one `AskUserQuestion` call of two independent questions, then the wait:**
-
-- **Website** — header *Website*: *"Customer \<id\> — which of its websites is this ticket about?"*
-  The options are the sites `website_listForCompany` returned (picking one confirms the customer
-  id with it); `multiSelect: true`, so a sister site can be added. The site the mail names or the
-  header verified goes first and is marked "(Recommended)" **only when exactly one matches**;
-  several or none → no option recommended. A header or card saying `ALL of customer N's websites`
-  / `shop.*` → the first option is *All N sites* "(Recommended)", the sites after it. More than
-  four candidates → the four that match the mail best, the rest named in the chat line before the
-  call. *Other* takes a different customer id or a my.helloretail.com URL.
-- **Feature** — header *Feature*: *"Which feature is this really about?"* The brief's `Feature:`
-  first, marked "(Recommended)" and described as the brief's classification, then the surfaces
-  the symptom could sit in (`search`, `recoms`, `pages`, `feeds`, `product-agents`, `newsletter`)
-  — at most four, the rest via *Other*.
-
-A **missing customer id** is free text, not a picker — reply template **B**, and no *Website*
-question until it is in. Nothing already settled by the ticket, the card's Customer field or an
-earlier answer is asked again, but the confirmation itself is asked on every ticket.
-
 ### 2 · Is the root cause outside what the MCP can reach?
 
 Check `references/mcp-capability-matrix.md` → **§4 Not possible**. If it is, say so immediately
@@ -216,9 +177,6 @@ The recurring false positives. Each has produced real "nothing was actually brok
 
 Mails name one symptom; the fix often spans a sister domain, a second search config, or a second
 feature on the same shared design. Widen it, or ask — do not silently deliver the narrow version.
-Asking is a picker: header *Scope*, `multiSelect: true`, the options the sister sites, configs or
-features you actually read (`website_listForCompany`, `search_listConfigs`, `recoms_list`), none
-of them recommended.
 
 **Only once all four are clear**, debug — the loop below.
 
@@ -282,11 +240,6 @@ When the operator does ask, check which publishing model the write lands in
 Several writes replace the **entire** list rather than patching it — `get*` first and send the
 complete set back, or you silently disable everything you omitted. One write per approval.
 
-The approval is an `AskUserQuestion` gate, one call per write, after the diff is in chat — header
-*Write*: *"Write this to \<key\>?"* (a model-B write: *"Live on save, no undo, serves every
-surface on \<usedByConfigKeys\> — write it?"*) — *Yes, write it* / *No, not now* (*Other* says
-what to change). No option is recommended: the choice is the operator's.
-
 ### Step 5 — Reply
 
 Pick the template in *Reply templates* that matches the outcome, and close with the three blocks
@@ -346,9 +299,6 @@ currency are plausible for the domain — and name the source in the reply.
 Read the attached card's title whenever a card exists. **Verify a single-domain prefix against the
 site list before using it:** a card created before the customer was resolved carries the sender's
 own domain (`helloretail.com - …`) or `unknown - …`, which is not a scope.
-
-Every "propose it and ask" / "show the shortlist and ask" cell above is the *Website* picker of
-gate check 1 — options from `website_listForCompany`, never a prose list of domains.
 
 **Worked example.** A company runs `example-shop.dk`, `example-b2b.dk` and `example-shop.com`. The
 mail's subject, body and screenshot all say `example-shop.com`; the attached card is titled
@@ -476,11 +426,7 @@ Regardless of outcome, finish with three blocks:
   surface on the site. Never publish, activate, archive or delete; publishing to LIVE is a person's
   step in the dashboard, on every ticket, without exception.
 - **Show the change before making it.** Read the current value, show the diff, get approval, then
-  write. One write per approval — the *Write* gate in Step 4, no option recommended.
-- **Operator questions go through the `AskUserQuestion` tool.** The gate's website and feature,
-  the scope, the browser fallback, the write approval — each a header and two to four options
-  from what you read, the recommended one first (none on a gate); free text (the customer id, a
-  URL) in prose. No tool in the session → prose with a numbered list. The gate still **waits**.
+  write. One write per approval.
 - **No dashboard automation.** Never drive a browser into my.helloretail.com — dashboard reads and
   writes go through the MCP. The storefront is fair game; the dashboard is not.
 - **API logging captures shoppers' personal data.** Switching it on with `apiLog_setLogging`

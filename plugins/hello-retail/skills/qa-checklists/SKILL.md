@@ -36,18 +36,6 @@ under `references/` — load only the ones in scope.
 If only a feature name is given, you can still print the relevant checklist for manual use —
 ask for the domain (and the card) only if the user wants you to verify items yourself.
 
-**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of
-sensible options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's
-`AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line
-description each, the recommended one first and marked "(Recommended)", `multiSelect: true`
-when several may apply; *Other* is added automatically for free text. Up to four independent
-questions per call; a question whose options depend on an earlier answer waits for the next
-call. Options come from what you already read, never from guesswork, and nothing the prompt,
-the card or an earlier answer already settled is asked again. Free text with nothing to
-suggest (a URL, a UUID) stays a prose question. No `AskUserQuestion` tool in the session → the
-same questions in prose, the options as a numbered list; no operator to answer at all → take
-the recommended option and record the question under Manual checks for the operator.
-
 ## Checklist index — load per feature
 
 | Feature / area | File | Covers |
@@ -67,13 +55,6 @@ the recommended option and record the question under Manual checks for the opera
 
 Confirm which features are in scope (a normal onboarding QA = every feature the customer bought).
 Read only the matching reference files.
-
-Unless the prompt already names the scope, ask it with one `AskUserQuestion` call — header
-*Features*, `multiSelect: true`: the options are the areas of the checklist index (*Search*,
-*Recommendations*, *Pages*, *Setup & Data*, *Retail Media*) — the four the prompt and, when
-already read, the card's `Features` field make likely, the likeliest first and marked
-"(Recommended)"; name a fifth in the chat line before the call (*Other* reaches it). It may
-share the call with the *Card* confirmation of Step 1.5 when both are open.
 
 ### Step 1.5 — Ticket context (the ClickUp card)
 
@@ -104,16 +85,11 @@ ladder and record which rung you landed on:
    when in doubt, paste more; you filter the noise). Build the same brief either way.
 3. **No card** — only when the operator explicitly confirms there is none (internal/demo
    shop, ad-hoc re-verification) → proceed, and the report header must say so (below). Never
-   treat silence as tier 3 — ask: one `AskUserQuestion` call, header *Card*, *"No ClickUp
-   card was given — is there one?"* — *There is one — I'll paste it* (URL / id via *Other* or
-   the next message) / *No card — internal or demo shop*; no option marked recommended.
+   treat silence as tier 3 — ask.
 
 If no URL was given and a ClickUp MCP is connected, **auto-discover**: search ClickUp for the
-registrable domain (e.g. `example-shop`), offer the matching cards in one `AskUserQuestion`
-call — header *Card*, one option per match (title as the label, **its list name** and status
-as the description, at most four; name the rest in the chat line), the match in the
-Onboarding list first and marked "(Recommended)", *Other* for "none of these" — and use the
-one they confirm. Never adopt an unconfirmed match —
+registrable domain (e.g. `example-shop`), show the operator the matching card title(s) **with
+each card's list name**, and use the one they confirm. Never adopt an unconfirmed match —
 customers accumulate cards across lists, and grading against the wrong card is worse than
 grading blind.
 
@@ -124,9 +100,7 @@ with an onboarding running on staging — a live-site bug card describes differe
 different surface, and grading the staging build against it mis-grades in both directions. If
 the card in hand (supplied or discovered) is **not** in the Onboarding list, or its
 title/description clearly targets a different surface than the one under QA, **stop and
-ask** — `AskUserQuestion`, header *Card type*: *Switch to the Onboarding card (Recommended)*
-(its URL / id via *Other*, or auto-discovery) / *Keep this card — QA scoped to its fix* —
-before grading against it — a Bug/Task card is the right context
+confirm with the operator** before grading against it — a Bug/Task card is the right context
 only when the QA is explicitly scoped to that fix. Record the card's list name in the brief's
 QA-surface section.
 
@@ -265,10 +239,7 @@ domain on multi-domain runs) with these sections, every entry citing author + da
   the card. **Confirm the target before anything renders, and never pick it by judgment:**
   extract it from the description AND the newest comments (the supersede rule applies — a
   comment moving the work to/from staging wins over the description), and when the two
-  disagree or the answer is ambiguous, **ask the operator** with `AskUserQuestion` — header
-  *QA surface*, one option per candidate URL read from the card (its source and date as the
-  description: "description dd/mm", "comment by <author> dd/mm"), the one the supersede rule
-  favours first and marked "(Recommended)" — an entire QA run has been
+  disagree or the answer is ambiguous, **ask the operator** — an entire QA run has been
   dispositioned because it ran on the live site while the description named the staging site
   (store-NO-1, 2026-08), and the same ambiguity recurred on store-CH
   ("store-CH or ps8?"). The report Summary carries the resolution as its own line:
@@ -397,11 +368,7 @@ API-based — that's why Signal 1 is the strongest:
   API-log item remains on their manual list.
 - **Unclear** — nothing renders even after the widget enable AND you can't resolve why (MCP
   coordinates are missing, signals conflict, or custom designs exist but nothing renders):
-  **ask the operator** whether the feature is API-based and whether you should test it — one
-  `AskUserQuestion` call, header *Delivery*: *Script-rendered — walk it* / *API-based — skip it*
-  (recorded `SKIPPED — API-based`) / *Unsure — walk it anyway*, the option the strongest
-  available signal supports first and marked "(Recommended)", the signals for and against in
-  the descriptions.
+  **ask the operator** whether the feature is API-based and whether you should test it.
 
 ### Step 2.2 — Detect client-side routing (is the storefront an SPA?)
 
@@ -495,9 +462,7 @@ Then fix the remaining inputs:
   `productData_get` — this triggers the mandatory "Dual VAT prices" block in
   `references/product-tile.md`), wishlist/favourites, "log in to see price" / member prices,
   personalised recommendations, gated content or assortments. If any are present, **stop and
-  ask the operator whether to also run a logged-in pass** — `AskUserQuestion`, header
-  *Login pass*: *Guest only (Recommended)* / *Guest + logged-in — I log in myself*, the signals
-  you saw in the descriptions — never assume yes, and never run
+  ask the operator whether to also run a logged-in pass** — never assume yes, and never run
   one silently: logging in to a real customer account on a live shop has real consequences
   (actual wishlist state, actual cart contents), and on B2B/per-group-pricing shops a
   guest-only run can grade the wrong price as "correct". The rules around the answer:
@@ -764,9 +729,7 @@ browser tool), and before any widget interaction:
    captures must never persist.
 2. If not logged in, **pause and ask the operator to log in themselves** in that browser
    window (never enter credentials yourself — handling the operator's password is prohibited).
-   Wait for their answer — `AskUserQuestion`, header *HR login*: *Logged in — continue* /
-   *Can't log in now* (point 3 below); no option marked recommended — re-check
-   `my.helloretail.com`, then continue the pass.
+   Wait for their confirmation, re-check `my.helloretail.com`, then continue the pass.
 3. If the operator can't log in right now, still run the pass — but every widget-gated check
    (enabling drafts, reading Show states, the Step 2 not-listed diagnostic) is recorded as
    **SKIPPED — not logged in to Hello Retail**, never silently omitted, and the report says so
@@ -914,11 +877,7 @@ presented as gating handoff. Reserve ❌ for things that are broken, wrong, or l
 customer's own page. When you're unsure whether a difference is intentional, **check the ticket
 brief first** (Step 1.5) — a Decision there grades it PASS (by spec), a Declined entry grades it
 N/A, each with its citation; only when the ticket is silent **ask the operator** rather than
-guessing a severity — one question beats a mis-graded finding. Ask it with `AskUserQuestion`:
-header *Verdict*, the observed difference (page, fixture, native vs HR) in the question, the
-options from the verdict vocabulary — *By design — PASS (by spec)* / *Defect — FAIL* /
-*Cosmetic — Notes for the developer* / *Undecided — WARN + operator item* — the one the
-evidence favours first and marked "(Recommended)"; up to four such findings per call.
+guessing a severity — one question beats a mis-graded finding.
 
 **Grade every Issues Found entry on the shared severity scale** — two runs of the same domain
 on two machines must land on the same words: **Blocker** (feature broken or attribution dead —
@@ -1363,8 +1322,6 @@ prior report for the same domain + feature exists in `QA/[customer]/` — **or t
 supplies one produced elsewhere** (another machine, another operator's laptop, an attached
 file — including a file outside the repo entirely, e.g. the operator's own Downloads folder;
 `ls`/`grep` over `QA/` will never find that one, so always ask "has anyone else run this QA?"
-— `AskUserQuestion`, header *Prior QA*: *None that I know of (Recommended)* / *Yes — I'll
-supply it* (path via *Other*) —
 rather than trusting a clean repo search as proof none exists) — read it first and give each of
 its findings an explicit disposition in the new report: **CONFIRMED** (re-verified with fresh
 rendered evidence — "code unchanged since last run" is not confirmation of a rendered finding),

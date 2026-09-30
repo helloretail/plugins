@@ -86,18 +86,6 @@ first; create the folder only if that search comes back empty.
   if the widget is unavailable, ask for another preview method
 - Optionally: specific areas to focus on
 
-**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of
-sensible options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's
-`AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line
-description each, the recommended one first and marked "(Recommended)", `multiSelect: true`
-when several may apply; *Other* is added automatically for free text. Up to four independent
-questions per call; a question whose options depend on an earlier answer waits for the next
-call. Options come from what you already read, never from guesswork, and nothing the prompt,
-the card or an earlier answer already settled is asked again. Free text with nothing to
-suggest (a URL, a UUID) stays a prose question. No `AskUserQuestion` tool in the session → the
-same questions in prose, the options as a numbered list; no operator to answer at all → take
-the recommended option and record the question under Manual checks for the operator.
-
 ## Multi-domain mode
 
 If the user provides **more than one URL/domain** — separate TLDs (`example.dk` + `example.se`)
@@ -160,9 +148,8 @@ untouched shared standard design (`standard: true`) and the company has **zero c
 the recoms are almost certainly **API-based** — corroborate via the raw storefront HTML (the
 customer's own components fed by HR data, no `.hr-product` markup) and tell the operator you're
 skipping the rendered QA per the decision rule (`SKIPPED — API-based`). Ask the operator when
-the signals conflict — `AskUserQuestion`, header *Delivery*, the options and the recommendation
-from that decision rule (`../qa-checklists/SKILL.md` Step 2). Only **LIVE** boxes count for
-the nothing-renders signal — a draft-only setup is a pre-launch onboarding, not API-based.
+the signals conflict. Only **LIVE** boxes count for the nothing-renders signal — a draft-only
+setup is a pre-launch onboarding, not API-based.
 
 **Determine the QA target — Draft / Internal Review first.** This QA normally runs *before*
 publish, so unpublished work is the primary target:
@@ -181,8 +168,7 @@ pending changes renders the **old published version**, not the draft. But DRAFT 
 testable on the live site. The widget requires a Hello Retail login in the browser session, so
 run the **HR login preflight** from `../qa-checklists/SKILL.md` Step 3 once, right after
 opening the browser: check `https://my.helloretail.com`; if it redirects to a login screen,
-ask the operator to log in in that window (never enter credentials yourself; the *HR login*
-picker of that step takes their answer) before touching
+ask the operator to log in in that window (never enter credentials yourself) before touching
 the widget. That root-URL probe is the only my.helloretail.com navigation allowed — leave
 immediately; the `/company/…` dashboard and `/supervisor/…` UI are off-limits to automation. Then: **click `#addwishPageAdd` to open the on-site HR widget, then switch
 the Show toggle ON for every Recom/Search solution listed under `#addwish-panel-root` — leave
@@ -207,8 +193,7 @@ what covers the drafted changes; never present the rendered result as QA of that
 > live in the card and its reply threads. The brief drives the step-1 card cross-check and the
 > grading — `PASS (by spec)` / `N/A (declined in ticket)` / `KNOWN — pending [owner/ETA]`, each
 > with its comment citation — and its extra checks join the coverage manifest. If the card is
-> vague on a point you need, one clarifying question is fine (`AskUserQuestion` when the card's
-> own text supplies the options, prose otherwise) — but never block the QA on it:
+> vague on a point you need, one clarifying question is fine — but never block the QA on it:
 > run full coverage and record the ambiguity as WARN + operator question.
 
 ### 1. Crawl all standard placement pages and map every recom box
@@ -379,12 +364,9 @@ the actual container width, not the viewport.
 > ATC at all, so an absent one is not a tracking finding (see the CTA rules). Judge it against the
 > **drawer**, and against the theme's own complementary-products block if it has one — never
 > against the category grid. Where intent isn't obvious, **ask the operator** instead of logging a
-> finding — `AskUserQuestion`, header *Upsell*, the observed deviation in the question, options
-> *By design — PASS (by spec)* / *Defect — log it* / *Undecided — WARN + operator item*, the one
-> the evidence favours first and marked "(Recommended)". Do still check: does it fit the
-> container without overflow, is text unclipped at the drawer's real width, are prices/badges
-> correct, and is the requested image width sane for a tiny slot (a 70px thumbnail asking for a
-> 596px source is a real ~8.5× waste).
+> finding. Do still check: does it fit the container without overflow, is text unclipped at the
+> drawer's real width, are prices/badges correct, and is the requested image width sane for a tiny
+> slot (a 70px thumbnail asking for a 596px source is a real ~8.5× waste).
 
 Build a **Recom Box Inventory** table: one row per unique box id, marking which page types it
 appears on. The same box id on multiple pages uses the same design — an issue found once applies
@@ -1323,9 +1305,7 @@ Decisions / Declined / Known-open land in the customer's living hand-off documen
   so record the OS and input device you tested with, and don't grade PASS from one of them
   alone. The same QA also flagged the box as "too fast" next to the native slider; that turned
   out to be the intended one-view-per-step default, not a bug — hence the record-don't-grade
-  rule in the Carousel checklist. Ask before grading speed — `AskUserQuestion`, header
-  *Slider speed*: *Record as NOTE — intended default (Recommended)* / *WARN — match the native
-  slider*.
+  rule in the Carousel checklist. Ask before grading speed.
 
 ## REFERENCES
 

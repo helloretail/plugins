@@ -35,18 +35,17 @@ only the real browser sees the final DOM, so a static fetch returns an incomplet
 
 ## When neither browser MCP is connected
 
-Do not fetch the page yourself. Ask the operator with `AskUserQuestion`, header *Browser*: *"No browser
-MCP is connected — how do we get the tile?"* — the two options below, each with its one-line description:
+Do not fetch the page yourself. Ask the operator to either:
 
-1. **Enable a browser MCP (Recommended)** — Playwright: the `playwright*` servers need the one-time
+1. **Enable a browser MCP** — Playwright: the `playwright*` servers need the one-time
    `browser-login` setup (`${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md`); Claude in Chrome:
    install the extension and run `/chrome` (macOS only). Preferred, so the skill can survey every
    tile state itself; or
 2. **Paste the raw tile HTML** from a category page (one full product card; ideally a couple of
    variants — a normal tile and a sale / sold-out tile). Then build from the pasted markup.
 
-When working from pasted HTML you cannot survey the live page, so explicitly ask the operator — in
-prose, the answer is pasted markup — for any states you can't see (sale, sold-out, badges, ratings, swatches, hover image) — specifically ask
+When working from pasted HTML you cannot survey the live page, so explicitly ask the operator for any
+states you can't see (sale, sold-out, badges, ratings, swatches, hover image) — specifically ask
 for one tile copied from the **New/New Arrivals** page and one from the **Sale/Offers/Outlet**
 page, since those pages carry the label types a single category page hides — and flag in your
 response anything you had to assume. Never substitute a WebFetch / curl fetch for either path.
