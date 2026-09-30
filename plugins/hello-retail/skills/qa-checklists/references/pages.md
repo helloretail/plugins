@@ -46,6 +46,10 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
   HR's blue; prev/next arrows are styled like the number buttons and have the **same rendered
   height** (SVG-only buttons come out shorter unless the design fixes the height); the row is
   centred and fits a phone width. Fix: `pages-developer` step 4g.
+- [ ] Numbered pagination with ellipsis (when the shop wants `1 2 3 … 20`): click page 1, next a few
+  times, a middle page, the last page, prev twice — exactly one active page at every step, `…`
+  only where pages are skipped, prev hidden on page 1 and next on the last page, no gaps
+  around the `…`, one row at phone width. Fix: `pages-developer` step 4h.
 - [ ] Navigate to a new page → can't open the filter
 - [ ] Main menu: when opened, icons/wishlist button pop up on top of the menu window
 - [ ] Mobile/tablet: not responsive / design breaks at those widths
