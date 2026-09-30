@@ -398,6 +398,33 @@ next click still adds one page, no duplicate products across clicks, and on the 
 whole block disappears. Pagination must not render in this mode, and the base's loading
 image (`img[alt="loading"]`) must be hidden at every step — idle, during a click and after.
 
+4j. **Equal-height tiles in a row — standard on every grid build.** Field-proven 2026-09-30.
+   The base product container is a wrapping flex row, so every cell (the design's
+   `.aw-infinite-search-results__item.hr-product` wrapper) already stretches to the tallest
+   cell of its row — but the customer's card inside it keeps its own content height. One
+   tile with more content (a sale price pair with a "save" line, a two-line badge, a longer
+   title) then makes its card visibly taller than its neighbours while their borders stop
+   short. Make the card fill its cell; no display change on the cell, no fixed heights:
+
+   ```css
+   .hr-pages-container .hr-grid .aw-infinite-search-results__item.hr-product > :last-child {
+   	height: 100%;
+   	box-sizing: border-box;
+   }
+   ```
+
+   `:last-child` is the spliced tile root — it follows the SEO microdata prefix, the
+   `offers` span and the overlay link, which are all out of flow. If the tile root is not
+   the wrapper's last child, target its own class instead. `box-sizing` keeps a bordered
+   card from growing past the cell. If the shop pins something to the card bottom (an
+   add-to-cart button, a stock line) and the native grid aligns those across a row, that is
+   the tile's own layout — mirror the shop's rule (typically the card as a flex column with
+   the pinned element on `margin-top: auto`), never invent one.
+
+   Verify on-site with enough products loaded to include the tallest variant (load more or
+   page until a sale/badge tile shares a row): in every row, all cards have the same
+   rendered height and none is taller than its cell, at 1440, 1024 and 375 px.
+
 5. **Filters & sorting.** Read the current facets with `pages_getDesignFilters` /
    `pages_getDesignSorting`, then write with `pages_updateDesignFilters` /
    `pages_updateDesignSorting` — enable the flag only when configuring real settings,

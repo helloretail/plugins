@@ -157,7 +157,10 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
 
 - [ ] Total amount of products differs from the customer's own pages
 - [ ] Not shown on some category pages (finds 0 products…)
-- [ ] Make sure the tiles have the same height
+- [ ] Make sure the tiles have the same height — measure a row that contains the tallest variant
+  (sale price pair, badge, long title): every card in the row reaches the same bottom edge at
+  1440/1024/375, none taller than its cell. Uneven cards = the card does not fill its stretched
+  cell. Fix: `pages-developer` step 4j.
 - [ ] When 0 products… starts to act strange
 - [ ] When 0 products shown… all selected filters are no longer shown
 - [ ] When 0 products… only shows navigation arrows
