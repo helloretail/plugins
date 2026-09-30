@@ -46,12 +46,14 @@ const FALLBACK = "Maintenance release — no user-visible changes.";
 /** The only headings a release section may carry, in the order they are published. */
 const SECTIONS = ["Added", "Changed", "Fixed", "Removed"];
 
+/** Every regex metacharacter, so a version string can be dropped into a pattern verbatim. */
+const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 /**
  * Heading that opens a release section, e.g. "## 1.2.3 — 2026-09-08". Matches the whole
  * heading line so the date does not leak into the section body.
  */
-const versionHeading = (v) =>
-  new RegExp(`^## +${v.replace(/\./g, "\\.")}(?:[ \\t][^\\n]*)?$`, "m");
+const versionHeading = (v) => new RegExp(`^## +${escapeRegExp(v)}(?:[ \\t][^\\n]*)?$`, "m");
 const UNRELEASED = /^## +Unreleased *$/m;
 
 /**
