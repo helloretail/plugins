@@ -51,7 +51,7 @@ For now this is the **only** color token to change. Leave `button_icon_colors`, 
 
 Convert to a hex string. If the site is genuinely monochrome (black/white) use that (e.g. `#000000`) — that's a real choice, not the placeholder.
 
-**If you cannot confidently determine the brand color, do NOT guess and do NOT leave `#F13658` — ask the operator.** Phrasing:
+**If you cannot confidently determine the brand color, do NOT guess and do NOT leave `#F13658` — ask the operator.** With `AskUserQuestion` when the survey measured candidates that disagree — header `Brand color`, one option per measured hex (its source in the description: CTA background, `theme-color` meta, logo), none recommended, *Other* takes another hex. Nothing measured → the same question in prose:
 
 > "I couldn't pin down the brand/accent color from the storefront. What hex should `primary_shop_color` be? (I won't ship the `#F13658` placeholder.)"
 
@@ -71,7 +71,7 @@ The base scaffold's overlay background is a light blue-gray (`{# color backgroun
 
 > **Overlay variants only (desktop & mobile).** The `desktop-embedded` variant renders results inline in a page container and has no overlay header bar — **skip header matching entirely for embedded.** If the operator asked for it on an embedded build, tell them it doesn't apply.
 
-The HR overlay's header is fully configurable via `{# color … #}` and `{# text … #}` declarations in `resultStyles`. **Only do this when the operator opts in** — always ask the `match-header` question up front (see the SKILL.md preconditions gate). If they say no, leave the `resultStyles` header declarations at their base defaults and do nothing here.
+The HR overlay's header is fully configurable via `{# color … #}` and `{# text … #}` declarations in `resultStyles`. **Only do this when the operator opts in** — always ask the `match-header` question up front (see the SKILL.md preconditions gate: `AskUserQuestion`, header `Header`, *Match the site header* / *Keep the base header*, none recommended; on yes, header `Foreground` in the call after — *Adjust input text, icon and close button for contrast* / *Keep the base foreground*). If they say no, leave the `resultStyles` header declarations at their base defaults and do nothing here.
 
 This is **not tile CSS authoring** — you are changing header-level declaration values and adding HR-overlay-scoped overrides, not touching the product tile.
 
@@ -94,7 +94,7 @@ Change these four declaration values in the `{# section Colors #}` / `{# section
 
 For a **light-colored header**, keep borders/search-bar in a slightly darker tint of the brand color instead of white-alpha — adjust to taste. For a **white or near-white header**, no change is needed (base defaults are already white).
 
-> **Header height:** The base default of `150px` is often too tall. Ask the operator: *"The base header height is 150px — do you want me to reduce it? (The native header on this site is ~Xpx)"*. If yes, set `header_height_px` to a value close to the site's natural header height (typically 80–110px).
+> **Header height:** The base default of `150px` is often too tall. Ask the operator with `AskUserQuestion` — header `Header size`, the question *"The base header height is 150px — do you want me to reduce it? (The native header on this site is ~Xpx)"*, options *Reduce to ~Xpx (Recommended)* (the measured native height in the description) / *Keep 150px*, *Other* for another value. If yes, set `header_height_px` to a value close to the site's natural header height (typically 80–110px).
 
 ### Step 3 — Add foreground overrides for dark/colored backgrounds
 
@@ -138,11 +138,11 @@ When the header background is **dark or strongly colored**, the default dark tex
 
 For a **light-colored header**, use dark text (`#000000` or the brand dark) instead of white. Adjust `rgba(255,255,255,…)` values accordingly.
 
-**Only add this block when the operator confirmed they want foreground contrast adjustments.** If they said no, skip Step 3.
+**Only add this block when the operator confirmed they want foreground contrast adjustments** (the `Foreground` picker, asked after `match-header` = yes). If they said no, skip Step 3.
 
 ### Self-check for header matching
 
-- [ ] Operator explicitly asked about `match-header` before generation started.
+- [ ] Operator explicitly asked about `match-header` before generation started (the `Header` picker).
 - [ ] `header_background_color_rgba` set to the exact detected/supplied color (not a guess).
 - [ ] `header_border_color` and `search_bar_background_color` updated to a matching subtle tint.
 - [ ] `header_height_px` discussed with operator if the default 150px looks oversized.
@@ -154,7 +154,7 @@ For a **light-colored header**, use dark text (`#000000` or the brand dark) inst
 
 The base already **inherits the font family** from the page (`.hr-overlay-search { font-family: inherit; }` in all three variants), but it hard-codes the **sizes and weights** of its own chrome — desktop section headings at `32px / 800`, results and content text at `14px`, mobile tab titles and the `18px / 600` tab subtitle — and a site whose heading font is applied through `h1`/`h2` selectors or a heading class never reaches those elements. So "match" is a real change and "default" is the base. This is **not** about the tile: the reproduced `{{ TILE_BODY }}` carries the customer's own classes and already matches.
 
-**The question (Q4, round 2, both devices):** *"Headings and text inside the search: match your site's fonts (family, size, weight), or keep Hello Retail's default?"* Not stated → ask. "Default" → write nothing. "Match" → the three steps below, per variant in scope.
+**The question (Q4, round 2, both devices):** *"Headings and text inside the search: match your site's fonts (family, size, weight), or keep Hello Retail's default?"* — `AskUserQuestion`, header `Typography`, *Keep the default* / *Match the site's fonts*, none recommended. Not stated → ask. "Default" → write nothing. "Match" → the three steps below, per variant in scope.
 
 ### Step 1 — Measure on the category page, by computed style
 

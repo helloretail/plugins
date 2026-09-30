@@ -162,9 +162,11 @@ Some storefronts let the mouse wheel (or a trackpad's vertical swipe) move their
 
 No instance found but the slider looks wheel-scrollable (another library, or the instance isn't on the element)? Hover the slider and scroll the wheel in the Playwright browser: the slider moving while the page stays put means wheel scroll is on. A slider that only moves with a trackpad's *sideways* swipe or shift+wheel is a native scroll container — that's the `cssMode` route above, not this one.
 
-**2. Ask.** When any customer slider reports `mousewheel: true`, ask the operator once, before building the shell (Step 4), naming what you found:
+**2. Ask.** When any customer slider reports `mousewheel: true`, ask the operator once with `AskUserQuestion` (header *Wheel scroll*), before building the shell (Step 4), naming what you found in the question:
 
-> The shop's own slider `<slider>` on `<page>` scrolls with the mouse wheel. Enable mouse-wheel scroll on the Hello Retail recoms too? (yes / no)
+> The shop's own slider `<slider>` on `<page>` scrolls with the mouse wheel. Enable mouse-wheel scroll on the Hello Retail recoms too?
+
+Options: *Yes, mirror the shop's slider* / *No, arrows and drag only*.
 
 No wheel-scrolling slider → don't ask, change nothing. Running without an operator to answer (as a subagent) → don't enable; put the question under OPEN QUESTIONS.
 

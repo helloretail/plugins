@@ -14,6 +14,37 @@ push, so the draft design has a box to render in for Step 7.5.
 Same governance as a design push: **read → plan → show → explicit go-ahead → write → read back.**
 Every write lands as a **DRAFT** and nothing here can publish.
 
+## How to ask — the `AskUserQuestion` tool, in rounds
+
+Every question below goes through Claude Code's **`AskUserQuestion`** tool: a header, two to four options with a one-line
+description, the recommended option first and marked "(Recommended)", and the automatic *Other*
+for anything else — never a prose question the operator answers in a paragraph. The tool shows
+the questions of one call one at a time, so a call may hold **up to four questions that don't
+depend on each other**; a question whose options come from an earlier answer waits for the next
+call. The options come from what you already read — the page's *Section map*, the best-practice
+list, the shop's own slider — never from guesswork. The rounds:
+
+| Round | Questions in the call | Options come from |
+|---|---|---|
+| **A** — the set | Which recoms, on which pages (step 2) | the page types; the card's text and the step 1 boxes in the descriptions |
+| **B** — per box: where | Placement (step 3) | the page's *Section map* — its likely spots, plus "the customer places the div" |
+| **C** — per box: the spot | Confirm the previewed spot; category box: hide below N, hide while filtered / sorted (step 3) | fixed |
+| **D** — per box: what | Algorithm (step 4; `algorithm-intake.md` §1) | `recoms_listBestPracticeAlgorithms` for the page type |
+| **E** — per box: left open | Fallback, stock, exclusions, price — only the ones the words left open (`algorithm-intake.md` §3) | fixed |
+| **F** — per box: the rest | Read-back yes / no (`algorithm-intake.md` §4); heading; cart / upsell: free-shipping offer; product count (step 4) | the slider survey, the shop's section heading |
+| **G** — per page | Load order, when several boxes share a page (step 4) | the boxes |
+| **H** — the plan | Go-ahead for the plan table (step 5) | fixed |
+
+Rounds B–F run for **one box at a time — finish a box before starting the next**. Skip a question
+the prompt, the card's text or an earlier answer already settled, and say what you took. Round E
+is skipped when nothing is open. Any other yes / no or pick-one question this procedure raises —
+`REPLACE` confirmation, hide by selector or by JS guard (`mcp-flow.md`) — is asked the same way;
+free text with nothing to suggest (a free-shipping threshold, a URL) is asked in prose.
+
+**No `AskUserQuestion` tool in the session** (a subagent, the SDK) → the same questions in prose,
+one per message, the options as a numbered list. No operator to answer at all → don't ask: take
+the recommended option and list the question under OPEN QUESTIONS.
+
 ## 1. Read what exists (silent — no questions yet)
 
 - **The inventory.** `recoms_list(websiteUuid)`, then for each LIVE/DRAFT box:
@@ -30,32 +61,45 @@ Every write lands as a **DRAFT** and nothing here can publish.
   The card's placement information is mostly **screenshots — never derive a placement from
   them.** At most, a screenshot tells you which page to ask about.
 
-## 2. Ask: which recoms, on which pages
+## 2. Ask: which recoms, on which pages — round A
 
-With a card, show its list as a pre-fill and ask the operator to confirm or correct it:
+One call, one question, `multiSelect: true`, header *Recoms*: *"Which recoms should this
+onboarding set up?"* The options are the page types — *Front page*, *Product page*, *Category
+page*, *Cart / upsell* — each described with what the card's text says for it ("card: 2 boxes —
+Alternatives, Others also bought") and which step 1 box already exists there ("existing:
+`front-page-1`, LIVE — kept as is"). Picking a page accepts the count in its description (the
+card's, else one box); a different count, another page (search results, 404) or a change to an
+existing box goes in *Other*. With a card, the chat line before the call says its set is the
+suggestion. Existing boxes the operator didn't pick are left alone — say so.
 
-> The card mentions 4 recoms: front page, product page ×2, cart. Is that the set?
+Nothing about placement or algorithms yet: those options need the pages first.
 
-Without a card, ask: *"How many recoms, and on which pages?"* Existing boxes from step 1 count
-toward the set — say which already exist.
+## 3. Ask: where does each recom go — placement first (rounds B and C)
 
-## 3. Ask: where does each recom go — placement first
+**One box at a time, and placement before anything else about that box** — the algorithm,
+heading and count wait until the spot is confirmed.
 
-**One question per box, before anything else about that box.** Ask it in these words:
+**Round B — the placement question, with the page's own sections as the options.** Open a page
+of the box's type in the browser MCP first — the homepage; the surveyed category; a product from
+it; the cart after adding that product — and run *Section map* (`placement-snippets.md`). Then
+one call, header *Placement*: *"Where should the \<page\> recom go?"* The options are the two or
+three spots where a recom usually sits on that page type (PDP: below the product details or the
+shop's own related-products slider; front page: below the hero or the featured products;
+category: below the grid; cart: below the cart lines), each named by the section and the side —
+*After "You may also like"*, *Before the newsletter block* — with the section's position in the
+description ("section 4 of 9"); the one that matches the shop's own related-products slider, or
+the card's text, goes first as "(Recommended)". The last option is always *The customer places
+the div*. *Other* takes a CSS selector, another section, or a different page URL. No usable
+section map (a one-block page, a cart drawer) → ask in prose for a selector or a section name.
 
-> Where should the **\<page\>** recom go? Give me a page URL and one of:
-> a CSS selector · the heading or section it should sit next to (and before / after it) ·
-> or "the customer will place the div".
-
-Resolve the answer on the live page with the browser MCP — the snippets are in
-`placement-snippets.md`:
+Resolve the answer on the live page — the snippets are in `placement-snippets.md`:
 
 | The operator gives | Do |
 |---|---|
 | **A CSS selector** | Run *Verify a selector*. It must match exactly one visible element, again after a hard reload, and on 2 more pages of the same type. A volatile selector (Shopify's numeric section IDs, hashed classes, `:nth-child`) is rewritten to its stable form — say so. |
 | **A heading, section name or visible text** ("below *You may also like*", "above the newsletter block") | Run *Find the section by its text* → the section that holds it, with candidate selectors ranked by stability. Take the most stable one that matches exactly one element, then verify it as above. |
 | **"The customer will place the div"** | Keep the default `#hr-recom-<key>`. Its `placementDivExample` goes into the hand-off with the page it belongs on. |
-| **Nothing matches, or the answer is vague** | Run *Section map* and show the page's sections as a numbered list (heading and position). Ask: *"Which one — and before or after it?"* |
+| **Nothing matches, or *Other* is vague** | Show the full *Section map* as a numbered list (heading and position) and ask again — the next most likely sections as the options, *before* / *after* in the labels. |
 
 Then settle the rest of the placement from the same answer:
 
@@ -78,55 +122,71 @@ Then settle the rest of the placement from the same answer:
   token, and doesn't sit in a hidden container. Otherwise it is **temporary**: it goes in the
   hand-off with "move to the `#hr-recom-<key>` div once the customer places it".
 
-**Category boxes — ask about hiding.** Right after the placement, ask:
+**Round C — confirm the spot, and for a category box the hide conditions.** Run *Preview the
+spot* (a dashed marker, in your browser only — a reload removes it), screenshot it into
+`QA/screenshots/`, and ask in one call:
 
-> Should this recom hide on categories with fewer than **N** products (e.g. 8 or 12)? And while a
-> filter is selected — or a sort?
+1. Header *Spot*: *"Is the marked spot right?"* — *Yes, that's the spot* / *No, move it*
+   (*Other* says where).
+2. Category box only, header *Hide small*: *"Hide this recom on categories with few products?"*
+   — *Don't hide* / *Hide below 8 products* / *Hide below 12 products* (*Other* = another number).
+3. Category box only, header *Hide filter*: *"Hide it while a filter or sort is active?"* —
+   *No* / *While a filter is active* / *While a filter or a non-default sort is active*.
 
-On yes, find on the live category the product tile, the page scope and the "filter active" signal,
-build the conditions into the placement selector, and run *Check the hide conditions*
-(`placement-snippets.md`) on a big category, a small one and a filtered one before it goes into the
-plan. The pattern, the preconditions and the fallback for themes that filter without a reload are
-in `mcp-flow.md` → *Hiding a category recom*.
+"Move it" → resolve again, preview again, ask question 1 again on its own. Several boxes on one
+page: when the later one is placed, preview them together, so their order is visible.
 
-**Show the spot before you move on.** Run *Preview the spot* (a dashed marker, in your browser
-only — a reload removes it), screenshot it into `QA/screenshots/`, and ask the operator to
-confirm. Several boxes on one page: preview them together, so their order is visible.
+On a hide answer, find on the live category the product tile, the page scope and the "filter
+active" signal, build the conditions into the placement selector, and run *Check the hide
+conditions* (`placement-snippets.md`) on a big category, a small one and a filtered one before it
+goes into the plan. The pattern, the preconditions and the fallback for themes that filter without
+a reload are in `mcp-flow.md` → *Hiding a category recom*.
 
-## 4. Ask: what each recom shows
+## 4. Ask: what each recom shows (rounds D–G)
 
-- **Algorithm — ask how the recom should pick its products.** Offer the best-practice algorithms
-  for the page type as a numbered list, with a suggestion, and take an answer in the operator's own
-  words just as well. Translate the words into steps, ask only the follow-ups they leave open
-  (fallback, stock, exclusions, price), read the result back in plain words and get a yes.
-  → **`algorithm-intake.md`** §1–4. The write is step 7.
-- **Heading** — ask for every box: *"What should the heading be for the \<page\> recom?"* Suggest
-  one in the shop's language — the heading of the shop's own section the box replaces or sits next
-  to (the slider survey's `heading`), or a plain one for the algorithm ("Others also bought") —
-  and let the operator confirm or change it. It becomes the value of the box's
-  `{% input headline %}` field.
-- **Cart and upsell boxes — offer a free-shipping heading.** Ask: *"Should this heading show how
-  far the shopper is from free shipping — e.g. 'Add 120 kr. more for free shipping'?"* On yes, ask
-  the threshold, the text below it (with `{amount}`), the text once reached, and — non-Shopify —
-  where the page shows the cart subtotal. The build is `free-shipping-heading.md`; the normal
-  heading above stays as its fallback. On no, the plain heading only.
-- **Load order** — only when several boxes share a page: which gets products first (step 6).
-- **Product count — how many products the box holds.** A **general setting**, not part of the
-  algorithm: asked here on its own, written in step 6 with `recoms_updateGeneralSettings`, never
-  through `recoms_updateAlgorithm`. Run *Survey the shop's own sliders*
-  (`placement-snippets.md`) on the page the box goes on — homepage and PDP placements usually have
-  one. Then:
-  - **The shop has a product slider there** → its `products` is the default. Say where it came
-    from and let the operator change it:
+Three calls per box, in this order: **D** the algorithm; **E** the follow-ups its answer left
+open; **F** the read-back, the heading, the free-shipping offer (cart / upsell) and the product
+count together. Then **G** once per page that holds several boxes. Devices and arrows are not
+questions.
 
-    > The shop's own slider "\<heading\>" on this page holds **12** products. Use 12 for this
-    > recom? (or 8 / 10 / another number)
+- **Round D — algorithm: how the recom should pick its products.** One call, header *Algorithm*,
+  the best-practice algorithms for the page type as the options (the fitting one first,
+  "(Recommended)"), *Other* for the operator's own words. Translate the answer into steps
+  → **`algorithm-intake.md`** §1–2. The write is step 7.
+- **Round E — only what the words left open:** fallback, stock, exclusions, price — one call, the
+  questions and their fixed options in **`algorithm-intake.md`** §3. Skipped when nothing is open
+  (a best-practice option, nothing else).
+- **Round F — one call of up to four questions:**
+  1. **Read-back** (`algorithm-intake.md` §4): show the plain-words steps in chat first, then
+     header *Algorithm*: *"Is this how the \<page\> recom should pick its products?"* — *Yes* /
+     *No, I'll correct a step* (*Other* carries the correction). A correction → change the step,
+     read back again, ask this question again on its own.
+  2. **Heading** — every box, header *Heading*: *"What should the heading be?"* Options in the
+     shop's language: the heading of the shop's own section the box replaces or sits next to (the
+     slider survey's `heading`) "(Recommended)", a plain one for the algorithm ("Others also
+     bought"), the card's headline when it names one; *Other* = the operator's own text. It
+     becomes the value of the box's `{% input headline %}` field.
+  3. **Cart and upsell boxes — the free-shipping heading**, header *Free ship*: *"Should the
+     heading show how far the shopper is from free shipping — 'Add 120 kr. more for free
+     shipping'?"* — *Yes, show the amount left* / *No, the plain heading*. On yes, the threshold,
+     the two texts (with `{amount}`) and — non-Shopify — where the page shows the cart subtotal
+     are asked in prose afterwards (`free-shipping-heading.md`); the plain heading stays as the
+     fallback.
+  4. **Product count — how many products the box holds.** A **general setting**, not part of the
+     algorithm: written in step 6 with `recoms_updateGeneralSettings`, never through
+     `recoms_updateAlgorithm`. Run *Survey the shop's own sliders* (`placement-snippets.md`) on
+     the page the box goes on first — homepage and PDP placements usually have one. Header
+     *Products*: *"How many products should this recom show?"*
+     - **The shop has a product slider there** → its `products` is the first option,
+       "(Recommended)", described as *the shop's own slider "\<heading\>" on this page holds N*;
+       then *8* / *10* / *12* without the duplicate. Several sliders with different counts → the
+       one the box replaces or sits next to, the others named in the descriptions.
+     - **No slider on that page** → *8* / *10* / *12*, none recommended.
 
-    Several sliders with different counts → prefer the one the box replaces or sits next to, and
-    name the others.
-  - **No slider on that page** → ask: *"How many products should this recom show — 8, 10 or 12?"*
-
-  The count must fit the non-supervisor limit (step 6 → `productCount`).
+     The count must fit the non-supervisor limit (step 6 → `productCount`).
+- **Round G — load order**, only when several boxes share a page, once after that page's last
+  box: header *Load order*: *"Which box gets products first on the \<page\>?"* — one option per
+  box; on the PDP, *Alternatives* first "(Recommended)" (step 6 → `priority`).
 - **Arrows — from the same survey.** Keep the `prev` / `next` it reports for the design step
   (SKILL.md Step 4 → *Box-shell parity*; `slider-structure.md` → *Prev/next arrows*): visible
   arrows → the box copies their design; arrows hidden at 375 px → the box hides its arrows at the
@@ -140,7 +200,10 @@ confirm. Several boxes on one page: preview them together, so their order is vis
 
 Show one plan table for all boxes — box, page, placement (selector, `insertMode`, final /
 temporary, hide conditions for category boxes), algorithm (the plain-words read-back), product count (and where it came from), heading (free-shipping or plain), then every other field as current → new — and wait for an explicit
-go-ahead. A change to a **LIVE** box drafts it; say which ones will turn DRAFT.
+go-ahead. A change to a **LIVE** box drafts it; say which ones will turn DRAFT. The go-ahead is
+**round H**: one call, header *Plan*: *"Write these boxes as drafts?"* — *Yes, write them* / *No,
+change something first* (*Other* says what). No option is marked recommended: this gate is the
+operator's.
 
 ## 6. Create the boxes and set their general settings
 
