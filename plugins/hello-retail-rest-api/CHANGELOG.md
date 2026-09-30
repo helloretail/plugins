@@ -1,4 +1,4 @@
-# Changelog — hello-retail-unmanaged
+# Changelog — hello-retail-rest-api
 
 What changed in each released version of the plugin, written for the person who installs it.
 Update with `/plugin marketplace update helloretail`, then `/reload-plugins`.
