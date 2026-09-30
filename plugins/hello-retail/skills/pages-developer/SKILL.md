@@ -342,6 +342,57 @@ Verify on-site by clicking, not by reading the code: page 1, next several times,
 the last page, prev twice, back to 1 — at each step exactly one active page, a `…` only where
 pages are skipped, arrows hidden at the ends, one row of equal-height cells at 1440 and 375 px.
 
+4i. **"Load more" button — opt-in, the third loading mode.** The base knows two: infinite
+   scroll (`paginated = false`) and numbered pages (`paginated = true`). Some shops want the
+   first page, then a button under the grid that appends the next page on each click, with a
+   "24 of 339 products" counter and no auto-loading on scroll — and the shop's own listing
+   usually already looks like that (a centred button after the grid, a counter, the button
+   gone once everything is shown). Field-proven 2026-09-30. Build it as a switch on top of
+   the infinite-scroll path so the base's request, append and reload-restore logic is reused:
+
+- **Liquid** — a new token section below the last base token,
+  `{# section Load more #}` with `{# text load_more_text = "Load more" #}` and
+  `{# text load_more_count_separator = "of" #}` (copy the shop's own words), and a new
+  capture rendered between `{{ product_container }}` and `{{ pagination_container }}` in
+  **both** `filter_position` branches:
+
+  ```liquid
+  {% capture load_more_container %}
+  	<div class="hr-load-more-container">
+  		<p class="hr-load-more-count"><span class="hr-load-more-shown">{{ count }}</span> {{ load_more_count_separator }} <span class="hr-load-more-total">{{ totalResults }}</span> {{ product_title_multiple }}</p>
+  		<button type="button" class="hr-load-more-button">{{ load_more_text }}</button>
+  	</div>
+  {% endcapture %}
+  ```
+
+- **JS** — `/* boolean */ var load_more_button = true;` next to `paginated` (which stays
+  `false`), then six guarded edits, none of them a rewrite: (1) the scroll listeners are
+  registered only `if (!paginated && !load_more_button)`; (2) the same guard on the viewport
+  check in `load_more()`; (3) the auto-fill `if (options.hasMore) load_more()` at the end of
+  `insert_results` becomes `options.hasMore && !load_more_button`; (4) on the first batch,
+  `load_more_container = page_container.querySelector(".hr-load-more-container")` — remove it
+  when `paginated || !load_more_button` (the way the base removes the pagination container
+  in infinite mode), otherwise bind its button:
+  `options.count = page_size; load_more(true);`; (5) call `update_load_more(productsTotal)`
+  right after `post_insert(is_first_batch)`; (6) add that function: it writes
+  `Math.min(options.start, total)` into `.hr-load-more-shown`, the total into
+  `.hr-load-more-total`, and shows the container while `options.hasMore`, hides it otherwise.
+  The `options.count = page_size` on click is not optional: the base's reload-restore path
+  sets `options.count` to the restored remainder and never resets it, so without it every
+  click after a reload loads that remainder (48, 72 …) instead of one page.
+- **CSS** — scope everything to `.hr-pages-container` / `.hr-load-more-container`: the
+  container is a centred column with the shop's spacing under the grid; the counter takes
+  the shop's body text; the button is a value-copy of the shop's own listing button (its
+  primary/secondary button rules: padding, font, colour, background, border, radius, hover),
+  never HR defaults. Measure the shop's load-more button when it has one, its primary button
+  otherwise.
+
+Verify on-site by doing, at desktop and phone width: the first page renders with the counter
+and the button, scrolling to the bottom loads **nothing**, each click appends exactly one page
+and updates the counter and the `hr-page` URL state, a reload restores what was loaded and the
+next click still adds one page, no duplicate products across clicks, and on the last page the
+whole block disappears. Pagination must not render in this mode.
+
 5. **Filters & sorting.** Read the current facets with `pages_getDesignFilters` /
    `pages_getDesignSorting`, then write with `pages_updateDesignFilters` /
    `pages_updateDesignSorting` — enable the flag only when configuring real settings,
