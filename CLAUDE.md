@@ -9,7 +9,7 @@ Node.js is used only for `scripts/validate.mjs` and markdownlint.
 - `.claude-plugin/marketplace.json` — lists every plugin (`source` = `./plugins/<name>`).
 - Two plugins, one per integration model. `plugins/hello-retail/` is the **managed** one —
   designs Hello Retail hosts and renders, written through the MCP as REVIEW drafts.
-  `plugins/hello-retail-unmanaged/` is the **unmanaged** one — pure documentation of the public
+  `plugins/hello-retail-rest-api/` is the **unmanaged** one — pure documentation of the public
   REST APIs (`core.helloretail.com/serve/…`) for a customer's own frontend; it builds no design
   and writes no configuration, so the draft-only and dashboard-automation rules below do not
   apply to it. Keep the two separate: a REST endpoint's behaviour is never documented in the
