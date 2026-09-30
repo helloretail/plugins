@@ -633,7 +633,21 @@ image (`img[alt="loading"]`) must be hidden at every step — idle, during a cli
    **read-back verify**: `pages_getDesign` (and the facet reads, if written) again and
    compare each written field byte-for-byte (whitespace-tolerant at most). A claimed
    tool call is never proof. Unverified after 3 attempts → report the target as NOT
-   applied.
+   applied. Two things that make this read-back fail in practice (field-proven
+   2026-09-29):
+   - **The result lands in a file, not in the reply.** A full design is ~90 k characters,
+     over the tool's output limit, so `pages_getDesign` returns only the path of a JSON
+     file under `tool-results/`. Compare from that file: `jq -r .templateCss <file> >
+     rb.css` (same for `templateHtml` / `templateJs`) into the scratchpad, then `diff`
+     each against the local copy you sent. The Read tool cannot chunk it — the JSON is
+     one line.
+   - **Whitespace-tolerant means blank lines too.** The platform drops some empty lines
+     on save, so `diff -w` still reports every write as different; `diff -wB` (ignore
+     whitespace and blank lines) is the check. Anything it still prints is a real
+     difference.
+   Keep a numbered local copy of every stylesheet and script you send (`final7.css`,
+   `final8.css` …): the next write is built from the last verified copy, never from
+   memory, and a regression is a plain diff between two numbers.
 7. **Tile fidelity, by eye.** Where a native reference exists, put a rendered HR tile next to
    the native tile of the same state at 1440 and 375 px (the FIDELITY CHECK harness in
    `../tile-extractor/references/survey-snippets.md` works on the live page). Same → done.
