@@ -10,6 +10,17 @@ fragments into the version it publishes.
 
 ## Unreleased
 
+## 1.28.0 — 2026-09-30
+
+### Added
+
+- `pages-developer` now matches the chrome around the grid to the shop as well: the filter sidebar (width, gap, heading and option rows, checkboxes), a facet shown as pills above the grid, and the sort control with its panel, each measured on the shop's category page and verified by computed style at desktop and phone width.
+- `pages-developer` builds the phone filter drawer as a bottom sheet when the shop's is one: title, close icon, a sticky footer with the shop's clear and apply buttons (apply shows the number of ticked filters), and the page locked behind it. The one difference left — the design applies filters on each tick, the shop on apply — is named in the hand-off.
+
+### Fixed
+
+- `pages-developer` read-back checks no longer fail on every write: the design read comes back as a file, so the compare now runs from that file field by field, and it ignores the blank lines the platform drops on save.
+
 ## 1.27.1 — 2026-09-30
 
 ### Changed
