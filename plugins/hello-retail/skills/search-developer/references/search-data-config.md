@@ -14,7 +14,7 @@ After every write, **read back and verify**, then report the resulting table to 
 
 ## Default filters & sorting (Step 13b)
 
-The list comes from **core-intake Q2** (SKILL.md → *Core intake*) — the operator's pick from `availableFields`, in their order. The basic set below is the **fallback**, applied when the operator answers "defaults" or picks nothing. Titles and direction texts in the **customer's locale** (look up `translations.json` conventions; match the storefront's own wording where it exists).
+The list comes from **core-intake Q2** (SKILL.md → *Core intake*) — the operator's pick from `availableFields`, in their order. The basic set below is the **fallback**, applied when the operator answers "defaults" or picks nothing. Titles and direction texts come from `translations.json` **before anything else** — the sort labels are filed as `sort: Lowest price` / `sort: Highest price`, the filter titles under their English names; the key table is in `references/localization-header.md` → *Search-data strings*. Only a string the file doesn't have is translated by you (or taken from the storefront's own wording), and it is marked as such in the translation table shown with the diff.
 
 ```json
 // search_updateFilters
@@ -29,7 +29,7 @@ The list comes from **core-intake Q2** (SKILL.md → *Core intake*) — the oper
 ]
 ```
 
-Locale examples — nl: `Categorie` / `Prijs` / `Laagste prijs` / `Hoogste prijs`; da: `Kategori` / `Pris` / `Laveste pris` / `Højeste pris`; de: `Kategorie` / `Preis` / `Niedrigster Preis` / `Höchster Preis`.
+What the file gives — da: `Kategorier` / `Pris` / `Laveste pris (lav til høj)` / `Højeste pris (høj til lav)`; de: `Kategorien` / `Preis` / `Niedrigster Preis (Preis steigend)` / `Höchster Preis (Preis fallend)`; nl: `Categorieën` / `Prijs` / `Laagste prijs` / `Hoogste prijs` (the first of the file's `/`-separated options). Use the file's value exactly — the brackets are part of it.
 
 - **When the existing config is empty** (fresh scaffold, or a config just created via `search_createConfig`): write the Q2 pick directly — or the default set on "defaults".
 - **When it's non-empty**: the update replaces the whole list — fold the existing entries in, or ask the operator before dropping anything (`AskUserQuestion`, header `Existing`: *Keep the existing entries as well (Recommended)* / *Replace them with the pick* — the entries that would be dropped in the description).
@@ -53,7 +53,7 @@ Content search renders matching **categories, brands, site pages, blog posts** a
 ```
 
 - **Omit `engineId`** — the website's existing engine for that type is reused, or a default one is auto-created. After the first write, read back and pin the returned `engineId` in later updates.
-- **Localize the subtitle explicitly.** When you omit it, the API fills an **English** default ("Use search to explore Categories") even on a non-English site — always set your own locale value (nl pattern: "Gebruik de zoekfunctie om categorieën te ontdekken").
+- **Titles from the file, subtitle localized explicitly.** The titles are in `translations.json` (`Categories`, `Brands`). The subtitle is not — and when you omit it, the API fills an **English** default ("Use search to explore Categories") even on a non-English site. So translate the subtitle yourself (nl pattern: "Gebruik de zoekfunctie om categorieën te ontdekken") and mark it `self-translated — no entry` in the translation table.
 - **Verify data exists per type** with `dataFields_getContentFields(contentType)` and the storefront survey; a type with no content behind it renders its no-content state on every query. Config-before-data is fine, but flag it.
 - Each content type at most once; `count` default 6 fits the content column.
 - The overlay's content column strings (`text_go_directly_to`, `text_category_no_content_*`) are part of the Step-12 localization — the titles here are what renders as the section headings.
@@ -105,7 +105,7 @@ Without the override, `count: 8` renders 5+3 — a full row and an orphan row �
 - [ ] Filters read before write; default set (Categories + Price) applied when empty; existing non-empty config folded in or confirmed with the operator; titles localized.
 - [ ] Sorting = price asc/desc with localized texts (unless the operator asked for more).
 - [ ] Q2 not on the card → the `availableFields` menu (field + LIST/RANGE/BOOLEAN, current entries marked) was shown before asking; every configured field exists in `availableFields`; unknown fields → MISSING DATA + indexing offer, never substituted; BOOLEAN entries carry localized true/false texts.
-- [ ] Content feed: the Q3 answer added verbatim (or left empty on "none"); if Q3 wasn't on the card it was in the batched ask, not assumed; subtitles explicitly localized (never the English auto-default); empty-data types flagged.
+- [ ] Content feed: the Q3 answer added verbatim (or left empty on "none"); if Q3 wasn't on the card it was in the batched ask, not assumed; titles from `translations.json`; subtitles explicitly localized (never the English auto-default) and marked self-translated; empty-data types flagged.
 - [ ] `show_category_content_hierarchy` set `true` in `resultStyles` only when CATEGORY is configured and the operator asked for the path; left `false` otherwise.
 - [ ] If any content-feed type must show as its own reliable tab, `show_vertical_link_content = true` is set in `resultTemplate` — `false` gates tabs behind "has real results" and can make a correctly-configured content type look like it isn't a separate tab.
 - [ ] Native tile width measured; wide → `count: 8` + 4-per-row override appended; narrow → base 10/5 untouched; 8 products never shipped without the matching CSS.

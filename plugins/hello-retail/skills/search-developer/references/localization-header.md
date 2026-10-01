@@ -52,7 +52,7 @@ The customer's final header keeps the **same keys in the same order**; only the 
 
 1. **Preserve interpolation tokens verbatim** — `$query$`, `$totalResults$`, `$contentType$`, `<strong>…</strong>`, escaped quotes `\"…\"`. They are runtime placeholders; never translate or reorder them out of context.
 2. **Match register and tone** — keep e-commerce conventions (e.g. Spanish "Ordenar por", not "Clasificar por"; Italian "Ordina per"). Hold one register across the whole header (see the source-of-truth note above).
-3. **Match punctuation of the source** — if the English ends in a colon + space (`"Go to: "`), match that. If it ends in a period (`"products."`), match that. Trailing whitespace is meaningful.
+3. **Punctuation: the file's wording wins.** When `translations.json` has the string, use its value exactly, punctuation included — the synonym sentences there end without the base's colon / full stop, and that is the version to ship. Only for strings you translate yourself, match the punctuation of the source: a colon + space (`"Go to: "`) or a trailing period (`"products."`) stays. Trailing whitespace is meaningful.
 4. **Lowercase/uppercase parity** — `text_products = "products."` is lowercase because it concatenates after a count; keep that. The `text_category_no_content_before` / `_after` pair wraps a count too — keep them grammatically consistent so the assembled sentence reads naturally in the target language.
 5. **Empty strings** — if a token is `""` in the source (some languages don't need a "No" prefix), match the source intent rather than forcing a word in.
 6. **Cross-check the surveyed storefront copy.** If the customer's site already uses specific wording for "Sort by", "Filters", "Clear all", etc., reuse it verbatim — operator consistency beats dictionary-perfect translation.
@@ -82,6 +82,39 @@ The base languages HR has historically shipped (`da`, `sv`, `nl`, `no`, `fi`, `d
 
 For locales not in this table and not in `translations.json` (`pt`, `pl`, `cs`, `hu`, `tr`, `el`, `ro`, `bg`, `lt`, `lv`, `et`, …), translate using the same conventions and **add a line to MISSING DATA**: `Translation header hand-translated for <locale>; operator should verify e-commerce wording matches the customer's site.`
 
+## Search-data strings — the same file, looked up before you write anything
+
+The header is not the only copy a shopper reads. The filter titles, sort labels, content-feed titles and subtitles, and the initial-content title and subtitle are set through the MCP (`search-data-config.md`), and they come from `translations.json` too. **Look every one of them up before writing a value yourself** — a missed lookup ships your wording where the QA team already has theirs (field case, store-DK-2 2026-10: the sort labels and the initial-content texts were self-translated although the file covers both).
+
+Several of these are filed under a key that is **not** the base default's English, so a lookup by the default text finds nothing. Use these keys (`sections.SEARCH`):
+
+| Where it is set | Base default | Look up |
+|---|---|---|
+| Initial content title | Before you search | `Popular products` |
+| Initial content subtitle | You might be interested in | `Top 10 most popular products` — the number is part of the text; if the initial content count is not 10, adjust the number and say so |
+| Sort option on `price` | — | `sort: Lowest price` (ascending) · `sort: Highest price` (descending) |
+| Sort option on `created` | — | `sort: Newest first` · `sort: Oldest first` |
+| Sort option on `title` | — | `sort: A-Z` · `sort: Z-A` |
+| Filter / content-feed title for categories | Categories | `Categories` (`Hierarchies/Categories` is the dashboard label, not shopper copy) |
+| Filter titles | — | `Brand`, `Price`, `Color`, `Size`, `Gender`, `Material`, `Collections`, `Season`, `(Created) Date`, `In stock (Out of stock)`, `On sale` |
+| BOOLEAN filter `trueText` / `falseText` | — | `Yes` / `No` |
+| Content-feed title for brands | Brands | `Brands` |
+
+A string with no key here and no entry for the language (the content-feed subtitle, the `label_*` screen-reader tokens) is translated by you — and **listed as self-translated** in the translation table below, so the operator can check it and the QA team can add it to the file. Filter titles copied from a sibling config are the customer's own wording; keep them, and mark them `sibling` in the table.
+
+## The translation table — shown with the diff, before the push
+
+Every build shows this table next to the Step 16 diff, one row per visible string — header tokens and search-data strings alike:
+
+| Where | Value used | Source |
+|---|---|---|
+| `text_sorting_title` | Sorter efter | `translations.json` → `Sort by` |
+| Sort `price` ascending | Laveste pris (lav til høj) | `translations.json` → `sort: Lowest price` |
+| `label_close_search` | Luk søgning | self-translated — no entry |
+| Filter `extraDataList.year` | Alle Årgange | sibling config |
+
+`Source` is one of: `translations.json → <key>`, `self-translated — no entry`, `sibling config`, `storefront wording`. A row whose source is `self-translated` while the file has an entry for it is a miss — fix it before the push. The operator reads this table at the `Push` gate; it is the check that catches a skipped lookup, which no rule text does.
+
 ## Legacy multi-variant headers
 
 If you ever read a design whose header still carries the old `__<Language>` variant form (`text_sorting_title__Danish = …`, etc. — older base-template-derived configs), reduce it to the modern flat form: keep one value per token in the target locale and **delete every `__<Language>` line**. The output is identical to the translate-in-place result above; you just had to pick the value from an existing variant instead of translating it.
@@ -93,4 +126,6 @@ If you ever read a design whose header still carries the old `__<Language>` vari
 - [ ] All `{# boolean … #}`, `{# color … #}`, `{# number … #}`, `{# section … #}` declarations preserved unchanged.
 - [ ] `webshop_name`, `header_logo_url`, and theme color tokens set to the customer's real values, not base placeholders (see `branding-and-header.md`).
 - [ ] All `$query$`, `$totalResults$`, `$contentType$`, `<strong>…</strong>` interpolations preserved verbatim.
+- [ ] Every visible string — header tokens, filter titles, sort labels, content-feed and initial-content texts — looked up in `translations.json` first (the key table above for the ones filed under a different key); where the file has the string, its value is used exactly, punctuation included.
+- [ ] The translation table was shown with the diff; every row names its source, and no `self-translated` row has an entry in the file.
 - [ ] Key order and group spacing preserved; header is followed by the Liquid body exactly as in the source design.
