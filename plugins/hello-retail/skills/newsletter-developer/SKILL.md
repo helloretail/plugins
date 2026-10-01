@@ -314,6 +314,11 @@ maintain. The non-negotiable rules, briefly:
   marker: raise `lines_of_text` and the title runs into the price. When your
   text block differs from the default's, put its fixed part in one named assign
   (e.g. `text_block_px`) and keep subtracting it from the canvas.
+- **Avoid a double border.** The dashboard and the campaign already draw a frame
+  around every tile, so any border painted inside the image sits next to that
+  frame and reads as two borders. Check the render with that frame in mind and
+  make sure the tile shows a single border; if the operator still wants one in
+  the image, say it will look doubled in the dashboard preview.
 
 The customer's tokens are exposed via the parameter block at the top (the
 `{# color ... #}`, `{# boolean ... #}` HR dashboard param syntax) with sensible
@@ -438,6 +443,8 @@ have to scroll to the reference sections to remember them:
 - Never hardcode a derived size (`image_height = 170`) → it breaks the
   dashboard's `margin` / `lines_of_text` / height fields; derive it and verify
   with a changed-marker render.
+- Avoid a double border → the dashboard and campaign already frame each tile, so
+  a border inside the image shows as a second one next to it.
 - Don't stretch the product shot → `background-size:contain` (default) or a real
   `<img>` with `width:100%; height:auto`.
 - Don't rename or delete the default's variables (`image_height`, `font_size`,
@@ -508,6 +515,12 @@ the image consumes the leftover space and the tile fills the canvas (you can't
 rely on flex centering). Keep it **computed** from the canvas and the markers —
 a literal pixel height stops responding to the dashboard's `margin`,
 `lines_of_text` and height fields.
+
+## Avoid a double border
+
+The dashboard preview and the campaign layout already frame each tile, so a
+border painted inside the image sits next to that frame and reads as a double
+border. Make sure the finished tile shows a single border.
 
 ## Image without stretching
 
