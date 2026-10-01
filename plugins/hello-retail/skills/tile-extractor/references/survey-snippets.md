@@ -20,9 +20,28 @@ Rule 10). Everything else comes out exactly as the storefront has it.
 
 Take the tile from the main product grid of the category page — never a slider clone
 (`.swiper-slide-duplicate`, `.slick-cloned`), never a tile inside a third-party recommendation
-widget, never one inside an existing Hello Retail box (`[id^="hello-retail"]`). Prefer a tile in the
+widget (Clerk, Nosto, Raptor), never one inside a Hello Retail box. Prefer a tile in the
 viewport whose product is a plain in-stock product; the sale, sold-out and badge specimens come from
 the survey in the next section, captured the same way.
+
+**Hello Retail's own recom sliders are the easy trap.** A recom design built for this shop copies the
+shop's card with the shop's classes, so a tile inside one looks native — on a WooCommerce shop it is
+`li.aw-item.product.type-product.status-publish …`, next to the grid's `li.wc-block-product`. Run
+this guard on every specimen (normal and each state) before capturing it; `REJECT` means pick
+another tile from the product grid:
+
+```javascript
+(() => {
+  const SPECIMEN = ".product-tile-selector"; // the selector you are about to capture
+  const HR_OWN = '[id^="aw-box"], [id^="aw-slider"], [id^="hello-retail"], .aw-item, [data-aw_source], .hr-product, .hr-overlay-search, [class*="addwish"]';
+  const el = document.querySelector(SPECIMEN);
+  if (!el) return "no element matches SPECIMEN";
+  const host = el.closest(HR_OWN) || el.querySelector("[data-aw_source]");
+  return host
+    ? `REJECT — inside Hello Retail markup: ${host.id || host.className || host.tagName}`
+    : "OK — shop's own tile";
+})();
+```
 
 ### 2. Settle it before capturing
 
