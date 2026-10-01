@@ -223,7 +223,9 @@ functionality instead: click-through, PDP-price parity, CTA/ATC, translations
       first-load sweep)
 - [ ] IF B2B prices are only visible behind a login: **pause and ask the operator to log in
       themselves** with a B2B/test account in the QA browser window (same rule as the HR
-      login preflight — never ask for, receive, or type the credentials yourself), then
+      login preflight — never ask for, receive, or type the credentials yourself; take the
+      answer with `AskUserQuestion`, header *B2B login*: *Logged in — continue* / *Can't log
+      in now*, no option marked recommended), then
       compare the same 2–3 SKUs **logged in (B2B) vs logged out (normal site)** — each side
       must show its own correct price and VAT mode on the HR tiles, in every feature bought.
       If the operator can't log in right now, record these checks as **SKIPPED — B2B login
