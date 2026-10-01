@@ -64,6 +64,7 @@ Target a specific filter with its `[data-filter="…"]` attribute.
 3. If **yes** → set `sorting_selectors` to the target filters using the variant's wrapper class, adding/removing filter names as needed (e.g. `extraData.color`). Set `size_selector` to the size filter if sizes need size-aware ordering.
 4. Keep the leading `/* text */` annotation — it's an HR dashboard input marker; only the string literal changes.
 5. Apply per variant using that variant's wrapper class (desktop vs mobile form).
+6. **Copied from a sibling ("Same as …" on the `Sibling` picker) → copy, then check against the rules above.** The sibling's value can break them: a bare wrapper class with no `[data-filter]` (`'.aw-filter__single-wrapper'`) sorts **every** filter A→Z — Category included, which breaks the parent › child order, and number filters (year, gear count, wheel size) as text, so "10" lands before "7". Copy it verbatim as the operator chose, then name the conflict in one line — *"the sibling sorts all filters A→Z, including Kategori and the number filters"* — and ask whether to narrow it (`AskUserQuestion`, header `A→Z`: *Keep the sibling's setting* / *Narrow to the text filters*, neither recommended). Field case, store-DK-2 2026-10: copied unflagged, caught only in review.
 
 ## Where the filter markup lives — and why its CSS gets destroyed
 
