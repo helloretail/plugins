@@ -220,7 +220,8 @@ Never use `WebFetch`/`curl` or any scripted one-shot fetch. Mobile: on Playwrigh
 - **Price format:** currency-symbol side and spacing match the native tile. Read the HR price from a tile inside the search overlay (`.hr-overlay-search`), never from the HR widget panel — the panel shows preview tiles of other designs, and their price format can differ.
 - **Badges/controls:** sale badge and wishlist/CTA icons in the same corners as the native tile.
 - **Layout options applied (`references/layout-options.md`):** run that recipe's rendered check — scroll `.hr-results` to 900 and 2200 for sticky bar/column (L2/L3), chip vs tile widths (L4), the h2 sentence (L5), filters with and without a content feed (L1), select-then-reopen for the show-more toggles (L7/L8), one-row field · filters · close on a real mobile viewport (ML5b). **A failed check does not end the option:** run the reference's *First solution → QA → research fallback* loop — evidence, base templates, rest of the KB, a shipped implementation via `search_getDesign`, then the web — at most two additive alternatives, each re-checked; stop and hand back with evidence after that, never with a guess.
-- **Embedded only — header dropdowns over the panel (mandatory, programmatic):** with the panel open, open a nav dropdown / mega-menu with a real hover or click and run the `elementFromPoint` probe from `references/shell-structure.md` → *Embedded — raise the header*: the hit element must be inside the dropdown, never `.hr-overlay-search` or a descendant. Screenshot the open dropdown over the panel as evidence, into `QA/screenshots/` (rule 4) — never the repo root. Fail → add or adjust the open-state header rule and re-probe; never hand off with the panel covering a dropdown (field case, 2026-09-04). Repeat once with the cart drawer open.
+- **Embedded only — header dropdowns over the panel (mandatory, programmatic):** with the panel open, open a nav dropdown / mega-menu with a real hover or click and run the `elementFromPoint` probe from `references/shell-structure.md` → *Embedded — raise the header*: the hit element must be inside the dropdown, never `.hr-overlay-search` or a descendant. Screenshot the open dropdown over the panel as evidence, into `QA/screenshots/` (rule 4) — never the repo root. Fail → add or adjust the open-state header rule and re-probe; never hand off with the panel covering a dropdown (field case, 2026-09-04). Repeat once with the cart drawer open. Run it on more than one template and page load — a script-injected page wrapper can be missing on some (`references/shell-structure.md` → *Header nested in a page wrapper*).
+- **Embedded only — nothing paints over the panel, nothing covers its controls:** page content with a z-index at or above `overlay_z_index` (badges are the usual case) hit-tests as the panel, not the element; the close button's top edge hit-tests as the button, not a header overhang; no unfocused `.hr-skip-content` is visible. Recipes: `references/shell-structure.md` → *Embedded — page content painting over the panel* · *close button under a header overhang* · *Skip link showing as a bar*.
 
 Fix failures in the same session via the normal diff → approval → push loop — never leave them for self-QA.
 
@@ -277,7 +278,7 @@ Report, then a diff — never full files unprompted:
 
 ### Changes
 - resultTemplate: tile dropped in, ancestor hook classes, localization translated, static copy translated, branding tokens (only those the design declares — embedded has no logo / shop-name token)
-- resultStyles: TILE FILL rule (+ header overrides if opted in; + initial-content 4-per-row override if wide tiles; + typography match block if Q4 = match)
+- resultStyles: TILE FILL rule (+ header overrides if opted in; + initial-content column override when the base wouldn't render the agreed grid; + embedded open-state fixes when needed; + typography match block if Q4 = match)
 - initializationCode: trigger_selector, placement_selector (embedded), interactivity JS, sorting_selectors (if enabled)
 
 ### Search data
@@ -356,7 +357,8 @@ Then **wait for explicit approval** (the `Push` gate, Step 16) → push (Step 17
 **Rendered verification (Step 17b)**
 
 - [ ] Ran after the push: alignment (computed = native), interaction-gated chrome colors (filter bubble + range slider), English-leak scan (3 states), price format, badge positions — failures fixed in-session.
-- [ ] Native tile width measured during the survey; wide (≈250px+) → initial content set to 8 products + 4-per-row CSS override; narrow → base 10/5 left alone; never 8 products without the matching CSS.
+- [ ] Shop's tiles per row, filter sidebar and tile width measured during the survey; `Initial grid` asked with the calculated layout as "(Recommended)" (or applied and listed under *Applied defaults*); count fills whole rows; column override (and raised `max-width` when 1200px is too narrow) appended whenever the base wouldn't render the chosen columns; tiles per row counted on the rendered panel.
+- [ ] Embedded: page wrapper checked on more than one template / page load; page content above `overlay_z_index` lowered while open; close button clear of any header overhang; no visible skip link.
 - [ ] ATC: verified with a real click whether the native theme's ATC already works before writing any binding code; if it already works, no ATC JS added; if not, defined + called after both `fix_links` sites, scoped + idempotent. **No `if (window.SomeGlobal) {...} else {fallback}` branch was shipped for a global that was never confirmed to exist** — an unverified `else` runs on every click. Swatches/reviews/wishlist handled via analyze→plan→discuss→execute→capture; undocumented+unclear left unbound + MISSING DATA.
 
 **Deliver**
