@@ -44,14 +44,29 @@ and there is no write path for Triggered Emails at all. It reports; the develope
 | Field | Lane | Example / notes |
 |---|---|---|
 | `website-uuid` | N+T | Everything keys off it (`website_getInfo` → language, currency, domain) |
-| Lane(s) in scope | N+T | "newsletter", "triggered emails", or both. If unclear, ask — one word |
-| Newsletter design id | N | Optional. Default = the single non-archived design from `newsletterContent_listDesigns`; if several exist, list them (name, state, canvas) and ask |
-| Triggered Email files | T | The base design + the trigger block(s) under QA — paths in `output/…` or pasted. Ask **which triggers** (Abandoned Cart / Price Drop / Back in Stock / Post Conversion / all) if not stated |
+| Lane(s) in scope | N+T | "newsletter", "triggered emails", or both. If unclear, ask — `AskUserQuestion`, header *Lane*: *Newsletter tile* / *Triggered emails* / *Both*, the one the prompt's wording or the given files make likely first, marked "(Recommended)" |
+| Newsletter design id | N | Optional. Default = the single non-archived design from `newsletterContent_listDesigns`; if several exist, ask with `AskUserQuestion` (header *Design*): one option per non-archived design — name as the label, state · canvas as the description — the LIVE one first and marked "(Recommended)"; more than four → the four newest, the rest named in the chat line |
+| Triggered Email files | T | The base design + the trigger block(s) under QA — paths in `output/…` or pasted (prose). Ask **which triggers** if not stated — `AskUserQuestion`, header *Triggers*, `multiSelect: true`: *Abandoned Cart* / *Price Drop* / *Back in Stock* / *Post Conversion*, the ones whose files are present first and the first marked "(Recommended)"; all four picked = all |
 | Customer category-page URL | N+T | The native-tile reference. Without it the comparison and the fixture harvest are `SKIPPED — no native reference given`; ask before proceeding |
 | Optional: Search key | N+T | `search_getDesign` gives the authoritative field map for the tile (first `[class^="hr-search-overlay-product"]` inner markup) |
 | ClickUp card (URL or id) | N+T | **Ask up front** — resolve per `../qa-checklists/SKILL.md` Step 1.5; it decides "deviation by design" (e.g. no CTA on purpose, ex-VAT prices ordered) |
 
 If the `website-uuid` or the lane is missing, ask before proceeding.
+
+**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of
+sensible options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's
+`AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line
+description each, the recommended one first and marked "(Recommended)", `multiSelect: true`
+when several may apply; *Other* is added automatically for free text. Up to four independent
+questions per call; a question whose options depend on an earlier answer waits for the next
+call. Options come from what you already read, never from guesswork, and nothing the prompt,
+the card or an earlier answer already settled is asked again. Free text with nothing to
+suggest (a URL, a UUID) stays a prose question. No `AskUserQuestion` tool in the session → the
+same questions in prose, the options as a numbered list; no operator to answer at all → take
+the recommended option and record the question under Manual checks for the operator.
+
+The *Lane* question goes in the first call; *Design* (lane N) and *Triggers* (lane T) depend on
+its answer and share the next call.
 
 ## Shared procedure — inherited, not restated
 
@@ -82,7 +97,10 @@ Two things differ from the on-site skills and are stated once:
   when identical say so and grade the tile items once, referenced from the other sections.
 - **Both lanes:** two report files (see Step 6), one native survey shared between them.
 - **Multi-market customers:** one website-uuid = one run. Do not QA a DK design against an SE
-  storefront; if the operator names the wrong market, stop and confirm (A3 in the catalogue).
+  storefront; if the operator names the wrong market, stop and confirm (A3 in the catalogue) —
+  `AskUserQuestion`, header *Market*: *Switch to the uuid's storefront* (the `website_getInfo`
+  domain) / *Keep the given storefront* (a different website-uuid follows); no option marked
+  recommended.
 
 ## Execution flow
 
