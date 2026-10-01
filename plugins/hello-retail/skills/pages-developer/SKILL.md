@@ -148,6 +148,17 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    own product-loop wrapper element the way recom keeps `.hr-product` — that wrapper is the cell,
    so the customer's grid cell is never copied.
 
+   **Reuse a finished recom tile first.** Before starting `tile-extractor`, check
+   `recoms_list` + `recoms_listDesigns` for an editable company design that a LIVE box renders
+   with (or a REVIEW draft whose latest `recom-qa` report says ready to publish) and whose tile is
+   the customer's card. Found → ask the operator with `AskUserQuestion` (header `Tile source`:
+   *Extract from the category page (Recommended)* / *Reuse the tile from <recom design name>*).
+   The new survey is the default: no answer, or anything but a named recom design, means extract.
+   Reuse → start `tile-extractor` with `reuse: recom design <design-key>`; it confirms the tile
+   still matches the category tile or falls back to full extraction
+   (`../tile-extractor/references/reuse-recom-tile.md`). The native reference for every Pages check
+   stays the shop's own product grid — never a tile inside a Hello Retail box.
+
    **Starweb shops:** once the platform is known to be Starweb (tile-extractor's
    PLATFORM section), ask the operator with `AskUserQuestion` (header *Prices*,
    `multiSelect: true`): *None of these* / *Customer-unique prices* / *Several currencies* /
