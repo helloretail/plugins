@@ -508,7 +508,7 @@ coordinates are available.
 
 ### 7. Check translations
 
-**Translation source:** `${CLAUDE_PLUGIN_ROOT}/docs/wiki/translations/translations.json` — one entry per UI string, one key per language (see `translations/README.md` next to it).
+**Translation source:** `${CLAUDE_PLUGIN_ROOT}/docs/wiki/translations/translations.json` — one entry per English UI string, one key per language name (`Danish`, `Swedish`, …, never a code like `dk` / `da`; the file's `_meta.languages` maps codes and domains to names — see `translations/README.md` next to it).
 
 Some entries are missing and some languages aren't covered.
 Use this priority order:
