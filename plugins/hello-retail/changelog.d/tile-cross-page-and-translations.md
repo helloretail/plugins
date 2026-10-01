@@ -1,6 +1,7 @@
 ### Added
 
 - `tile-extractor` now checks whether the tile's styling changes by page type, either through theme rules keyed on the product page or through stylesheets the category page loads and other pages do not. It reports the category-page values for the shell to restate.
+- `search-developer` and `pages-developer` offer to reuse the tile of a finished recommendation design when one exists, with a new survey of the category page as the default. `tile-extractor` confirms it still matches the category tile, and falls back to a full extraction when it does not.
 
 ### Changed
 

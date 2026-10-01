@@ -34,6 +34,7 @@ step.
 | Feed access            | `website-uuid` **or** pasted feed JSON | With a `website-uuid`, fetch real fields via the hello-retail MCP `productData_get`; otherwise the operator supplies feed rows.             |
 | Target surface         | `search` / `recom` / `pages`           | What the tile body is being built for — set by the caller skill. All three: markup + JS, no CSS. Newsletter and triggered-email tiles are a separate feature with their own skills; this skill never builds them. |
 | Locale                 | `da`, `sv`, `de`                       | For the label sweep word list and any static fallback text. The caller passes it; otherwise infer from `<html lang>`.                      |
+| Reuse source (optional) | `reuse: recom design others-also-bought` | Search / Pages only: a finished recom design whose tile the operator chose to reuse. Follow `references/reuse-recom-tile.md` — it checks the tile still matches the category tile and falls back to full extraction when it does not. |
 
 If any of these are missing, ask before proceeding — unless you are running as a subagent (see
 *Running as a subagent* under RESPONSE FORMAT), in which case you work with what you were given and
@@ -94,6 +95,8 @@ run returns nothing.
 2. **Navigate to a real category page** — `browser_navigate` to a page with multiple product tiles, not the homepage.
 
 2b. **Sweep blocking popups before reading anything** (canonical rules: `../qa-checklists/SKILL.md` → "First-load popup sweep"). ACCEPT the cookie/consent banner by clicking its real accept button — never decline and never JS-delete the overlay: prices, lazy images, and HR itself are often consent-gated, and a swept-away-but-unanswered banner silently yields a wrong tile survey. Close newsletter/discount popups via their ✕ (never enter an email). Answer region/language pickers with the market matching `category-url`, then re-verify the URL didn't redirect. The default `playwright` server and the workers run **isolated** sessions, so the sweep repeats in every new session (only `playwright-profile` and Claude in Chrome remember answers). Popups still open during extraction also contaminate the DOM dump — confirm none are open before step 3.
+
+2c. **Reuse a finished recom tile — only when the caller passed `reuse: recom design <design-key>`.** Follow `references/reuse-recom-tile.md`: confirm the design is finished, that its tile is the customer's card, and that it still matches the category tile (markup sequence + by eye). All three hold → take its tile body as described there, skip steps 3, 3b, 4, 6, 6b, 7b and 8, and continue with 4b–4g, 5, 7 and 8b on the reused body. Any condition fails → say which under ASSUMPTIONS and continue with step 3.
 
 3. **Copy the tile HTML verbatim** — pick a clean specimen, settle it, then capture its `outerHTML` via `browser_evaluate` (`references/survey-snippets.md` → TILE INSPECTION; the `collect()` walk only on the Claude in Chrome fallback). Decide the tile root with the ancestor-chain probe (Output Rule 14): the per-product card, never the grid cell around it. **Run the Hello Retail guard on the specimen first** (`references/survey-snippets.md` → TILE INSPECTION, step 1): Hello Retail's own recom sliders copy the shop's card with the shop's classes (`li.aw-item.product.type-product …`), so a tile inside one looks native and is not — field case 2026-10, a Search build copied `li.aw-item` before the guard existed. URL values come out as `[URL:<attribute>]` tokens — every one MUST be restored with the correct HR feed value in the final Liquid output (Output Rule 8) — and the snippet reports the injected attributes it removed; list them under ASSUMPTIONS.
 
@@ -223,8 +226,9 @@ while you work. In that mode:
 - Your final message **is** the hand-off. The caller sees nothing else — not your tool calls, not
   the survey. Return the full RESPONSE FORMAT; a heading missing or renamed means the caller treats
   that information as absent.
-- Inputs you receive: `category-url`, `website-uuid` or feed rows, `target surface`, `locale`, and
-  the platform if the caller already detected it. Anything else you need, infer or list under
+- Inputs you receive: `category-url`, `website-uuid` or feed rows, `target surface`, `locale`,
+  the platform if the caller already detected it, and `reuse: recom design <design-key>` when the
+  operator chose to reuse a finished recom tile (step 2c). Anything else you need, infer or list under
   `ASSUMPTIONS`.
 - You run **once per customer**, before the first shell build. A Search onboarding that covers
   desktop and mobile builds desktop first, then mobile, from the **same** tile body — the caller
@@ -244,7 +248,7 @@ while you work. In that mode:
 | Element types        | preserve exact tags from native tile                                                                                      | `<button>` → `<a>`, `<object>` → `<div>`      |
 | Attributes           | preserve EVERY `id`/`class`/inline `style`/attr verbatim; strip only injected attributes, root-only width/position classes and declarations, Shopify `section-id` | stripping `id`, `style`, `data-*`, `tabindex` |
 | Injected attributes  | remove what the site did not author (`bis_*`, `data-gramm*`, `data-lastpass-*`, …) and anything stamped on nearly every element; keep every site `data-*` | keeping `bis_skin_checked`; dropping Vue `data-v-*` or Alpine `x-data` as "noise" |
-| Native specimen      | a tile from the shop's own product grid that passes the Hello Retail guard | a tile inside a Hello Retail box (`.aw-item`, `[data-aw_source]`, `#aw-box-…`) — it carries the shop's classes but is our copy |
+| Native specimen      | a tile from the shop's own product grid that passes the Hello Retail guard; reuse a finished recom tile only through step 2c | a tile inside a Hello Retail box (`.aw-item`, `[data-aw_source]`, `#aw-box-…`) — it carries the shop's classes but is our copy |
 | Tile root            | the per-product card; the customer's grid cell is dropped and its needed classes reported as cell-level PARENT HOOKS; an `<li>` root keeps its tag + inline `list-style-type:none` | copying the grid cell into the shell's cell; converting `<li>` to `<div>`; keeping a width class on the root |
 | Hello Retail in the tile | none — no `hr-*` class, no HR form or wrapper; the customer's card replaces the base default tile element; only `trackClick` is added | keeping the base `hr-search-overlay-product-link` skeleton and styling it; wrapping the card in an HR element; an HR `.hr-form` instead of the shop's form |
 | Parity gap           | fix the markup, or report a PARENT HOOK / base-overlay rule for the shell                                                 | CSS that re-creates the native look on HR or customer classes |
@@ -291,6 +295,7 @@ while you work. In that mode:
 | `references/browser.md` | any live-site step | The two browser backends, the tool table, login and mobile rules, pasted-HTML mode, the off-limits pages |
 | `references/platform-detection.md` | step 1 | The signal table, the detection snippet, and the per-platform routing list (which file to read for which platform) |
 | `references/survey-snippets.md` | steps 3–8b | Verbatim `outerHTML` capture (specimen, settle, injected-attribute strip, ancestor-chain probe; `collect()` on the Chrome fallback), the variation survey, the multi-tile diff that yields the skeleton and the BINDINGS rows, the label-vocabulary sweep, the PARENT HOOKS scan and harness, the alignment probe, the mobile markup check, the hidden-state scan, the page-type CSS scan, the fidelity check harness, hover-state inspection |
+| `references/reuse-recom-tile.md` | step 2c, when the caller passes a reuse source | The three conditions for reusing a finished recom tile, how to take its body for Search / Pages (`{% input %}` → rendered words, nothing recom-only), which steps still run, how to report it |
 | `scripts/bind-tile.mjs` | steps 8 and 8b | The substitution script: skeleton + bindings.json → tile.liquid, with the unbound-token and element-count gates; `--preview` renders a state with native values for the fidelity check; usage in its header |
 | `references/css-ownership.md` | steps 4b–4c and the SHELL CSS NOTES section | Who writes CSS on classic vs CSS-in-JS themes, and what to report to the shell |
 | `references/rating-widgets.md` | step 5 | How to identify the rating system and where each system's recipe lives; when the generic JS engine applies |

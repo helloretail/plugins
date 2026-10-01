@@ -43,6 +43,10 @@ another tile from the product grid:
 })();
 ```
 
+When a **finished** recom design's tile already matches the category tile, the shells may reuse it
+on purpose — that goes through step 2c and `reuse-recom-tile.md`, never through picking a slider
+tile as the specimen.
+
 ### 2. Settle it before capturing
 
 The DOM at first paint is not the DOM the customer sees. Scroll the tile into view, wait until its
