@@ -319,6 +319,9 @@ maintain. The non-negotiable rules, briefly:
   frame and reads as two borders. Check the render with that frame in mind and
   make sure the tile shows a single border; if the operator still wants one in
   the image, say it will look doubled in the dashboard preview.
+- **Remove an element, remove its arithmetic.** When you drop a border, padding
+  or a row, also drop every `minus:` / `plus:` that accounted for it (a leftover
+  `minus: 2` from a removed 1px border shifts the card off-centre).
 
 The customer's tokens are exposed via the parameter block at the top (the
 `{# color ... #}`, `{# boolean ... #}` HR dashboard param syntax) with sensible
@@ -445,6 +448,7 @@ have to scroll to the reference sections to remember them:
   with a changed-marker render.
 - Avoid a double border → the dashboard and campaign already frame each tile, so
   a border inside the image shows as a second one next to it.
+- Removed an element? → remove the arithmetic that sized it too.
 - Don't stretch the product shot → `background-size:contain` (default) or a real
   `<img>` with `width:100%; height:auto`.
 - Don't rename or delete the default's variables (`image_height`, `font_size`,
