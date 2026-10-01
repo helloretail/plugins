@@ -69,36 +69,45 @@ Content search renders matching **categories, brands, site pages, blog posts** a
 
   Value edit only — never delete or move the declaration, never add a second one, and don't touch the `{% if show_category_content_hierarchy %}` CSS block it gates (base chrome). Default `false`; set `true` only when CATEGORY is in the content feed and the operator said yes; grep `resultStyles` for the declaration before editing rather than assuming its line. Don't confuse it with the Categories *filter* tree (`hierarchies`, Step 13b) or with mobile's `show_vertical_link_content` above — that one is a `resultTemplate` boolean.
 
-## Initial content sizing — match the native tile width (Step 13d)
+## Initial content sizing — ask, with the shop's grid as the recommendation (Step 13d)
 
-The base initial content ("before you search" panel) shows **10 products, 5 per row**. That's right for narrow tiles — but when the customer's tiles are **wide**, 5 wide tiles per row makes the initial panel visibly denser/smaller than the native category grid, and the tile parity the rest of the build works for is lost on the first thing the visitor sees.
+The initial content ("before you search" panel) is the first thing a shopper sees, so its grid should read like the shop's own category grid. **The operator decides; you work out the recommendation from the survey.**
 
-**Measure during the survey:** the native tile's rendered width on the category page at desktop viewport — `getBoundingClientRect().width` on the tile root. This is the same measurement the Tile width step (`product_tile_width`, `references/shell-structure.md`) uses — take it once, use it for both.
+**Measure during the survey,** on the category page at desktop viewport:
 
-| Native tile width | Initial content | Grid |
-|---|---|---|
-| **≈250px or more** (wide) | **8 products** (`count: 8`) | **4 per row** via the CSS override below |
-| **under ≈250px** (narrow) | 10 products (base default) | 5 per row (base default) — no override |
+- tiles per row in the shop's product grid;
+- whether a **filter sidebar** sits next to the grid, and roughly how wide it is;
+- the tile's rendered width (`getBoundingClientRect().width` on the tile root) — the same measurement `product_tile_width` uses (`references/shell-structure.md`), take it once.
 
-The ~250px line is a guideline, not a hard constant — judge against the native grid (a 3–4-column native layout with sidebar is "wide"; a 5–6-column dense grid is "narrow"). When it's genuinely borderline, ask the operator — `AskUserQuestion`, header `Initial grid`: *8 products, 4 per row* / *10 products, 5 per row*, the measured tile width in the descriptions, none recommended.
+**Work out the recommended layout:**
 
-**Count change:** `search_getInitialContent` first, then `search_updateInitialContent` with the existing entry — change `count` to 8, **keep `productSources` as-is** (default: retargeted products filled up with top products), and localize the `title`/`subtitle` while you're there (the seeded default is English).
+- **Columns** = the shop's tiles per row, **+ 1 when the category page has a filter sidebar** about a tile wide — the initial panel has no sidebar, so that width becomes another tile. (Field case, store-DK-2 2026-10: 4 tiles of 250px plus a sidebar → 5 per row, not the 4 a width rule picked.)
+- **Count** = columns × 2 rows (5 per row → 10 products).
 
-**CSS override (wide case only)** — append to `resultStyles` next to the TILE FILL rule; scoped to the initial-content state so search results keep the base auto-fill grid:
+**Ask once the survey has measured the grid** — round 2 runs before the survey, so this question comes after it, in the same call as the tile skill's open questions when there are any, and always before the push — `AskUserQuestion`, header `Initial grid`: the calculated layout first, "(Recommended)", the measurement in its description (*"shop: 4 per row + filter sidebar, tiles 250px"*); the base layout second (*10 products, 5 per row*) when it differs, or the next-smaller grid when it doesn't; *Other* for anything else. **No operator to answer, or the question skipped → apply the calculated layout** and list it under *Applied defaults*.
+
+**Count change:** `search_getInitialContent` first, then `search_updateInitialContent` with the existing entry — set `count`, **keep `productSources` as-is** (default: retargeted products filled up with top products), and set the title and subtitle from `translations.json` (`Popular products` / `Top 10 most popular products`; the seeded default is English, and "Before you search" has no entry in the file).
+
+**The width cap — why the base can't always deliver the columns.** The base CSS centres the initial panel at `max-width: 1200px` (`.hr-overlay-search .hr-results .hr-products.initialcontent`), and its grid is `auto-fill` with `product_tile_width` as the minimum. Wide tiles therefore render fewer columns than the count suggests: five 250px tiles plus gaps don't fit in 1200px, and 10 products came out 4 + 4 + 2 on a real build. So whenever the chosen columns differ from what the base renders, append this to `resultStyles` next to the TILE FILL rule — scoped to the initial-content state, so search results keep the base grid:
 
 ```css
-.hr-overlay-search .hr-products.initialcontent .hr-products-container {
-	grid-template-columns: repeat(4, 1fr);
+/* Initial content: <N> per row like the shop's grid */
+.hr-overlay-search .hr-results .hr-products.initialcontent {
+	max-width: <columns × tile width + gaps + 40px padding>px;   /* only when 1200px is too narrow */
 }
 
-@media (max-width: 825px) {
+.hr-overlay-search .hr-products.initialcontent .hr-products-container {
+	grid-template-columns: repeat(<N>, 1fr);
+}
+
+@media (max-width: <width where N columns get narrower than the shop's tile>px) {
 	.hr-overlay-search .hr-products.initialcontent .hr-products-container {
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(<N − 1>, 1fr);
 	}
 }
 ```
 
-Without the override, `count: 8` renders 5+3 — a full row and an orphan row — which looks broken; **whenever you set 8 products, ship the 4-per-row CSS with it** (field-proven on store-NL-1, 2026-07). This is a sanctioned `resultStyles` edit in the same spirit as TILE FILL: structural grid compensation, not tile styling.
+Field values (store-DK-2): N = 5, tile 250px → `max-width: 1350px`, step-down to 4 at `1250px`. For a 4-per-row choice on narrower tiles the `max-width` line is not needed. **Verify on the rendered panel, not the token:** count the tiles per row after the push. The count and the CSS go together — a count that doesn't fill whole rows leaves an orphan row (8 products at the base 5 per row render 5 + 3). This is a sanctioned `resultStyles` edit in the same spirit as TILE FILL: structural grid compensation, not tile styling.
 
 ## Self-check
 
@@ -108,5 +117,6 @@ Without the override, `count: 8` renders 5+3 — a full row and an orphan row �
 - [ ] Content feed: the Q3 answer added verbatim (or left empty on "none"); if Q3 wasn't on the card it was in the batched ask, not assumed; titles from `translations.json`; subtitles explicitly localized (never the English auto-default) and marked self-translated; empty-data types flagged.
 - [ ] `show_category_content_hierarchy` set `true` in `resultStyles` only when CATEGORY is configured and the operator asked for the path; left `false` otherwise.
 - [ ] If any content-feed type must show as its own reliable tab, `show_vertical_link_content = true` is set in `resultTemplate` — `false` gates tabs behind "has real results" and can make a correctly-configured content type look like it isn't a separate tab.
-- [ ] Native tile width measured; wide → `count: 8` + 4-per-row override appended; narrow → base 10/5 untouched; 8 products never shipped without the matching CSS.
+- [ ] Shop's tiles per row, filter sidebar and tile width measured; the `Initial grid` question asked with the calculated layout as "(Recommended)" (or that layout applied and listed under *Applied defaults* when nobody answered); count fills whole rows; the column override (and `max-width` when 1200px is too narrow) appended whenever the base wouldn't render the chosen columns; tiles per row counted on the rendered panel after the push.
+- [ ] Initial-content title and subtitle, sort labels and filter titles taken from `translations.json` where it has them (`references/localization-header.md` → *Search-data strings*).
 - [ ] Every write verified with a read-back and reported to the operator.
