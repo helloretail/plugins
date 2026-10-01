@@ -111,6 +111,8 @@ run returns nothing.
 
 4f. **Check for hidden-state classes** — run the hidden-state scan (`references/survey-snippets.md` → HIDDEN-STATE CLASSES): stylesheet rules keyed on a class the tile carries that set `opacity: 0`, `visibility: hidden` or a transform. Normalise the known ones (Output Rule 10) and report the rest under SHELL CSS NOTES.
 
+4g. **Check page-type CSS** — the shells render the tile on other page types than the one you surveyed (Search opens from the homepage, a product page or the cart; recom sliders sit on product pages). Run the PAGE-TYPE CSS snippet (`references/survey-snippets.md`) on the category page, a product page, the homepage and the cart: it lists rules keyed on page-type body classes that reach the tile (`.single-product .badge { top: 10px }`) and stylesheets the category page loads but another page type does not (WooCommerce's `product-image.css`). Report each as a `page-dependent:` line under SHELL CSS NOTES with the category-page values to restate, or `page-dependent: none (checked …)`. The tile body still gets no CSS — this is not the non-global-CSS exception of Output Rule 2.
+
 5. **Check third-party widgets** — inspect how ratings actually work (Loox, rateit, Lipscore, Yotpo, etc.) and what the native ATC / quick-view / wishlist controls are bound to (`references/rating-widgets.md`).
 
 6. **Check price format** — separators, decimals, symbol position, symbol in DOM text or CSS pseudo-element, a trailing `,-`, incl./excl. VAT pairs, "from" prices on variant products, unit prices (per kg / l), a lowest-30-day (Omnibus) price next to sale prices.
@@ -188,6 +190,8 @@ only in your own context — if you learned it, it is in one of these sections.
 - tile root: rendered width <N>px · real card / gutter-padded cell · grid <N> columns, gap <N>px
 - buy button: background <rgb> · color <rgb>; accent colour <rgb>
 - rules that can't reach the tile, preview-only differences, mobile hover behaviour
+- page-dependent: <selector or sheet> (<page type>) → restate on the category value: <declarations>
+  — one line per rule family from step 4g, or `page-dependent: none (checked <page types>)`
 
 ### TEXT INPUTS
 - recom only: one line per `{% input %}` block emitted for a fixed text, with the native value —
@@ -251,6 +255,7 @@ while you work. In that mode:
 | Fixed texts          | copied verbatim in the page language; recom: `{% input %}` per text, listed under TEXT INPUTS                             | translating by hand; hardcoding a text in a recom design |
 | Mobile markup        | one copy — CSS handles the width; a JS-swapped mobile DOM is reported under OPEN QUESTIONS                                | building a second tile body                     |
 | Binding              | diff two normal tiles + the state tiles → tokens and markers; fill `bindings.json`; `bind-tile.mjs` substitutes and gates | editing the copied HTML by hand; leaving a token or marker; a binding that adds markup |
+| Page-type CSS        | step 4g on category, product, home and cart pages; `page-dependent:` lines with the category values for the shell to restate under its root | surveying one page type and assuming the tile looks the same everywhere |
 | Fidelity gate        | preview per state beside the native tile with the hooks applied, screenshot, judge by eye, desktop + 375px; differences → markup / hook / shell-side | handing over unseen; "fixing" a difference with CSS; a computed-style diff as the verdict |
 | Images               | `src`/`srcset`/`data-src` → `{{ product.imgUrl }}`; flag full-size feed images                                            | rewriting URLs per platform (`_400x`, `?width=`) |
 | Classes              | keep the full class list, incl. runtime/JS ones (`lazyloaded`, `lazyautosizes`, `is-loaded`, `active`)                     | dropping "artifact" classes; trusting a static opacity probe to delete one |
@@ -284,7 +289,7 @@ while you work. In that mode:
 | --- | --- | --- |
 | `references/browser.md` | any live-site step | The two browser backends, the tool table, login and mobile rules, pasted-HTML mode, the off-limits pages |
 | `references/platform-detection.md` | step 1 | The signal table, the detection snippet, and the per-platform routing list (which file to read for which platform) |
-| `references/survey-snippets.md` | steps 3–8b | Verbatim `outerHTML` capture (specimen, settle, injected-attribute strip, ancestor-chain probe; `collect()` on the Chrome fallback), the variation survey, the multi-tile diff that yields the skeleton and the BINDINGS rows, the label-vocabulary sweep, the PARENT HOOKS scan and harness, the alignment probe, the mobile markup check, the hidden-state scan, the fidelity check harness, hover-state inspection |
+| `references/survey-snippets.md` | steps 3–8b | Verbatim `outerHTML` capture (specimen, settle, injected-attribute strip, ancestor-chain probe; `collect()` on the Chrome fallback), the variation survey, the multi-tile diff that yields the skeleton and the BINDINGS rows, the label-vocabulary sweep, the PARENT HOOKS scan and harness, the alignment probe, the mobile markup check, the hidden-state scan, the page-type CSS scan, the fidelity check harness, hover-state inspection |
 | `scripts/bind-tile.mjs` | steps 8 and 8b | The substitution script: skeleton + bindings.json → tile.liquid, with the unbound-token and element-count gates; `--preview` renders a state with native values for the fidelity check; usage in its header |
 | `references/css-ownership.md` | steps 4b–4c and the SHELL CSS NOTES section | Who writes CSS on classic vs CSS-in-JS themes, and what to report to the shell |
 | `references/rating-widgets.md` | step 5 | How to identify the rating system and where each system's recipe lives; when the generic JS engine applies |
