@@ -307,6 +307,13 @@ maintain. The non-negotiable rules, briefly:
 - **Fill the canvas** — keep the default's `image_height` so the image fills the
   tile, and/or center the content vertically so any slack is balanced rather
   than pooling at the bottom.
+- **Keep the derived sizes derived.** `image_height`, `title_box_height` and
+  `space` must stay computed from `height`, `margin`, `font_size` and
+  `lines_of_text` — never replace one with a literal (`image_height = 170`).
+  A literal looks right in the render and breaks the moment the operator edits a
+  marker: raise `lines_of_text` and the title runs into the price. When your
+  text block differs from the default's, put its fixed part in one named assign
+  (e.g. `text_block_px`) and keep subtracting it from the canvas.
 
 The customer's tokens are exposed via the parameter block at the top (the
 `{# color ... #}`, `{# boolean ... #}` HR dashboard param syntax) with sensible
@@ -339,7 +346,11 @@ error and per-tile image-load failures. Render **before** any save:
   — a design that only fits the average product is a design that clips, and
   empty-list guards only fail on the product that has none. Check the
   whole canvas is used, nothing is cut off, the badge/prices/CTA render, and the
-  font came out as intended.
+  font came out as intended;
+- render once more with a **marker changed** in the template override (e.g.
+  `lines_of_text` +1, a different `margin`) and confirm the image shrinks to make
+  room instead of the text overlapping — that is the only render that proves the
+  layout is still derived rather than hardcoded.
 
 The browser-injection preview (resolve the Liquid with a sample product's
 values, inject into a blank tab, zoom-screenshot — details in the **Inspection &
@@ -424,6 +435,9 @@ have to scroll to the reference sections to remember them:
   show no discount badge. Don't invent a badge.
 - Content shorter than the canvas pools at the bottom → keep the default's
   `image_height` and/or center the content vertically so the slack is balanced.
+- Never hardcode a derived size (`image_height = 170`) → it breaks the
+  dashboard's `margin` / `lines_of_text` / height fields; derive it and verify
+  with a changed-marker render.
 - Don't stretch the product shot → `background-size:contain` (default) or a real
   `<img>` with `width:100%; height:auto`.
 - Don't rename or delete the default's variables (`image_height`, `font_size`,
@@ -491,7 +505,9 @@ what the live tile does rather than defaulting to one arrangement.
 
 The tile renders onto a fixed width x height. Use the default's `image_height` so
 the image consumes the leftover space and the tile fills the canvas (you can't
-rely on flex centering).
+rely on flex centering). Keep it **computed** from the canvas and the markers —
+a literal pixel height stops responding to the dashboard's `margin`,
+`lines_of_text` and height fields.
 
 ## Image without stretching
 
