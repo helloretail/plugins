@@ -114,7 +114,8 @@ is copy-pasted into the dashboard anymore.
   fine for a design no campaign uses yet.
 - **Fonts are the render host's, not the web's.** No `@font-face`; a font not in
   `getRenderingInfo.availableFonts` silently falls back. E.g. a shop using Inter
-  gets **Roboto** as the closest installed stand-in — check the list every time.
+  gets **Roboto** and Segoe UI gets **Open Sans** as the closest installed stand-in —
+  check the list every time.
 - The rare design HR staff configured to render at 1× is refused by
   `updateDesign` — read/render it here, edit it in the dashboard.
 - Renders are opaque JPEGs — paint an explicit background; unpainted areas are
@@ -146,7 +147,21 @@ the template until you've actually looked at the live tile.
 
 You need the customer's **category-page URL** (a page showing the product
 tiles). Helpful but optional: a CSS selector for the product card if the page is
-unusual.
+unusual. With only a website UUID, ask for the URL (or offer to pick a category
+with sale items yourself).
+
+**Always ask how many tiles sit in one newsletter row** — it sets the canvas
+width. Ask it together with the other open questions, once:
+
+| Tiles per row | Width (px) | Height |
+| --- | --- | --- |
+| 2 | 298 | the existing design's height, else the matching starter's |
+| 3 | 198 | the existing design's height, else the matching starter's |
+| 4 | 147 | the existing design's height, else the matching starter's |
+
+Different counts in different campaigns mean different widths: build one design
+per width, never stretch one. Also ask whether the design is a **test** (see
+step 7 — `createDesign` always creates it LIVE).
 
 ### 2. Load the default design (the starting point)
 
@@ -195,6 +210,12 @@ MCP is the fallback when Playwright isn't available:
   color, alignment, line-height, background, border-radius, padding — for each
   tile element (brand, title, price, old price, unit, rating, stock/delivery,
   label, CTA), plus the card background and product-image dimensions.
+- **Find every badge and label slot, not just the ones on the first tile.** Read
+  one product that carries many badges with `productData_get` (url) and compare
+  its `extraData` keys (`badge`, `isBadge2` + `Badge2Text`, `isBadge3` +
+  `Badge3Text`, …) and `extraDataList` (e.g. colour variants → "N farver") with
+  what the live tiles show. Every slot the feed fills gets a conditional in the
+  template, stacked the way the live tile stacks them.
 - Take a **zoomed screenshot** of one tile (`computer` action `zoom`) and look
   at it. Computed styles lie sometimes (e.g. a brand that renders italic via a
   class the snippet missed); the screenshot is the source of truth for
@@ -313,8 +334,10 @@ error and per-tile image-load failures. Render **before** any save:
 - unsaved draft: pass `template` + the target design's real `width`/`height`;
 - previewing an edit to an existing design: pass `designId` + `template` (the
   override renders without persisting);
-- render at least a long-title product and an on-sale product (`productUrls`) —
-  a design that only fits the average product is a design that clips. Check the
+- render at least a long-title product, an on-sale product, a non-sale product,
+  the product with the **most badges**, and one with **no variants** (`productUrls`)
+  — a design that only fits the average product is a design that clips, and
+  empty-list guards only fail on the product that has none. Check the
   whole canvas is used, nothing is cut off, the badge/prices/CTA render, and the
   font came out as intended.
 
@@ -334,7 +357,9 @@ explicit approval**, write it straight to the customer's design:
 
 - existing design → `newsletterContent_updateDesign` (designId + template;
   partial update, leave width/height/name alone unless asked);
-- no design yet → `newsletterContent_createDesign`.
+- no design yet → `newsletterContent_createDesign`. It always creates the design
+  **LIVE** (pickable in the campaign editor, though no campaign changes); there is
+  no tool to set New or Draft. Say so and get the operator's yes before calling it.
 
 After saving, render the **saved** design once more (`renderDesign` with just
 `designId`) and confirm the persisted version produces the same tiles — that
@@ -355,6 +380,10 @@ have to scroll to the reference sections to remember them:
   `@font-face` on the render host, so a storefront font that isn't installed
   silently falls back (Inter → use Roboto). The storefront tells you the look;
   `availableFonts` tells you what you may write.
+- **Marker names are letters and underscores only** — `badge2_color` is not
+  recognised and prints as text at the top of the tile, pushing everything down.
+  Stray text on the render means a bad marker.
+- **Test an empty list with `.size > 0`**, not `!= blank` — an empty list is not blank.
 - **Read the design before overwriting** (`getDesign`) — a same-day "Main
   design" may be a colleague's work, not the untouched default.
 - **Newsletter-design edits land in place — no linked draft is created** (the
