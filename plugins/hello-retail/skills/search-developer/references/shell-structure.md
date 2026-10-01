@@ -13,7 +13,8 @@ This is the structural shell the tile body slots into. The product card itself c
    - **Remove the reset block** — delete the overlay's universal reset (temporary, until base removal).
    - **Gutter padding** — strip the tile root's grid-gutter padding when it isn't a real card.
    - **Overlay z-index** — set `overlay_z_index` below the site header's stacking context so the header/menus stay on top.
-   - **Initial-content grid override** — when the native tile is wide and initial content is set to 8 products, force 4 per row (`.hr-products.initialcontent .hr-products-container { grid-template-columns: repeat(4, 1fr) }`). Details: `references/search-data-config.md` (Step 13d).
+   - **Initial-content grid override** — force the agreed columns on the initial panel (`.hr-products.initialcontent .hr-products-container { grid-template-columns: repeat(N, 1fr) }`), and raise the panel's 1200px `max-width` when N tiles don't fit. Details: `references/search-data-config.md` (Step 13d).
+   - **Embedded open-state fixes** — while the panel is open: release a page wrapper's z-index that traps the header, lower page content that paints over the panel, move the close button below a header overhang, and keep the skip link hidden. Details: the embedded sections under *Overlay z-index* below.
    - **Typography match (opt-in, core-intake Q4)** — when the operator wants the search's headings/text in the site's fonts, one scoped block per variant with the *measured* deltas on section headings and results/content text only. Never the tile, never filter chrome, never a font load. Details: `references/branding-and-header.md` → *Typography*.
 
 > **These sanctioned edits are the complete list.** Everything else in the base `search.css` / `search.liquid` / `search.js` is read-only: add overrides with higher specificity, placed in the section that already styles that element, and never rewrite, reformat, reorder, or delete base rules — most of `search.css` styles chrome (filters, dropdowns, filter counts, range slider, sorting, header, content column, close, animations) that isn't rendered while you build, so a rework destroys it invisibly. If the design can't be reached additively, ask the operator for approval before touching the foundation (the `Foundation` gate in SKILL.md — an `AskUserQuestion` with no option recommended). → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md`
@@ -324,7 +325,10 @@ body.hr-search-disable-scroll > <HEADER_TOP_LEVEL_WRAPPER> {
 ```
 
 - `<HEADER_TOP_LEVEL_WRAPPER>` is the header's **direct-body-child** wrapper — the same element the z-index survey and the placement anchor use. Declare only what is needed: `position` only when static, `filter` only when **this design's** `enable_background_blur` is on (never to counter a sibling config's blur — that is an operator item); `z-index` always.
-- **Header nested in a page wrapper that also holds the content** (`.page-wrapper > header + main`): raising that wrapper would lift the content above the panel too. Target the header element itself (`body.hr-search-disable-scroll <header-selector>`) **and** check that no ancestor between it and `<body>` establishes a stacking context (`transform`, `filter`, `opacity < 1`, `will-change`, positioned with `z-index` ≠ `auto`). If one does, the header cannot be lifted out of it — say so, name the ancestor and its property, and ask the operator.
+- **Header nested in a page wrapper that also holds the content** (`.page-wrapper > header + main`): raising that wrapper would lift the content above the panel too. Target the header element itself (`body.hr-search-disable-scroll <header-selector>`) **and** check that no ancestor between it and `<body>` establishes a stacking context (`transform`, `filter`, `opacity < 1`, `will-change`, positioned with `z-index` ≠ `auto`).
+  - **The ancestor's only stacking cause is its `z-index`** (typical: an off-canvas menu plugin wrapping the page, e.g. mmenu's `.mm-page.mm-slideout` at `position: relative; z-index: 1`) → **release it while the panel is open** and keep the panel just under the header: `.hr-search-disable-scroll <wrapper-selector> { z-index: unset !important; }` plus `overlay_z_index` = the header's z − 1. The header then competes at root level and its dropdowns open over the panel. Then run the follow-up in *Embedded — page content painting over the panel* below — releasing the wrapper brings every z-indexed element inside it to root level too.
+  - **The cause is `transform`, `filter`, `opacity` or `will-change`** → the header cannot be lifted out of it without changing how the page renders — say so, name the ancestor and its property, and ask the operator.
+  - **Test more than one page load and template.** Wrappers injected by a script can be missing on some loads — a performance plugin that delays scripts until the first interaction (Nitro and similar) leaves a fresh desktop load without the wrapper while the product page, or the same page after a resize, has it (field case, store-DK-2 2026-10). The release rule is harmless when the wrapper is absent, so ship it whenever the wrapper appears on any template.
 - **Dropdowns portaled to `<body>`** (the theme's JS renders them as separate body children): they compete with the panel at root level on their own z-index, so this rule does nothing for them — set `overlay_z_index` below *their* z, or include them in the same open-state rule.
 - The other constraint still holds: `overlay_z_index` stays **below** the cart / quick-add drawers and modals (the enumeration above).
 
@@ -353,6 +357,62 @@ Two lessons that are now part of the procedure:
 - **Sibling configs are the operator's problem, not this design's.** Every search config's CSS is injected at load and all key off the shared `body.hr-search-disable-scroll` class, so a LIVE desktop overlay with blur on blurs the page (and traps the header) whenever the embedded draft opens. **Do not compensate for that in this design's CSS.** Work in isolation instead: hide every *other* search config in the widget while measuring and fixing (below), and if a LIVE or draft sibling still interferes at handoff — it blurs the page on the shared open-state class, or two overlays mount — put it on the operator's list: archive the sibling or switch its blur off before launch. `filter: none` in the open-state rule is for **this** design's `enable_background_blur = true` only.
 - **Isolate the config under test in the widget first.** On a logged-in session every INTERNAL_REVIEW/REVIEW search config with *Show* on renders *alongside* whatever is LIVE — two `.hr-overlay-search` elements stacked. Toggle the other search entries' *Show* off in `#addwish-panel-root` (a session-only preview control; never touch *Publish*) before probing, or the measurement mixes two designs. **Those toggles reset on every page load** — after the post-push reload, re-hide the siblings, and in the probe select the embedded panel explicitly (`[...document.querySelectorAll('.hr-overlay-search')].find(o => !o.querySelector('.hr-header .hr-logo'))`) rather than the first match, which may be the desktop overlay. **And read every rendered value from inside `.hr-overlay-search` — never from the widget panel's own subtree.** `#addwish-panel-root` embeds preview tiles of *other* designs in its tabs (the recommendation-box list renders a real tile per box), and an accessibility-tree read or a text `find()` returns those first: a price, badge or CTA string picked up that way belongs to a different design and a different price filter. (Field case, a DanDomain shop 2026-09: a "DKK" price read from the widget's recom-box preview passed the format check while the overlay itself rendered "kr." on every tile.)
 - **After the push, verify the persisted version, not the injected one.** Reload (so any session-injected `<style>` is gone), confirm the new rule is present in the page's inline `<style>` elements, then re-run the probe. Also read the design back with `search_getDesign` and byte-compare `resultStyles` against the file you intended to send — the push retypes a ~30 KB field, and a transcription slip would corrupt the customer's CSS silently (field-verified byte-identical on a PrestaShop test site, 2026-09-04).
+
+### Embedded — page content painting over the panel
+
+The panel sits low (`overlay_z_index` just under the header), so anything on the page with a higher z-index paints **over** it — badge plugins are the usual case (YITH badges at `z-index: 50`: "Dagspris" stickers from the category grid behind showed through the results, store-DK-2 2026-10). It happens with or without a page wrapper: without one, the page's elements already compete at root level; releasing a wrapper (above) brings the ones inside it there too.
+
+**Survey, with the panel open:**
+
+```js
+const z = +getComputedStyle([...document.querySelectorAll('.hr-overlay-search')].pop()).zIndex;
+[...document.querySelectorAll('body *')].filter(e => {
+  if (e.closest('.hr-overlay-search, header, #addwish-panel-root')) return false;
+  const c = getComputedStyle(e);
+  return c.position !== 'static' && c.zIndex !== 'auto' && +c.zIndex >= z && e.getBoundingClientRect().height > 0;
+}).map(e => e.tagName.toLowerCase() + '.' + (e.className + '').split(' ')[0] + ' z=' + getComputedStyle(e).zIndex);
+```
+
+Leave the theme's own drawers, modals and cookie / chat widgets alone — they are meant to be above (the *Overlay z-index* enumeration). Everything that belongs to the page content gets one open-state rule, scoped to the content container so the same classes inside the HR tiles are untouched:
+
+```css
+/* Page content with a high z-index paints over the panel: drop it below while search is open */
+body.hr-search-disable-scroll <content-container> <selector> {
+	z-index: 0 !important;
+}
+```
+
+**Check (Step 17b):** a hit-test on each of those elements' centres lands on the panel, not on the element.
+
+### Embedded — close button under a header overhang
+
+Some themes hang an element below the header — an absolutely positioned search bar, a sticky strip — that overlaps the top of the embedded panel. The base close button sits at `top: 20px`, so its top is hidden under the overhang (field case, store-DK-2 2026-10: the theme's search bar ended 40px into the panel and covered the button's top 20px).
+
+**Measure** with the panel open: the overhang's bottom edge minus the panel's top. If it is greater than `20px`, move the button below it with a little gap — overriding with the **base selector**, because a shorter one loses on specificity and changes nothing (that happened on the field case):
+
+```css
+/* The theme's <element> overlaps the panel's top <N>px: keep the close button below it */
+.hr-overlay-search .hr-close button.hr-close-btn {
+	top: <overhang + ~16>px;
+}
+```
+
+**Check (Step 17b):** `document.elementFromPoint` at the button's top edge (centre x, top + 4px) lands on the button.
+
+### Skip link showing as a bar while search is open
+
+The base JS adds a "Skip to products" link (`.hr-skip-content`, the `label_skip_to_products` text) next to the trigger input — **outside** the panel, inside the theme's header markup. It hides itself with `position: fixed; top: -100px` and appears on keyboard focus. When an ancestor of the input offsets fixed positioning (a transformed or offset header container), the link lands **inside** the viewport instead: a black bar with the skip text across the header and logo (field case, store-DK-2 2026-10: the offset was 144px, so it showed at 44px; the LIVE config on the same site had the same bar).
+
+**Check, with the panel open:** every `.hr-skip-content` that isn't focused has a bottom edge above 0. If one is visible, add — **unscoped**, because the link is not inside `.hr-overlay-search`:
+
+```css
+/* The skip link next to the theme's search input is fixed inside an offset ancestor: its hidden top lands in view */
+.hr-skip-content:not(:focus) {
+	top: -400px;
+}
+```
+
+The focused state is untouched, so keyboard users still get the link. List it under **Base defects** in the report: a hidden position that depends on the ancestors is the base design's bug, and Hello Retail should fix it upstream.
 
 ## Native search suppression — hide competing autocomplete/search when HR is active
 
