@@ -8,6 +8,12 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.31.1 — 2026-10-01
+
+### Fixed
+
+- `search-developer` and `recom-qa` now reliably find the QA team's translation for a store: the translation file is keyed by language name (`Danish`, `Swedish`, …) instead of codes, and a table maps every code, domain and `<html lang>` value (`dk`/`da`, `se`/`sv`, `kr`/`ko`, `cn`/`zh`, …) to that name.
+
 ## 1.31.0 — 2026-09-30
 
 ### Added
