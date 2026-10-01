@@ -37,6 +37,11 @@ Node.js is used only for `scripts/validate.mjs` and markdownlint.
   Release workflow bumps it after merge, with the level taken from the squash-merge title
   (`fix:` patch, `feat:` minor, `feat!:` / `BREAKING CHANGE` major). Write PR titles and commit
   subjects in that Conventional Commits form.
+- Opening a PR: the body is `.github/pull_request_template.md` with `## What` and `## Why`
+  filled in and the checklist kept — not a free-form `## Summary` / `## Test plan`, and not
+  `gh pr create --fill`, which skips the template. The title is Conventional Commits, never
+  GitHub's branch-name default (`Feat/pages skill fixes`). The **PR title & description** CI
+  check fails on either.
 - Skills are self-contained: a skill reads only files inside the plugin. Paths into the wiki
   are written `${CLAUDE_PLUGIN_ROOT}/docs/wiki/…`; cross-skill paths are `../<skill>/…` from a
   `SKILL.md` and `../../<skill>/…` from a file in `references/`.
