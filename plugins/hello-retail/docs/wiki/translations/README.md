@@ -16,22 +16,42 @@ Canonical translations for Hello Retail **Search**, **Recommendations**, and **P
 
 ```json
 {
+  "_meta": {
+    "languages": {
+      "Danish":  ["da", "da-DK", "dk", ".dk", "Dansk"],
+      "Swedish": ["sv", "sv-SE", "se", ".se", "Svenska"],
+      …
+    },
+    …
+  },
   "sections": {
-    "SEARCH":          { "<English string>": { "da": "…", "sv": "…", "fi": "…", … } },
+    "SEARCH":          { "<English string>": { "Danish": "…", "Swedish": "…", "Finnish": "…", … } },
     "RECOMMENDATIONS": { "<English string>": { … } },
     "PAGES":           { "<English string>": { … } }
-  },
-  "_meta": { "locales": ["da","de","es","fi","fr","it","ko","nl","no","pl","pt","sv","zh"], … }
+  }
 }
 ```
 
-Keyed by the **English** UI string. Locale codes are ISO-style: the workbook's `dk`→`da`, `se`→`sv`, `kr`→`ko`, `cn`→`zh`; all others as-is. A locale key is present only when the workbook had a translation for it (some languages — notably `pt`, `pl` — are partial).
+Each entry is keyed by the **English** UI string, and each translation inside it by the **English name of the language**: `Danish`, `Swedish`, `Norwegian`, `Finnish`, `Dutch`, `German`, `French`, `Spanish`, `Italian`, `Polish`, `Portuguese`, `Korean`, `Chinese`. These are the workbook's tab names. The file never uses codes as keys, so there is no `dk`, `da`, `se` or `sv` key.
+
+To get from a code to the key, use `_meta.languages`. It lists every code, domain and `<html lang>` value for each language. Find the store's value in a list, and the name the list is under is the key:
+
+| Store says | Key |
+|---|---|
+| `da`, `da-DK`, `dk`, `.dk` | `Danish` |
+| `sv`, `sv-SE`, `se`, `.se` | `Swedish` |
+| `no`, `nb`, `nn`, `.no` | `Norwegian` |
+| `fi`, `.fi` | `Finnish` |
+| `ko`, `ko-KR`, `kr`, `.kr` | `Korean` |
+| `zh`, `zh-CN`, `cn`, `.cn` | `Chinese` (Simplified only; nothing for `zh-TW` / `zh-HK`) |
+
+The other languages follow the same pattern (`nl` → `Dutch`, `de` → `German`, and so on). A language key appears only where the workbook has a translation for that string. Polish covers about half the strings, and Portuguese, Korean and Chinese cover fewer than ten each.
 
 ## How to use it (template generation)
 
 1. When the skill resolves the localization header (or changes any UI label), for each English token look it up in `translations.json` under the relevant section (`SEARCH` for Search templates, `RECOMMENDATIONS` for recoms).
-2. If the English token matches an entry and the target locale is present → **use that translation verbatim.** Many cells list more than one option separated by `/` (e.g. `"Sortering / Sortera efter"`, or DE `"Ihre Auswahl ergab xx Produkte / Deine Entscheidungen haben gegeben xx Produkte"`) — choose using the rule below.
-3. If the token or locale is **missing** → translate from your own knowledge, keep e-commerce register, and add a MISSING-DATA note so the operator can verify.
+2. If the English token matches an entry and has a key for the target language's name (for example `sections.SEARCH["Sort by"]["Danish"]` for a `.dk` / `da` store) → **use that translation verbatim.** Many cells list more than one option separated by `/` (e.g. `"Sortering / Sortera efter"`, or DE `"Ihre Auswahl ergab xx Produkte / Deine Entscheidungen haben gegeben xx Produkte"`) — choose using the rule below.
+3. If the token or language is **missing** → translate from your own knowledge, keep e-commerce register, and add a MISSING-DATA note so the operator can verify.
 4. Cross-check against the customer's storefront copy — if their site already uses specific wording, that wins over both this file and the dictionary.
 
 ### Choosing between `/`-separated options
@@ -52,6 +72,6 @@ Default when there is no signal at all: the **first** option, and **formal** reg
 
 ## Regenerating `translations.json`
 
-If the workbook is updated, re-run the extractor (Recommendations = cols 2/3, Search = cols 5/6, Pages = cols 8/9). **Pair each translation with its own English cell *within the same tab*, then merge across tabs on the (normalized) English string** — do **not** align by row number across tabs, because the language tabs have different row counts and that misaligns Finnish/Dutch/Italian/etc.
+If the workbook is updated, re-run the extractor (Recommendations = cols 2/3, Search = cols 5/6, Pages = cols 8/9). **Pair each translation with its own English cell *within the same tab*, then merge across tabs on the (normalized) English string** — do **not** align by row number across tabs, because the language tabs have different row counts and that misaligns Finnish/Dutch/Italian/etc. Key each translation by its tab's language name (`Danish`, `Swedish`, …), never by a code, and keep `_meta.languages` in the file.
 
 `translations.json` has also had a manual QA pass on top of the raw extract: embedded notes (`(DON'T USE …)`, `(if … feed)`, English glosses) were stripped from the values, the typo key `Show resultat` was renamed to `Show results`, and a few clear translation errors were corrected (e.g. ES `Sale`/`News`/`New`, FI `Season`, KO highest-price sort, IT `Show product`, NL `Select option`/`Compare`). The workbook remains the untouched master — fold these back into it when convenient.
