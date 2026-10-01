@@ -6,3 +6,7 @@
 
 - `search-developer` now opens the search from the homepage, category page, product page and cart after the push, and requires the tile's height, image and badge positions to match on all four.
 - `search-developer` compares search texts that already look translated with the QA team's translation sheet. It flags every mismatch in the hand-off instead of trusting the existing value.
+
+### Fixed
+
+- `tile-extractor` and `search-qa` no longer take a tile from one of Hello Retail's own recommendation sliders as the shop's native tile. Those tiles carry the shop's classes and passed the old check.
