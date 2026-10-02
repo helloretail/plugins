@@ -8,6 +8,50 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.35.1 — 2026-10-02
+
+### Fixed
+
+- `newsletter-developer` keeps the tile's image and title heights computed from the canvas and the dashboard fields, so changing margin, lines of text or height in the dashboard re-flows the tile instead of overlapping text. It now also renders once with a changed field to prove it.
+- `newsletter-developer` avoids a double border: a border inside the tile no longer sits next to the frame the dashboard and campaign already draw around it.
+- `newsletter-developer` removes the size adjustments that belonged to an element it drops, so a removed border no longer leaves the tile off-centre.
+
+## 1.35.0 — 2026-10-02
+
+### Changed
+
+- `search-developer` now looks up every visible string in `translations.json` before translating it itself — filter titles, sort labels, content-feed texts and the initial-content title, not only the header texts — and uses the file's wording exactly. The diff before the push now includes a translation table showing where each string came from.
+- `search-developer` asks how the initial products grid should look, recommending the shop's own grid (an extra tile per row where the category page has a filter sidebar), and widens the initial panel when the tiles don't fit.
+- `search-developer` points out when filter A→Z sorting copied from the other search config also sorts the category and number filters, and asks whether to narrow it.
+
+### Fixed
+
+- `search-developer` keeps the header and its menus above the embedded search on shops whose page is wrapped by a menu plugin, and keeps page badges from showing through the panel.
+- `search-developer` moves the embedded search's close button clear of a theme search bar that overlaps it, and hides the skip link that could show as a black bar over the header.
+
+## 1.34.0 — 2026-10-02
+
+### Added
+
+- `search-developer` has a recipe for filters on one side and the close button on the other side of the mobile search input, and says how it combines with a matched header and a removed logo. It is marked derived until a build renders it.
+
+### Changed
+
+- `search-developer` matches the mobile overlay header with selectors, because the mobile design has none of the desktop header tokens, and resets the side margin that left strips of the panel colour beside a coloured header.
+
+### Fixed
+
+- `search-developer` no longer lets a non-wrapping tile title stretch the grid columns past the screen on mobile or make them uneven on desktop, and its rendered checks now test for overflow at 375px.
+
+## 1.33.0 — 2026-10-01
+
+### Changed
+
+- `search-qa`, `recom-qa`, `pages-qa`, `newsletter-qa` and `qa-checklists` now ask their questions
+  with the multiple-choice picker instead of typed prose — which ClickUp card, QA surface, LIVE or
+  draft target, API-based or not, logged-in pass, how to grade an unclear difference, and the
+  login and device-emulation pauses. Free text such as a URL or website-uuid is still typed.
+
 ## 1.32.0 — 2026-10-01
 
 ### Changed
