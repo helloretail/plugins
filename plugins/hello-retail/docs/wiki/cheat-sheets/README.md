@@ -11,6 +11,8 @@ Platform-specific **cart wiring** is not a cheat sheet — it lives with the pla
 
 ```
 cheat-sheets/
+├── liquid/                 ← Liquid rules + HR custom filters, every template type
+│   └── general.md          ← filter overview, setUrlParam, attribute quote rule
 ├── search/                 ← Search snippets, split by platform
 │   ├── general.md          ← platform-agnostic (offset top, highlight terms, filter sorting…)
 │   ├── shopify.md          ← Shopify-specific
@@ -32,6 +34,7 @@ cheat-sheets/
 
 | Category | Use it when… |
 | --- | --- |
+| **liquid** | Liquid rule or HR custom filter that applies to every template type (Search, Recoms, Pages, Newsletter) — [liquid/general.md](liquid/general.md). |
 | **search** | Snippet is specific to Hello Retail Search (overlay, grid, list, full). |
 | **recoms** | Snippet renders inside a recommendation box / slider. |
 | **pages** | Snippet is for Pages (category / brand). Includes Pages REST API examples. |
@@ -72,3 +75,4 @@ If a new platform shows up (e.g. WooCommerce, PrestaShop, Centra), create `cheat
 
 ## Timeline
 - 2026-05-19: Cheat-sheets section created from the team's Notion exports.
+- 2026-10-02: Added the `liquid/` category — HR custom Liquid filters and the attribute quote rule.
