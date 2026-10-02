@@ -30,6 +30,18 @@ sibling `qa-checklists` skill and is not duplicated here.
 
 If the URL is missing, ask before proceeding.
 
+**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of
+sensible options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's
+`AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line
+description each, the recommended one first and marked "(Recommended)", `multiSelect: true`
+when several may apply; *Other* is added automatically for free text. Up to four independent
+questions per call; a question whose options depend on an earlier answer waits for the next
+call. Options come from what you already read, never from guesswork, and nothing the prompt,
+the card or an earlier answer already settled is asked again. Free text with nothing to
+suggest (a URL, a UUID) stays a prose question. No `AskUserQuestion` tool in the session → the
+same questions in prose, the options as a numbered list; no operator to answer at all → take
+the recommended option and record the question under Manual checks for the operator.
+
 ## Multi-domain mode
 
 If the user provides **more than one URL/domain** — separate TLDs (`example.dk` + `example.se`)
@@ -91,7 +103,8 @@ fast one with silent gaps.
 Hello Retail. Right after opening the browser (Claude in Chrome, Playwright, or Browser pane),
 navigate to
 `https://my.helloretail.com` — if it redirects to a login screen, **pause and ask the operator
-to log in themselves** in that browser window (never enter credentials yourself), then re-check
+to log in themselves** in that browser window (never enter credentials yourself; the *HR
+login* picker of `../qa-checklists/SKILL.md` Step 3 takes their answer), then re-check
 and continue. On Claude in Chrome the login is the operator's own Chrome profile (usually
 already there); on the Playwright backend each isolated session loads the saved login from
 `~/.hr-auth.json` (the `browser-login` skill produces or refreshes it; see
