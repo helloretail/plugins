@@ -1,4 +1,4 @@
-# Survey snippets — extraction, variations, labels, parent hooks, alignment, hover
+# Survey snippets — extraction, variations, labels, parent hooks, alignment, page-type CSS, hover
 
 Read this before workflow steps 3–6 of `../SKILL.md`. Every snippet uses **placeholder selectors**
 (`.product-tile-selector`, `.title-selector`, `.tile-root`, `.product-card`) — replace them with the
@@ -20,9 +20,32 @@ Rule 10). Everything else comes out exactly as the storefront has it.
 
 Take the tile from the main product grid of the category page — never a slider clone
 (`.swiper-slide-duplicate`, `.slick-cloned`), never a tile inside a third-party recommendation
-widget, never one inside an existing Hello Retail box (`[id^="hello-retail"]`). Prefer a tile in the
+widget (Clerk, Nosto, Raptor), never one inside a Hello Retail box. Prefer a tile in the
 viewport whose product is a plain in-stock product; the sale, sold-out and badge specimens come from
 the survey in the next section, captured the same way.
+
+**Hello Retail's own recom sliders are the easy trap.** A recom design built for this shop copies the
+shop's card with the shop's classes, so a tile inside one looks native — on a WooCommerce shop it is
+`li.aw-item.product.type-product.status-publish …`, next to the grid's `li.wc-block-product`. Run
+this guard on every specimen (normal and each state) before capturing it; `REJECT` means pick
+another tile from the product grid:
+
+```javascript
+(() => {
+  const SPECIMEN = ".product-tile-selector"; // the selector you are about to capture
+  const HR_OWN = '[id^="aw-box"], [id^="aw-slider"], [id^="hello-retail"], .aw-item, [data-aw_source], .hr-product, .hr-overlay-search, [class*="addwish"]';
+  const el = document.querySelector(SPECIMEN);
+  if (!el) return "no element matches SPECIMEN";
+  const host = el.closest(HR_OWN) || el.querySelector("[data-aw_source]");
+  return host
+    ? `REJECT — inside Hello Retail markup: ${host.id || host.className || host.tagName}`
+    : "OK — shop's own tile";
+})();
+```
+
+When a **finished** recom design's tile already matches the category tile, the shells may reuse it
+on purpose — that goes through step 2c and `reuse-recom-tile.md`, never through picking a slider
+tile as the specimen.
 
 ### 2. Settle it before capturing
 
@@ -630,6 +653,121 @@ class the tile carries that hide or displace the element:
 - Anything else the scan returns is reported under SHELL CSS NOTES with the selector and the
   declaration — the shell decides; you never patch it with CSS. This case has not been seen in the
   field yet; the visual fidelity check catches what the scan misses.
+
+## PAGE-TYPE CSS — rules and stylesheets that change the tile by page
+
+The shells render the tile on every page type — a Search overlay opens from the homepage, a product
+page or the cart; a recom slider sits on a product page — while you survey it on a category page.
+Two things make the same markup look different there, even on a classic theme whose CSS is global:
+
+- **Rules keyed on a page-type body class** — `.single-product .badge { top: 10px }`,
+  `.catalog-product-view .price-box { … }`. They are in a global stylesheet, so they load on the
+  category page too, but only match where the body carries that class. Field case (WooCommerce block
+  theme, 2026-10): every badge slot moved from the bottom of the image to the top whenever search
+  opened from a product page.
+- **Stylesheets that load only on some page types** — WordPress enqueues a block's CSS only where
+  the block renders, and other platforms split CSS per template. Field case (same shop): WooCommerce's
+  `product-image.css` loads on category pages but not on product pages; without it the tile image sat
+  on the text baseline and the card grew 7px.
+
+This is **not** the CSS-in-JS exception of Output Rule 2: the tile body still carries no CSS. You
+report what you find under SHELL CSS NOTES as `page-dependent:` lines, and the calling shell restates
+the **category-page values** under its own root so the tile looks the same wherever it opens.
+
+Run the snippet three times:
+
+1. **On the reference category page** with `TILE` set to the tile root and the other inputs empty.
+   It reads the classes of **every** tile on the page, because badge and sale classes exist only on
+   some tiles — open a page that carries the badge types from the label sweep (step 6b) if the
+   reference category shows none. Keep `tileClasses`, `sheets` and `bodyClasses` from the result.
+   Hello Retail's own CSS (its CDN sheets, recom boxes' inline styles) is skipped: it is not the shop's.
+2. **On a product page, the homepage and the cart page** (direct loads), with `TILE = null`,
+   `TILE_CLASSES` = step 1's `tileClasses`, `BASELINE` = step 1's `sheets`. `onlyHere` lists the
+   rules of stylesheets that load on that page but not on the category page.
+3. **Back on the category page** once per page type from step 2, with `BASELINE` = that page's
+   `sheets`. `onlyHere` now lists what the category page loads and the other page does not — the
+   rules the tile loses there.
+
+In every run set `PAGE_BODY_CLASSES` to the body classes that appear on some page types but not
+others (compare the `bodyClasses` lists — `single-product`, `home`, `archive`, `woocommerce-cart`, …).
+`pageRules` then lists rules keyed on them that reach the tile.
+
+```javascript
+(() => {
+  const TILE = ".product-card";   // step 1: the tile root selector (every tile on the page is read); other pages: null
+  const TILE_CLASSES = [];        // steps 2–3: step 1's tileClasses
+  const BASELINE = [];            // the `sheets` list of the page you compare against
+  const PAGE_BODY_CLASSES = [];   // body classes that differ between page types
+  const PAGE_TYPE = /\.(single-product|home|archive|woocommerce-cart|woocommerce-checkout|catalog-product-view|catalog-category-view|cms-index-index|checkout-cart-index|template-[\w-]+|page-template-[\w-]+)(?![\w-])/;
+
+  const tileClasses = new Set(TILE_CLASSES);
+  if (TILE) document.querySelectorAll(TILE).forEach((tile) =>
+    [tile, ...tile.querySelectorAll("*")].forEach((el) => el.classList.forEach((c) => tileClasses.add(c))));
+  const pageClasses = new Set(PAGE_BODY_CLASSES);
+  const label = (s) =>
+    s.href ||
+    (s.ownerNode && (s.ownerNode.id ? "#" + s.ownerNode.id : "inline:" + s.ownerNode.textContent.trim().slice(0, 60)));
+  const classesOf = (part) => (part.match(/\.[\w-]+/g) || []).map((c) => c.slice(1));
+  const hitsTile = (sel) => classesOf(sel).some((c) => tileClasses.has(c));
+  const pageKeyed = (sel) => {
+    const lead = sel.split(/\s+/)[0];
+    return PAGE_TYPE.test(lead) || classesOf(lead).some((c) => pageClasses.has(c));
+  };
+
+  const pageRules = [];
+  const onlyHere = [];
+  const unreadable = [];
+  const isHelloRetail = (name) => /helloretailcdn|addwish|#aw-(box|slider)-/.test(name || "");
+  const sheets = [...document.styleSheets].filter((sh) => !isHelloRetail(label(sh)));
+  for (const sheet of sheets) {
+    const name = label(sheet);
+    const isNew = BASELINE.length > 0 && !BASELINE.includes(name);
+    let rules;
+    try { rules = sheet.cssRules; } catch (e) { unreadable.push(name); continue; }
+    const walk = (rs, media) => {
+      for (const r of rs) {
+        if (r.cssRules && !r.selectorText) { walk(r.cssRules, r.conditionText || media); continue; }
+        if (!r.selectorText) continue;
+        for (const raw of r.selectorText.split(",")) {
+          const sel = raw.trim();
+          if (!hitsTile(sel)) continue;
+          const row = { sheet: name, media, selector: sel, css: r.style.cssText.slice(0, 300) };
+          if (pageKeyed(sel)) pageRules.push(row);
+          if (isNew) onlyHere.push(row);
+        }
+      }
+    };
+    walk(rules, "");
+  }
+  return {
+    page: location.pathname,
+    bodyClasses: [...document.body.classList],
+    tileClasses: [...tileClasses],
+    sheets: sheets.map(label),
+    pageRules: pageRules.slice(0, 80),
+    onlyHere: onlyHere.slice(0, 80),
+    unreadable,
+  };
+})();
+```
+
+Reading the result:
+
+- **`pageRules`** — for each rule, read the value the same element computes on the category page
+  (`getComputedStyle` on the native tile) and report
+  `page-dependent: <selector> (<page type>) → restate on the category value: <property: value; …>`.
+  Field case: `.single-product .badge:nth-last-child(1..5) { top: 10px…130px; bottom: unset }` →
+  restate `top: unset; bottom: 120px…244px` per slot. Cover every rule of a family (all badge
+  slots), not only the one you saw move.
+- **`onlyHere` from step 3** (the category page has it, another page does not) — report
+  `page-dependent: <sheet> loads on category pages only → restate: <selector> { … }` with the
+  declarations that reach the tile, copied from the sheet (not reconstructed from computed styles).
+- **`onlyHere` from step 2** (another page has it, the category page does not) — check whether its
+  rules change the tile there; if they do, report the category value to restate, as for `pageRules`.
+- **`unreadable`** — cross-origin sheets; read them by URL in a new tab before concluding nothing
+  differs.
+- Nothing in either list → write `page-dependent: none (checked <page types>)` so the shell knows
+  the check ran. The shell's rendered check on several page types (search-developer Step 17b) is still the gate.
 
 ## FIDELITY CHECK — OUR TILE NEXT TO THE SHOP'S, JUDGED BY EYE
 

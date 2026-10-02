@@ -246,7 +246,12 @@ any size — both can silently serve a laptop/tablet breakpoint. Verify `window.
 refresh.
 
 Navigate to the category URL. Scroll past any recommendation sliders (Clerk, Nosto, etc.) — these
-are third-party widgets and must NOT be used as the reference. Always use the paginated product
+are third-party widgets and must NOT be used as the reference. **Hello Retail's own recom sliders
+are excluded too, and they are the harder trap:** a recom design copies the shop's card with the
+shop's classes, so its tiles look native (WooCommerce: `li.aw-item.product.type-product …` beside
+the grid's `li.wc-block-product`). Before measuring a tile, run the Hello Retail guard from
+`../tile-extractor/references/survey-snippets.md` (TILE INSPECTION, step 1) on it; `REJECT` means
+take another tile from the product grid. Always use the paginated product
 grid (the one with page numbers or a "load more" button at the bottom) as the native reference.
 If HR **Pages is LIVE** on this store, that grid is itself HR-rendered — that's fine: a
 published Pages design is the customer-approved category design, so use its tiles as the
