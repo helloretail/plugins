@@ -1,6 +1,6 @@
 ---
 source: field
-verified: 2026-09-15
+verified: 2026-10-02
 ---
 
 # Magento 2
@@ -110,7 +110,7 @@ printf '%s\n' "$EXTRA_ATTRIBUTES" | tr ',' '\n' | sort -u > requested.txt
 comm -23 requested.txt available.txt   # anything printed here never arrives
 ```
 
-### Checking whether the plugin is installed
+### Checking whether the plugin is installed, and which version
 
 `version` is readable **without a token** — intentionally unrestricted — so this is a
 zero-credential probe for support triage:
@@ -118,6 +118,10 @@ zero-credential probe for support triage:
 ```bash
 curl -s "https://SHOP_DOMAIN/rest/V1/awext/info" | jq -r '.[0].version'
 ```
+
+On a support case about feed or product data, note this version first and quote it in the
+findings. See [plugin info endpoints](../plugin-info-endpoints.md) for the same check on the
+other platforms.
 
 Unauthenticated and bad-token calls differ only in `access`
 ("No bearer token provided" vs "Incorrect bearer token provided"), which makes the endpoint a
@@ -132,3 +136,4 @@ quick way to confirm a token before blaming the feed.
 ## Timeline
 - 2026-05-19: Page seeded.
 - 2026-08-13: Added the endpoint table and "Finding the available product attributes" — `/rest/V1/awext/info`, response shape, array wrapping, always-200 auth semantics, silent-drop of unknown attribute codes and the diff recipe, unauthenticated version probe.
+- 2026-10-02: Linked the cross-platform plugin info endpoints page; version check on feed and data tickets.

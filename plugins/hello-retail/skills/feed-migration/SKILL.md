@@ -258,8 +258,9 @@ Recognise the platform from the url and use these rather than probing:
 | SmartWeb | `/framework/priceindex/?index=addwish` | PAGE_BASED | `start` | `0` | `length` | `100` |
 | Magento 2 | `/rest/V1/product-feed` | PAGE_BASED | `page` | `0` | `pageSize` | `200` |
 | PrestaShop | `/modules/addwish/` (`addwishfeed.php`, `productfeed.php`) | PAGE_BASED | `page` | `0` | `pageSize` | `200` |
+| WooCommerce | `?feed=hello_retail_feed` | PAGE_BASED | `page` | `0` | `pageSize` | `200` |
 
-All three start at **0**. On PrestaShop, `start`/`length`, `limit`/`offset` and `pageSize`
+All of these start at **0**. WooCommerce has never had a `paged` parameter: page two repeats page one, so the run stops after one page. On PrestaShop, `start`/`length`, `limit`/`offset` and `pageSize`
 on its own all return the whole catalogue with `last-page-number="0"` — a valid-looking
 feed, which is why a wrong name there is never noticed. Starting at 1 skips the first page — a page of products missing, with
 no error anywhere.
@@ -329,6 +330,12 @@ A real case: a price chain reading
 was migrated to the feed's own `raw_price_with_tax`. The two agreed on **every item in the
 sample** and were wrong on 111 of 198 products, publishing 139,95 where the shop charged
 115,95. Only the product page settled it.
+
+**PrestaShop feeds:** the module prices with the shop's default country's VAT. Fetch
+`/modules/addwish/info.php` (older: `addwishinfo.php`). If the `default` country id is not one
+of the listed countries, add `country_id=<id>` of the country the shop sells to, and say so in
+the summary. A V1 url that already carries `country_id` / `lang_id` keeps them. See
+`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/prestashop/README.md`.
 
 **Starweb feeds:** a V1 price line that reads only `specialPriceIncVat` misses Starweb's scheduled prices. Map `price` from `activePriceExVat` instead, with the helper in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/feeds.md`, and say in the summary that the price source changed.
 
