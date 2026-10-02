@@ -81,7 +81,9 @@ This is **not tile CSS authoring** — you are changing header-level declaration
 
 **Manual:** use the color the operator supplied.
 
-### Step 2 — Update `resultStyles` header declarations
+### Step 2 — Update `resultStyles` header declarations (desktop overlay)
+
+> **Mobile overlay: skip to *Mobile overlay — no header tokens* below** — the mobile design declares none of these four tokens.
 
 Change these four declaration values in the `{# section Colors #}` / `{# section Headers #}` block at the top of `resultStyles`:
 
@@ -140,6 +142,70 @@ For a **light-colored header**, use dark text (`#000000` or the brand dark) inst
 
 **Only add this block when the operator confirmed they want foreground contrast adjustments** (the `Foreground` picker, asked after `match-header` = yes). If they said no, skip Step 3.
 
+### Mobile overlay — the design has no header tokens: match it with selectors
+
+The mobile design declares no `header_background_color_rgba`, `header_border_color` or `header_height_px`; `background_color_rgba` colours the whole panel, header included. So the header is matched with an **appended override block** (before the TILE FILL rule), and the DOM has one trap the desktop design does not:
+
+- The header has **two rows**: `.hr-header.hr-nav` (close · logo · filters) and, directly after it, `.hr-nav` (the search row).
+- **Both rows carry `hr-nav`, whose base rule is `margin: 0 15px`.** A background colour alone therefore stops 15px short of each screen edge and leaves panel-coloured strips on both sides. Reset the margin and move the 15px **inside** the coloured bar as padding.
+
+```css
+.hr-overlay-search .hr-header,
+.hr-overlay-search .hr-header + .hr-nav {
+	margin: 0;
+	background-color: <site header colour>;
+}
+
+.hr-overlay-search .hr-header {
+	padding: 0 15px;
+}
+
+.hr-overlay-search .hr-header + .hr-nav {
+	padding: 0 15px 12px;
+}
+```
+
+For a **dark** header, and only when the operator confirmed the `Foreground` picker, add in the same block:
+
+```css
+.hr-overlay-search .hr-search {
+	border-color: rgba(255, 255, 255, 0.2);
+	background-color: rgba(255, 255, 255, 0.12);
+}
+
+.hr-overlay-search .hr-search > input {
+	color: #ffffff;
+}
+
+.hr-overlay-search .hr-search input::placeholder {
+	color: rgba(255, 255, 255, 0.55);
+}
+
+.hr-overlay-search .hr-btn-search svg path,
+.hr-overlay-search .hr-btn-search svg {
+	fill: #ffffff;
+	color: #ffffff;
+}
+
+.hr-overlay-search .hr-header button.hr-close {
+	color: #ffffff;
+}
+
+.hr-overlay-search .hr-header button.hr-close .hr-icon-cross::before,
+.hr-overlay-search .hr-header button.hr-close .hr-icon-cross::after {
+	background-color: #ffffff;
+}
+
+.hr-overlay-search .hr-header button.hr-filters svg,
+.hr-overlay-search .hr-header button.hr-filters svg path {
+	stroke: #ffffff;
+}
+```
+
+**Logo on a coloured bar:** a site often ships only the logo made for its own header (white on a dark bar). Match the header to that bar rather than blanking the logo, and ask the operator when the choice is open.
+
+**Rendered check (mobile, 375px):** the coloured bar reaches both screen edges — read `getBoundingClientRect().left` of `.hr-header` and of the search row, both `0` — and the close and filter icons are visible on it. Field case store-DE-1 (2026-10-02): the white strips came from the `hr-nav` margin; the block above removed them, confirmed by the operator on the draft.
+
 ### Self-check for header matching
 
 - [ ] Operator explicitly asked about `match-header` before generation started (the `Header` picker).
@@ -147,6 +213,7 @@ For a **light-colored header**, use dark text (`#000000` or the brand dark) inst
 - [ ] `header_border_color` and `search_bar_background_color` updated to a matching subtle tint.
 - [ ] `header_height_px` discussed with operator if the default 150px looks oversized.
 - [ ] Dark header foreground overrides block added (if operator opted in and bg is dark/colored).
+- [ ] Mobile overlay: matched with the selector block (no header tokens exist there), margin reset on **both** `hr-nav` rows, and the bar reaches both screen edges at 375px.
 - [ ] The overrides block is placed **before** the TILE FILL rule in `resultStyles`.
 - [ ] No tile CSS authored — these changes are header-level declarations + HR-overlay-scoped overrides only.
 
