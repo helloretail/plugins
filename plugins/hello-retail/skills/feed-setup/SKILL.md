@@ -33,6 +33,26 @@ If any of these are missing, ask before proceeding.
 
 ## Execution flow
 
+### Step 0 — Read the plugin info endpoint (Magento 2, WooCommerce, PrestaShop)
+
+When the feed comes from a Hello Retail platform plugin, fetch the plugin's info endpoint
+before the feed:
+
+| Platform | Info endpoint | Read it for |
+|---|---|---|
+| Magento 2 | `/rest/V1/awext/info` (feed Bearer token) | Every attribute code you can put in `extraAttributes` |
+| WooCommerce | `/?feed=hello_retail_info` (no auth) | Meta keys and taxonomies you can put in `extraAttributes` |
+| PrestaShop | `/modules/addwish/info.php` (older: `addwishinfo.php`) | Languages and countries: whether the feed URL needs `country_id` and `lang_id` |
+
+Note the plugin version in your report. Details and response shapes are in
+`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/plugin-info-endpoints.md` and the platform's
+reference file below.
+
+**PrestaShop:** if the `default` country id is not among the listed `<country>` elements,
+the plain feed URL prices every product with the wrong country's VAT. Add `country_id=<id>`
+of the country the shop sells to. Add `lang_id=<id>` for the language to index. Ask the
+user which country and language when the info output leaves more than one candidate.
+
 ### Step 1 — Fetch and inspect the feed
 
 Fetch the feed URL (with auth headers if provided) and read enough of it to understand
@@ -357,7 +377,8 @@ function transform(product) {
 Read the relevant file before writing transformation code:
 
 - **WooCommerce** (`?feed=hello_retail_feed`) → `references/woocommerce.md`
-- **PrestaShop** (`/modules/addwish/productfeed.php`) → `references/prestashop.md`
+- **PrestaShop** (`/modules/addwish/addwishfeed.php`, `/modules/addwish/productfeed.php`) → `references/prestashop.md`
+- **Magento 2** (`/rest/V1/product-feed`) → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/magento/README.md` — endpoints, `awext/info` attribute discovery, `extraAttributes`; no transform template here.
 - **Shopify** (`feed-helper.addwish.com/shopify/V2/products.py`) → `references/shopify.md`
 - **Viskan / Streamline** (v1 / v2 / v3 product feeds) → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan/feeds.md` — feed **parameters** only, no transform template. Read it before building: v3 takes `countryId` / `languageId` that Viskan or the customer has to provide, plus `splitByAttribute1` (`true` = each colour is its own product), `includeRelatedArticles` and `includeRootCategories`; **v3 pagination starts on page 1 while v1/v2 start on page 0**.
 - **Starweb** → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/feeds.md` — map `price` from the default price list's `activePriceExVat` plus VAT (`usedVatRate`), falling back to `specialPriceIncVat`; the page has the `getActivePrice` helper. `specialPriceIncVat` alone misses scheduled prices. Check which price list is the default (usually `1`).

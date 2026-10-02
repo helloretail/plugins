@@ -22,7 +22,9 @@ For deployment-method choice (script vs API), see [../onboarding/implementation-
 
 One folder per platform. Those with an overview page (install pattern + gotchas):
 
-- [Shopify](./shopify/README.md) · [Magento 2](./magento/README.md) *(Magento 1: [legacy](./magento/magento-1.md))* · [Shopware](./shopware/README.md) · [Starweb](./starweb/README.md) · [WooCommerce](./woocommerce/README.md) · [Viskan](./viskan/README.md) · [Wikinggruppen](./wikinggruppen/README.md)
+- [Shopify](./shopify/README.md) · [Magento 2](./magento/README.md) *(Magento 1: [legacy](./magento/magento-1.md))* · [PrestaShop](./prestashop/README.md) · [Shopware](./shopware/README.md) · [Starweb](./starweb/README.md) · [WooCommerce](./woocommerce/README.md) · [Viskan](./viskan/README.md) · [Wikinggruppen](./wikinggruppen/README.md)
+
+**Plugin info endpoints** (Magento 2, WooCommerce, PrestaShop): plugin version, platform version and the data the feed can carry. Check it first on feed and data tickets, and before every feed setup: [plugin-info-endpoints.md](./plugin-info-endpoints.md).
 
 DanDomain, Lightspeed and BigCommerce have per-feature code files only — see *Per-platform code* below.
 
@@ -31,7 +33,7 @@ DanDomain, Lightspeed and BigCommerce have per-feature code files only — see *
 Platform-specific implementation snippets live in each platform's folder, one file per feature (each holds the Search-overlay and Recom-slider variants). The cross-platform rules — platform inference, which hook to bind from per surface, the selector / API table — are in [add-to-cart.md](./add-to-cart.md).
 
 - **Add to cart:** [shopify](./shopify/add-to-cart.md) · [dandomain / lightspeed](./dandomain/add-to-cart.md) · [magento 2](./magento/add-to-cart.md) · [shopware](./shopware/add-to-cart.md) · [starweb](./starweb/add-to-cart.md) · [bigcommerce](./bigcommerce/add-to-cart.md) · [viskan](./viskan/add-to-cart.md) · [wikinggruppen](./wikinggruppen/README.md)
-- **Feeds:** [viskan](./viskan/feeds.md) · [starweb (`activePriceExVat`)](./starweb/feeds.md)
+- **Feeds:** [viskan](./viskan/feeds.md) · [starweb (`activePriceExVat`)](./starweb/feeds.md) · [prestashop (`country_id`, `lang_id`)](./prestashop/README.md#the-default-country-sets-the-vat-in-the-feed) · [woocommerce (`extraAttributes`)](./woocommerce/README.md#adding-data-points-with-extraattributes)
 - **Multi-currency and customer-unique prices:** [starweb (`dynamicPriceHandler`)](./starweb/dynamic-price-handler.md)
 - **Rating / reviews:** [shopify (Loox)](./shopify/rating.md) · [dandomain (rateit)](./dandomain/rating.md) · [lightspeed (rateit)](./lightspeed/rating.md) · [magento 2 (native)](./magento/rating.md) · Search tiles on any platform: [Lipscore](../features/search/lipscore-ratings.md)
 - **Storefront data (labels, boost variants, campaign labels):** [starweb](./starweb/storefront-data.md)
