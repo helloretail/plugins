@@ -257,6 +257,28 @@ Mirror the native column count; add one step-down breakpoint (the desktop-overla
 
 On shops whose CSS is not global (MUI/Emotion and other CSS-in-JS storefronts), the customer's styles are **injected per page and per rendered state** — the overlay opens from any page, so the verbatim-classes tile renders differently (or broken) depending on where it opens. The tile skill proves that with two checks, then asks the operator whether the customer can make the tile CSS global; only when the answer is *no* does it hand over a **copy of the customer's own rules** under CSS BLOCK (verbatim, rescoped under `.hr-overlay-search`, keyed on the stable label classes). **Appending that copy to `resultStyles` is a sanctioned edit** — treat it as part of the tile drop-in, place it after the TILE FILL rule, and don't edit its values here. Everything else about the no-tile-CSS rule still stands for classic themes. Details: the tile skill's `../../tile-extractor/references/centra.md`.
 
+## Page-dependent restatements — classic themes whose CSS changes by page type
+
+A classic theme's CSS is global, yet the same tile can still render differently depending on where the overlay opens: rules keyed on a page-type body class (`.single-product .badge { top: 10px }`) match only on that page type, and some platforms load a stylesheet only on some templates (WordPress enqueues a block's CSS only where the block renders — WooCommerce's `product-image.css` is on category pages, not on product pages). The tile skill reports each case under SHELL CSS NOTES as a `page-dependent:` line with the category-page values (its step 4g).
+
+**Restating them is a sanctioned edit.** For each line, copy the theme's own rule — or the category-only sheet's rules that reach the tile — with the **category-page values**, scope every selector under `.hr-overlay-search`, and append the block after the TILE FILL rule with a one-line comment naming the cause. Cover the whole rule family (every badge slot, not only the one you saw move). Never reconstruct values from computed styles, and never restate rules that do not differ between page types. The scope under `.hr-overlay-search` is enough to beat a page-type rule of the same shape (`.single-product .badge:nth-last-child(1)` is 0-3-0; `.hr-overlay-search .hr-search-overlay-product .badge:nth-last-child(1)` is 0-4-0).
+
+Field case (WooCommerce block theme, 2026-10):
+
+```css
+/* Badge slots: the theme moves them to the top on product pages (.single-product); restate the category-page offsets */
+.hr-overlay-search .hr-search-overlay-product .badge:nth-last-child(1) { top: unset; bottom: 120px; }
+/* … one rule per slot, 2–5 … */
+
+/* WooCommerce product-image block: its stylesheet loads only on category pages; restate it */
+.hr-overlay-search .wc-block-components-product-image { display: block; position: relative; text-decoration: none; }
+.hr-overlay-search .wc-block-components-product-image a { border: 0; border-radius: inherit; box-shadow: none; display: block; text-decoration: none; }
+.hr-overlay-search .wc-block-components-product-image img { border-radius: inherit; max-width: 100%; vertical-align: middle; }
+.hr-overlay-search .wc-block-components-product-image__inner-container { bottom: 0; display: flex; flex-direction: column; left: 0; padding: 12px; position: absolute; right: 0; top: 0; }
+```
+
+Verify with the cross-page check in SKILL.md Step 17b: the same tile, opened from the homepage, category page, product page and cart, gives the same height, image box and badge offsets.
+
 ## Tile text alignment — match the native tile, don't inherit the base's center
 
 The base template centers text at **two** levels: the overlay root rule (`.hr-overlay-search`, all three variants) **and** the grid-cell rule (`.hr-overlay-search .hr-search-overlay-product`, desktop-overlay / desktop-embedded) both carry `text-align: center;`. `text-align` inherits, and most native product tiles never set their own (every element computes to the inherited default `start`) — so a byte-perfect tile silently renders **centered** inside HR while the storefront shows it left-aligned. This is easy to miss in a code review and only shows up in a side-by-side rendered comparison — check for it proactively rather than waiting for a "make sure they look similar" QA pass to catch it. (Field-confirmed on store-NL-1, 2026-07.)
