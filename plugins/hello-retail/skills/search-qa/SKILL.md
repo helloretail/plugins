@@ -86,6 +86,18 @@ first; create the folder only if that search comes back empty.
 - Optionally: the **QA target** — LIVE published design (default) or a REVIEW draft.
 - Optionally: specific areas to focus on
 
+**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of
+sensible options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's
+`AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line
+description each, the recommended one first and marked "(Recommended)", `multiSelect: true`
+when several may apply; *Other* is added automatically for free text. Up to four independent
+questions per call; a question whose options depend on an earlier answer waits for the next
+call. Options come from what you already read, never from guesswork, and nothing the prompt,
+the card or an earlier answer already settled is asked again. Free text with nothing to
+suggest (a URL, a UUID) stays a prose question. No `AskUserQuestion` tool in the session → the
+same questions in prose, the options as a numbered list; no operator to answer at all → take
+the recommended option and record the question under Manual checks for the operator.
+
 ## Multi-domain mode
 
 If the user provides **more than one URL/domain** — separate TLDs (`example.dk` + `example.se`)
@@ -136,7 +148,8 @@ overlay ("similar to [another-shop.com]"), judge **shell-design** items against 
 **API-based** (custom frontend against the Search API — `search_listConfigs` shows a config with
 no design attached, the `target=NONE` pattern; the storefront renders its own components), tell
 the operator and skip its QA per the decision rule (`SKIPPED — API-based`). Ask the operator
-when the signals conflict.
+when the signals conflict — `AskUserQuestion`, header *Delivery*, the options and the
+recommendation from that decision rule (`../qa-checklists/SKILL.md` Step 2).
 
 **Then detect client-side routing** (`../qa-checklists/SKILL.md` Step 2.2): navigate between two
 page types via the site's own nav links and see whether the document reloads. Record the answer in
@@ -151,7 +164,10 @@ config** — desktop and mobile search are separate configs with separate design
 their own code pass (not just a viewport check). If the operator supplied a single
 `search-key`, QA only that config and record the narrowed scope in the report. Confirm with
 the operator only when the list is ambiguous (duplicates or unexpected extra configs — itself
-a Supervisor-hygiene finding).
+a Supervisor-hygiene finding): one `AskUserQuestion` call, header *Configs*, `multiSelect: true`,
+one option per config from `search_listConfigs` (`key` as the label; `type` · `state` · draft
+flag in the description), the non-archived ones first and the first marked "(Recommended)";
+more than four → the four most likely, the rest named in the chat line before the call.
 
 **`search_listConfigs` shows ONE row per key — it does not prove "no LIVE config exists."** When
 a key has an active REVIEW draft, the tool's single entry reflects the draft's state; the LIVE
@@ -162,7 +178,10 @@ config" from this list alone is a real mistake (store-IT, 2026-08-10): the on-si
 published design the whole time. Before stating a key has no LIVE version anywhere in a report,
 confirm it via the widget's actual row count (Step 3), not from `search_listConfigs` alone.
 
-Then confirm whether you're QA-ing the **LIVE published design** or a **REVIEW draft**. You
+Then confirm whether you're QA-ing the **LIVE published design** or a **REVIEW draft** — unless
+the prompt said which: `AskUserQuestion`, header *QA target*, *LIVE published design
+(Recommended)* / *REVIEW draft*, each described with what the inventory showed for it
+(`state`, `draft`); it shares the call with the *Configs* question when that one is asked. You
 don't have to wait for publish — a REVIEW draft is a valid QA target.
 
 - **Code pass (both targets):** with a `website-uuid`, call `search_getDesign(website-uuid, key)`
@@ -176,7 +195,8 @@ don't have to wait for publish — a REVIEW draft is a valid QA target.
   first** — after the HR login preflight: the widget only works when the browser session is
   logged in to Hello Retail, so open `https://my.helloretail.com` first; if it redirects to a
   login screen, ask the operator to log in in that browser window (never enter credentials
-  yourself) before proceeding. That root-URL probe is the **only** my.helloretail.com
+  yourself; the *HR login* picker of `../qa-checklists/SKILL.md` Step 3 takes their answer)
+  before proceeding. That root-URL probe is the **only** my.helloretail.com
   navigation allowed — leave immediately; the `/company/…` dashboard and `/supervisor/…` UI
   are off-limits to browser automation (dashboard facts come via the `hello-retail` MCP). Then click `#addwishPageAdd` to open it, then switch **Show** ON for the search solution
   (and every other Search/Recom solution listed — never Pages: it replaces the native category
@@ -278,7 +298,8 @@ replace the native category grid you captured in step 2). Unpublished solutions 
 way, and enabling everything at once also exposes solution-interaction defects. The widget
 requires an HR login in this browser session — run the **HR login preflight** from
 `../qa-checklists/SKILL.md` Step 3 once, right after opening the browser (check
-`my.helloretail.com`; if logged out, ask the operator to log in before continuing).
+`my.helloretail.com`; if logged out, ask the operator to log in before continuing — its *HR
+login* picker takes the answer).
 
 Click the search input matching the CSS selector. Type a generic query (e.g. the first product
 category visible on the page, or a product number if the user supplied one). The URL should change
@@ -384,7 +405,8 @@ At mobile viewport:
 Only if the automation genuinely cannot reach a mobile width (window-level resize tools can
 bottom out around ~1470px CSS width — viewport emulation doesn't): note it, ask the user to
 enable Chrome DevTools device emulation (F12 → toggle device toolbar → pick a phone — iPhone
-SE preferred, 375px), and continue with the mobile section once they confirm.
+SE preferred, 375px) with the *Emulation* picker of `../qa-checklists/SKILL.md` Step 3
+(*Mobile capture*), and continue with the mobile section once they confirm.
 
 ### 7. Code QA — read the designs via MCP
 
