@@ -8,6 +8,13 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.37.0 — 2026-10-02
+
+### Added
+
+- `hello-retail-knowledge`, `search-developer`, `recom-developer` and `pages-developer` now find a Liquid cheat sheet covering Hello Retail's custom Liquid filters. To put a query parameter on product links, use `setUrlParam` rather than hand-built `append` logic.
+- The same cheat sheet gives the quote rule for Liquid inside HTML attributes: filter arguments take single quotes inside a double-quoted `href`.
+
 ## 1.36.0 — 2026-10-02
 
 ### Added
