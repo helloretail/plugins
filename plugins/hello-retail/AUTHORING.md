@@ -93,8 +93,10 @@ share a call.
   ask: take the recommended option and record the question under OPEN QUESTIONS.
 
 The worked example is `recom-developer` → `references/box-setup.md` → *How to ask*. Adopted so far by
-`search-developer`, `recom-developer` and `pages-developer`; the other skills still ask in prose and
-move over as they are next touched.
+`search-developer`, `recom-developer` and `pages-developer`, and by the QA skills — `search-qa`,
+`recom-qa`, `pages-qa`, `newsletter-qa` and `qa-checklists`, whose shared pickers (*Card*, *HR
+login*, *Delivery*, *Verdict*, *Emulation*) live in `qa-checklists`; the other skills still ask in
+prose and move over as they are next touched.
 
 ## 4. Push deep detail into `references/`
 

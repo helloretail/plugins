@@ -97,17 +97,19 @@ The initial content ("before you search" panel) is the first thing a shopper see
 }
 
 .hr-overlay-search .hr-products.initialcontent .hr-products-container {
-	grid-template-columns: repeat(<N>, 1fr);
+	grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 @media (max-width: <width where N columns get narrower than the shop's tile>px) {
 	.hr-overlay-search .hr-products.initialcontent .hr-products-container {
-		grid-template-columns: repeat(<N − 1>, 1fr);
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 ```
 
-Field values (store-DK-2): N = 5, tile 250px → `max-width: 1350px`, step-down to 4 at `1250px`. For a 4-per-row choice on narrower tiles the `max-width` line is not needed. **Verify on the rendered panel, not the token:** count the tiles per row after the push. The count and the CSS go together — a count that doesn't fill whole rows leaves an orphan row (8 products at the base 5 per row render 5 + 3). This is a sanctioned `resultStyles` edit in the same spirit as TILE FILL: structural grid compensation, not tile styling.
+`minmax(0, 1fr)`, not plain `1fr`: a `1fr` track may grow to its widest item, so a tile with a non-wrapping title makes the four columns uneven (see *Grid tracks* in `references/shell-structure.md`).
+
+Without the override, `count: 8` renders 5+3 — a full row and an orphan row — which looks broken; **whenever you set 8 products, ship the 4-per-row CSS with it** (field-proven on store-NL-1, 2026-07). This is a sanctioned `resultStyles` edit in the same spirit as TILE FILL: structural grid compensation, not tile styling.
 
 ## Self-check
 
