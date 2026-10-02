@@ -194,6 +194,17 @@ Two traps worth naming, because they invalidate everything downstream:
   confident wrong answer. State the config key you are working from.
 - **Check `auditLog_getEntries` early on any regression.** "It worked last week" usually has an
   entry naming the change and who made it. That is a root cause in one call.
+- **On a feed or product-data ticket for Magento 2, WooCommerce or PrestaShop, fetch the
+  plugin's info endpoint and note the plugin version** before reading the transform. The
+  endpoints are Magento 2 `/rest/V1/awext/info`, WooCommerce `/?feed=hello_retail_info` and
+  PrestaShop `/modules/addwish/info.php` (older: `addwishinfo.php`). Put the version in the
+  reply. The same output often names the cause:
+  - an `extraAttributes` code the shop doesn't have;
+  - a PrestaShop default country that isn't one the shop sells to, which puts the wrong VAT on
+    every price;
+  - a WPML translation that lacks the data the default language has.
+
+  See `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/plugin-info-endpoints.md`.
 
 ### Step 2 — Reproduce on the storefront, if the symptom is visible there
 
@@ -312,7 +323,7 @@ Always **plumbing → payload → presentation**. Most failed tickets inverted t
 
 | Ticket smells like | Look at, in this order |
 |---|---|
-| Missing / wrong / stale **product** data | `feeds_getLatestRun` → `feeds_listRuns` (did a FULL run ever land?) → `productData_getChanges` (has a source + date) → `productData_get` → `productData_getReindexStatus` → `dataFields_getProductFields` |
+| Missing / wrong / stale **product** data | Plugin shop (Magento 2 / WooCommerce / PrestaShop): the plugin info endpoint first, for the plugin version → `feeds_getLatestRun` → `feeds_listRuns` (did a FULL run ever land?) → `productData_getChanges` (has a source + date) → `productData_get` → `productData_getReindexStatus` → `dataFields_getProductFields` |
 | Missing **content** in search (category, brand, blog, page) | `search_getLinkContent` (is the type even enabled?) → `dataFields_getContentFields` (indexed?) → `contentData_getReindexStatus` → content feed → **hand back**, §4 |
 | **Search** results / facets / sorting wrong | `search_listConfigs` (which config is actually LIVE?) → `search_getProductEngine` → `search_getProductEngineBoosts` / `Elevates` / `Excludes` → `search_getFilters` / `search_getSorting` → `search_listSynonyms` / `search_listQueryRules` → `search_getTopSearchesWithoutResults` |
 | **Search** quality complaint with no specific query | `search_getAnalyticsOverview` → `search_getTopSearches` → `search_getTopSearchesWithoutResults` → `search_getFilterUsage` / `search_getSortingUsage` |

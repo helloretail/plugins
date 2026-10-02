@@ -1,7 +1,30 @@
 # PrestaShop — Feed Reference
 
-Feed URL pattern: `/modules/addwish/productfeed.php`
+Feed URL pattern: `/modules/addwish/addwishfeed.php` or `/modules/addwish/productfeed.php`
 Feed plugin: Hello Retail PrestaShop module
+Info endpoint: `/modules/addwish/info.php` (older modules: `/modules/addwish/addwishinfo.php`)
+
+---
+
+## Before mapping — country and language
+
+Fetch the info endpoint first. It lists the shop's languages, countries and currencies, each
+with an id, and a `default` id per group. Note `extension-version` in your report.
+
+- **Country:** the feed prices with the default country's VAT. If the `default` id of
+  `<countries>` is not one of the listed `<country>` elements, every price in the plain feed
+  is wrong. Add `country_id=<id>` of the country the shop sells to. When the default is
+  correct, leave it out.
+- **Language:** add `lang_id=<id>` to choose the language. Build one feed per active
+  language that needs indexing. Inactive languages (`active="no"`) are listed too.
+- **Choose by id, never by code.** A code can appear twice (an active and an inactive `de`),
+  and English can be `gb`.
+
+```
+/modules/addwish/addwishfeed.php?country_id=7&lang_id=4
+```
+
+Worked example and response shape: `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/prestashop/README.md`.
 
 ---
 

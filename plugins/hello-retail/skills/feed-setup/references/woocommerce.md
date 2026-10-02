@@ -62,19 +62,66 @@ Check `<attribute name="...">` in the actual feed XML to find the exact names.
 
 ## Pagination
 
-The WooCommerce HR plugin uses `paged` for pagination (not `page`).
-Override the default in `pageBasedConfig`:
+The plugin pages with `page`, starting at **0**, and `pageSize`, which are the standard
+defaults:
 
 ```json
 {
-  "pageVariable": "paged",
-  "pageInitialValue": 1,
+  "pageVariable": "page",
+  "pageInitialValue": 0,
   "sizeVariable": "pageSize",
   "sizeValue": 200
 }
 ```
 
-Note: WooCommerce pagination starts at **1**, not 0.
+The plugin has never had a `paged` parameter, so it ignores one: `paged=1` and `paged=2`
+both return the first page. A feed whose page parameter is `paged` stops at the second request, because a paginated
+feed stops when a page matches the previous one. It imports only the first page (200
+products) and the run still shows green. This was checked against plugin 1.2.43. The root element's
+`last-page-number` gives the page count.
+
+---
+
+## Info endpoint and `extraAttributes`
+
+Fetch `/?feed=hello_retail_info` (no auth) before mapping. It returns the plugin version, the
+WooCommerce and WordPress versions, every product meta key (`<product_meta><meta>`) and every
+taxonomy (`<taxonomies><taxonomy>`).
+
+Data points beyond the standard fields are requested on the feed URL:
+
+```
+?feed=hello_retail_feed&extraAttributes=total_sales,product_brand
+```
+
+They arrive per product as:
+
+```js
+// <meta><key name="total_sales"><value>12</value></key></meta>
+// <taxonomies><taxonomy name="product_brand"><term>Acme</term></taxonomy></taxonomies>
+// ensureArray(...)[0] accepts <meta> / <taxonomies> parsed either as an object or as a one-item array.
+function getMetaValue(name) {
+  var keys = ensureArray(ensureArray(product.meta)[0]?.key);
+  var key = keys.find(function(k) { return k._xmlAttributes?.name === name; });
+  return key ? ensureArray(key.value)[0] || '' : '';
+}
+
+function getTaxonomyTerms(name) {
+  var taxonomies = ensureArray(ensureArray(product.taxonomies)[0]?.taxonomy);
+  var tax = taxonomies.find(function(t) { return t._xmlAttributes?.name === name; });
+  return tax ? ensureArray(tax.term).filter(Boolean) : [];
+}
+```
+
+Check the parsed shape on a real product in the feed editor before you rely on these helpers.
+
+- Keys and taxonomies that are unknown or empty are left out without any error. Count how
+  many products carry each one over a few hundred products before you map it.
+- On a WPML (multilingual) shop, the info endpoint at the root URL describes the default
+  language. Test `extraAttributes` against the URL of the language you are building. If a
+  value is missing in one language, the shop's translation lacks the data.
+
+Wiki: `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/woocommerce/README.md`.
 
 ---
 
