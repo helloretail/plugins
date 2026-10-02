@@ -88,15 +88,17 @@ The ~250px line is a guideline, not a hard constant — judge against the native
 
 ```css
 .hr-overlay-search .hr-products.initialcontent .hr-products-container {
-	grid-template-columns: repeat(4, 1fr);
+	grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 @media (max-width: 825px) {
 	.hr-overlay-search .hr-products.initialcontent .hr-products-container {
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 ```
+
+`minmax(0, 1fr)`, not plain `1fr`: a `1fr` track may grow to its widest item, so a tile with a non-wrapping title makes the four columns uneven (see *Grid tracks* in `references/shell-structure.md`).
 
 Without the override, `count: 8` renders 5+3 — a full row and an orphan row — which looks broken; **whenever you set 8 products, ship the 4-per-row CSS with it** (field-proven on store-NL-1, 2026-07). This is a sanctioned `resultStyles` edit in the same spirit as TILE FILL: structural grid compensation, not tile styling.
 

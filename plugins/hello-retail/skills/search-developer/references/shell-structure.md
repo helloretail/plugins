@@ -13,7 +13,8 @@ This is the structural shell the tile body slots into. The product card itself c
    - **Remove the reset block** — delete the overlay's universal reset (temporary, until base removal).
    - **Gutter padding** — strip the tile root's grid-gutter padding when it isn't a real card.
    - **Overlay z-index** — set `overlay_z_index` below the site header's stacking context so the header/menus stay on top.
-   - **Initial-content grid override** — when the native tile is wide and initial content is set to 8 products, force 4 per row (`.hr-products.initialcontent .hr-products-container { grid-template-columns: repeat(4, 1fr) }`). Details: `references/search-data-config.md` (Step 13d).
+   - **Initial-content grid override** — when the native tile is wide and initial content is set to 8 products, force 4 per row (`.hr-products.initialcontent .hr-products-container { grid-template-columns: repeat(4, minmax(0, 1fr)) }`). Details: `references/search-data-config.md` (Step 13d).
+   - **Grid tracks** — when the tile has non-wrapping text, `minmax(0, 1fr)` columns and `min-width: 0` on the grid cell so the columns cannot outgrow the viewport (both desktop and mobile).
    - **Typography match (opt-in, core-intake Q4)** — when the operator wants the search's headings/text in the site's fonts, one scoped block per variant with the *measured* deltas on section headings and results/content text only. Never the tile, never filter chrome, never a font load. Details: `references/branding-and-header.md` → *Typography*.
 
 > **These sanctioned edits are the complete list.** Everything else in the base `search.css` / `search.liquid` / `search.js` is read-only: add overrides with higher specificity, placed in the section that already styles that element, and never rewrite, reformat, reorder, or delete base rules — most of `search.css` styles chrome (filters, dropdowns, filter counts, range slider, sorting, header, content column, close, animations) that isn't rendered while you build, so a rework destroys it invisibly. If the design can't be reached additively, ask the operator for approval before touching the foundation (the `Foundation` gate in SKILL.md — an `AskUserQuestion` with no option recommended). → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md`
@@ -168,6 +169,50 @@ The base template sizes only **its own default tile**: the rule `.hr-overlay-sea
 An inline `height` on the image (WooCommerce's `style="height:403px;object-fit:cover"`) beats the `height: auto` here, which is intended — the guard only caps width. Never add it pre-emptively: on a theme that already caps its images it is a no-op that muddies the diff.
 
 **Why this makes every tile in a row the same height:** the results grid's default `align-items: stretch` already equalizes cell heights per row; the `height: 100%` above is what lets the tile root accept that height instead of shrinking to its content. If tiles in a row still differ in height, the rule isn't actually applying to the tile's current root — verify in the live overlay (not just in `resultStyles`) before suspecting anything else.
+
+## Grid tracks — keep a non-wrapping tile from stretching the columns
+
+A tile whose title or price is `white-space: nowrap` (the tile skill reports it under SHELL CSS NOTES, e.g. "title is nowrap with ellipsis") has a large **min-content width**. Two defaults then work against the grid:
+
+- `1fr` is `minmax(auto, 1fr)`: the track grows to fit the widest item instead of sharing the width equally.
+- A grid item's `min-width` is `auto`, so the cell refuses to shrink below that content.
+
+Field case (store-DE-1, 2026-10-02): on a 375px phone the base two-column mobile grid measured 419px + 329px, wider than the screen, so titles, prices and ratings ran to and past the edges; on desktop the four initial-content columns came out 383 / 284 / 265 / 298px. The native page never shows this because its own cell is a fixed fraction of the container.
+
+**When to add it:** the tile (or any text in it) is `nowrap`, or the rendered check below fails. Skip it otherwise — on a tile that wraps it is a no-op that muddies the diff.
+
+**The fix — additive, same in every variant that has a product grid.** Cell first, then the column rules of the variant:
+
+```css
+.hr-overlay-search .hr-search-overlay-product {
+	min-width: 0;
+}
+```
+
+- **Desktop (embedded and overlay):** write every column override you add as `repeat(N, minmax(0, 1fr))` — the 4-per-row initial-content override (`references/search-data-config.md`) and the fixed-column override above already do. The base `repeat(auto-fill, minmax({{ product_tile_width }}px, 1fr))` has a fixed minimum and needs nothing.
+- **Mobile:** the base grid tracks are plain `1fr`; restate them with the same specificity plus the overlay root, so the later rule wins:
+
+```css
+.hr-overlay-search .hr-search-overlay-grid-container .hr-products-container {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+	.hr-overlay-search .hr-search-overlay-grid-container .hr-products-container {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 355px) {
+	.hr-overlay-search .hr-search-overlay-grid-container .hr-products-container {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+```
+
+The title then ends in the tile's own ellipsis, as on the native page.
+
+**Rendered check, desktop and 375px:** `getComputedStyle(container).gridTemplateColumns` shows equal tracks whose sum fits the container; `document.documentElement.scrollWidth` does not exceed `innerWidth`; the first tile's title has `scrollWidth > clientWidth` (it is truncated, not overflowing). With no Hello Retail widget, build the check as a mock: inject the design's `resultStyles` (tokens filled in) and the native tiles into a `.hr-overlay-search` container on the live category page.
 
 ## Tile width — match `product_tile_width` to the native tile's rendered width
 
