@@ -29,6 +29,7 @@ Requests arrive in three places only: a `Layout:` line on the card, the operator
 | "headings in our font" | not here — core-intake **Q4** (`references/branding-and-header.md`) |
 | mobile "list / grid", "hide the header", "no logo", "categories as tabs" | **ML1–ML4** — base toggles, `references/mobile-toggles.md` |
 | mobile "close and filter buttons beside the search field / next to the input" | **ML5** |
+| mobile "filters on one side and close on the other side of the input", "buttons on both sides of the search field" | **ML5c** |
 
 ## First solution → QA → research fallback (the loop every recipe runs through)
 
@@ -416,6 +417,7 @@ All four are value edits on declarations the base already has; the map, defaults
 | **Beside the logo** (header row, `.hr-header.hr-nav`: close · logo · filters above the input row) | base — `show_header_close = true`, `show_header_filters = true`, island `false` | base |
 | **Navigation Island** (floating bottom pill) | `show_footer_navigation_island = true` **and** `show_header_close = false`, `show_header_filters = false` — the island is additive, not a swap; leaving the header booleans on duplicates the buttons | base (`references/mobile-toggles.md`) |
 | **Beside the search field** (in the input row) | recipe **ML5b** below — `show_header_close = false`, `show_header_filters = false`, `show_footer_navigation_island = false`, then the Liquid move | **derived** |
+| **Around the search field** (filters left · field · close right) | recipe **ML5c** below — same booleans as ML5b, only the order of the two buttons in the Liquid move changes | **derived** |
 
 **ML5b — buttons in the input row** · **derived — not rendered; verify on first use**
 
@@ -470,6 +472,55 @@ JS: no change — the mobile base binds by class anywhere in the overlay (`overl
 <!-- capture-back: ML5b status=derived -->
 > 🧪 **Capture-back ML5b:** never rendered. First build that ships it: verify on a real mobile viewport that the field, filters and close sit in one row in that order, the count bubble renders on the inline filters button, the keyboard doesn't cover the row, and the header row is not an empty band; then flip to *verified live*, log site/date and the `hide_header` / logo choice that went with it.
 
+**ML5c — filters left, close right of the field** · **derived — not rendered; verify on first use**
+
+Same booleans, same `resultStyles` block and same JS note as ML5b — one difference in the Liquid move. `.hr-nav-inline` is `flex-direction: row`, so the DOM order **is** the visual order: put the filters button **before** `.hr-search` and the close button **after** it.
+
+```liquid
+<div class='hr-nav hr-nav-inline{% if search_box_shadows == true %} hr-shadows{% endif %}'>
+	{% if filters.size > 0 or sorting.options.size > 0 %}
+		<button class="hr-filters" aria-labelledby="hr-filters-label hr-filters-status">
+			{# the existing filters button, unchanged — as in ML5b #}
+		</button>
+	{% endif %}
+	<div class="hr-search" id="hr-search" tabindex="-1">
+		{# the existing input / status span / .hr-btn-search — unchanged #}
+	</div>
+	<button class='hr-close'>
+		{# the existing close button, unchanged — as in ML5b #}
+	</button>
+</div>
+```
+
+Customer asks for "no logo" together with ML5b / ML5c: that is ML3 (`header_logo_url` blank, mobile config only) plus the header-row question in the *Header interaction* note above — it is **not** a separate recipe.
+
+**Combined with a matched mobile header** (`references/branding-and-header.md` → *Mobile overlay*) · **derived — verify on first use**:
+
+- The inline row is the second `.hr-nav`, which the header-match block already colours. The dark-bar foreground selectors in that block name `.hr-header button.hr-close` / `.hr-header button.hr-filters`, which do **not** reach buttons that moved into the inline row. Repeat them for `.hr-nav-inline`, and swap the light-grey button background for a tint that reads on the bar:
+
+```css
+.hr-overlay-search .hr-nav-inline button.hr-close,
+.hr-overlay-search .hr-nav-inline button.hr-filters {
+	background: rgba(255, 255, 255, 0.12);
+	color: #ffffff;
+}
+
+.hr-overlay-search .hr-nav-inline button.hr-close .hr-icon-cross::before,
+.hr-overlay-search .hr-nav-inline button.hr-close .hr-icon-cross::after {
+	background-color: #ffffff;
+}
+
+.hr-overlay-search .hr-nav-inline button.hr-filters svg,
+.hr-overlay-search .hr-nav-inline button.hr-filters svg path {
+	stroke: #ffffff;
+}
+```
+
+- With the header row hidden (`hide_header = true`) the 20px spacer is `visibility: hidden`, so the bar colour does not paint there and a strip in the panel colour sits above the search row. Either keep the header row (logo kept) or give `.hr-nav-inline` the colour plus `padding-top: 20px` so the bar reaches the top. Ask the operator through the *Header row* question above; never decide it yourself.
+
+<!-- capture-back: ML5c status=derived -->
+> 🧪 **Capture-back ML5c:** never rendered. First build that ships it: verify on a real mobile viewport that filters · field · close sit in one row in that order, the buttons are legible on a matched header, and no strip in the panel colour sits above the bar; then flip to *verified live* and log site/date and the `hide_header` / logo choice.
+
 ## Team-recommended answers (2026-09-07) — for when the operator asks "what do you recommend?"
 
 These are **not defaults and are never applied unasked**; the *Applied defaults* stay the base. Quote them only when an operator asks for a recommendation on one of these points, and record the answer they choose.
@@ -497,6 +548,7 @@ These are **not defaults and are never applied unasked**; the *Applied defaults*
 - **L7:** with 7+ groups the row shows 5 + sorting + the toggle; select a hidden group's option → after the re-render the row is expanded and the selection visible; labels in the customer's locale.
 - **L8:** on a LIST filter with 7+ options: 6 visible + button; expand; from 15 options the search box filters as you type and the dropdown stays open; select an option beyond the 6th → reopen → expanded with the selection visible; the category tree and BOOLEAN filters untouched; labels in the customer's locale.
 - **ML5b:** on a real mobile viewport (Playwright `browser_resize` / Chrome device Emulator): field · filters · close in one row, in that order; tap the input — the row stays visible above the keyboard; no empty header band.
+- **ML5c:** as ML5b with the order filters · field · close; on a matched (dark) header the two buttons are legible, and no strip in the panel colour sits above the bar.
 
 ## Field log
 
@@ -520,5 +572,5 @@ One row per build that applied a recipe. Site names and layout numbers only — 
 - [ ] L2-bar background is opaque.
 - [ ] L5: exactly two `<h2>` edited, initial-content heading untouched, toggle set to `false` for the sentence form.
 - [ ] L7 / L8: called from the render hook after `sortFilters();`, labels are `{# text #}` design fields translated in Step 12, `VISIBLE` numbers and CSS `nth` in sync; L8 left the category tree and BOOLEAN filters alone.
-- [ ] L1 / ML5b: Liquid move shown in the diff and approved before the push; ML5b header-interaction question asked when the logo is removed.
+- [ ] L1 / ML5b / ML5c: Liquid move shown in the diff and approved before the push; ML5 header-interaction question asked when the logo is removed.
 - [ ] `overridden: <option> (recipe Ln / MLn)` line present under *Applied defaults*; the recipe's rendered check run after the push.
