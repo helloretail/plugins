@@ -266,6 +266,14 @@ Always use `forloop.index0` to index the parallel arrays:
 {% endif %}
 ```
 
+**Field-captured: a strip of thumbnail images beside the product link** (CSS-in-JS shops; the strip is a sibling of the link in the grid cell, see `survey-snippets.md` → *Swatch / variant strip probe*):
+
+- **Gate on the array, not the flag.** `extraData.hasSwatchIMG` is not set on every feed (it was absent on a shop whose rows carried all three arrays). Use `{% assign swatch_count = product.extraDataList.swatchIMG | size %}{% if swatch_count > 0 %}`; a single-colour product then shows one thumbnail, as the shop does.
+- **Derive the thumbnail from the feed image** when the shop's own thumbnail is a suffix or path variant of it (`…/originals/…-original.jpg` → `…/images/…-thumb.jpg`): `{{ img | replace: '/originals/', '/images/' | replace: '-original.jpg', '-thumb.jpg' }}`. Check one derived URL against the src the shop renders before relying on it.
+- **The tile root becomes the cell wrapper** that holds the link and the strip, so the strip stays a sibling. If the design's cell already carries the shop's wrapper class as a cell-level hook, scope any wrapper rule to `.hr-search-overlay-product > .<wrapper>` — a bare class rule also hits the cell and breaks its flex fill.
+- **Do not decide "current colour" with `==` in Liquid.** Comparing `swatchURL[i]` with `product.url` returned false even when both printed identically (also after `| append: ""`). Mark the current swatch in the init JS after each render instead (`../../search-developer/references/tile-interactivity-js.md` → *Current-colour swatch*).
+- **The shop's global CSS is on the page.** Emotion/styled sheets are injected unscoped, so a rule such as `.css-… svg { transform: rotate(180deg) }` hits any element you give the same class. Re-use hashed classes only with an explicit override for every property you care about (arrow direction, `hidden` state) and read the computed style, not the source.
+
 ### Colour swatches from hex values or colour names (no swatch images)
 
 When the native tile renders colour dots from hex values rather than images, and the feed has no

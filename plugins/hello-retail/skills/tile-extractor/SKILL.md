@@ -102,7 +102,7 @@ run returns nothing.
 
 3b. **Scan the extracted markup for template-syntax collisions** — `{{`, `{%`, `{#`, and Alpine/Vue attributes (`x-data`, `x-text`, `:class`, `@click`, `v-if`) whose values contain braces. Hello Retail's Liquid parses `{{ … }}` and `{% … %}` inside the template, so such markup breaks or renders empty. See *Native template syntax in the markup* in `references/liquid-rules.md`.
 
-4. **Survey ALL tiles on the page** — find every variation: sale badge, sold-out, labels, ratings, swatches, hover images (`references/survey-snippets.md` → TILE SURVEY). For every badge decide **DOM element or baked into the product image**: a label with no text node in the tile's DOM is part of the image, travels with `imgUrl`, and needs nothing — record it as *baked into image* in VARIATIONS so QA does not report it missing.
+4. **Survey ALL tiles on the page** — find every variation: sale badge, sold-out, labels, ratings, swatches, hover images (**swatches by the probe in `references/survey-snippets.md` → *Swatch / variant strip probe*, not by class name: the strip may be a sibling of the link, made of thumbnail images, and hidden below a breakpoint**; `references/survey-snippets.md` → TILE SURVEY). For every badge decide **DOM element or baked into the product image**: a label with no text node in the tile's DOM is part of the image, travels with `imgUrl`, and needs nothing — record it as *baked into image* in VARIATIONS so QA does not report it missing.
 
 4b. **Detect ancestor-scoped CSS** — check whether the tile's styling requires ancestor classes that won't exist inside the HR container, and report them as PARENT HOOKS (`references/survey-snippets.md` → ANCESTOR-SCOPED CSS; who writes what: `references/css-ownership.md`).
 
