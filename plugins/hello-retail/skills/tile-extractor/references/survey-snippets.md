@@ -223,6 +223,37 @@ Array.from(tiles)
   }));
 ```
 
+### Swatch / variant strip probe — class names cannot find it
+
+The survey above only looks for class names inside the tile **root**. On a CSS-in-JS shop the classes
+are hashes (`css-1sgavwj`), and the colour strip is often a **sibling of the product link, inside the
+grid cell** — a search by `swatch` in the class and a walk inside the link both miss it. Swatches are
+also not always dots: many shops show small square **thumbnail images** of each colour variant. A
+survey that reports "no swatches" without this probe is not a finding.
+
+```javascript
+(() => {
+  const links = [...document.querySelectorAll(".product-link-selector")].slice(0, 15);
+  const cell = (a) => { let c = a; for (let i = 0; i < 5 && c.parentElement && c.parentElement.querySelectorAll(".product-link-selector").length === 1; i++) c = c.parentElement; return c; };
+  return links.map((a, i) => {
+    const c = cell(a);
+    const small = [...c.querySelectorAll("img, picture, [style*='background-image']")].filter((e) => { const r = e.getBoundingClientRect(); return r.width >= 12 && r.width <= 90 && r.height >= 12 && r.height <= 90; });
+    const strip = small[0] && small[0].closest("div,ul");
+    return { i, viewport: innerWidth, smallImages: small.length, links: small.filter((e) => e.closest("a") && e.closest("a") !== a).length, stripClass: strip && String(strip.className).slice(0, 40), stripDisplay: strip && getComputedStyle(strip).display, firstSrc: small[0] && (small[0].currentSrc || small[0].src || "").slice(-60), arrow: !!c.querySelector("button svg") };
+  });
+})();
+```
+
+Run it at **desktop and at 375 px** (a strip hidden below a breakpoint is replaced by a text such as
+"3 colours" — a second element to copy and to translate), on tiles that have several colours **and**
+on single-colour tiles (they may show one thumbnail or none). Hover one tile; some strips appear
+only then. Anything it returns is a state to survey: capture the strip's markup, find the feed fields
+that drive it (`swatchIMG`, `swatchURL`, `groupedColors` on a typical feed — read a multi-colour
+product with `productData_get`), and check whether the thumbnail URL is a **suffix or path variant of
+a feed image** (`…-original.jpg` → `…-thumb.jpg`): derive it with `replace` in Liquid instead of
+loading the full-size image into a 48 px box. If the strip is a sibling of the link, the tile root
+becomes the cell wrapper that holds both, and the cell's own rules go in with the copied CSS.
+
 ## MULTI-TILE DIFF — DYNAMIC SPOTS AND STATE BRANCHES
 
 The template is the normal tile's copy with two kinds of change: product values swapped for feed
