@@ -98,6 +98,8 @@ For a **light-colored header**, keep borders/search-bar in a slightly darker tin
 
 > **Header height:** The base default of `150px` is often too tall. Ask the operator with `AskUserQuestion` — header `Header size`, the question *"The base header height is 150px — do you want me to reduce it? (The native header on this site is ~Xpx)"*, options *Reduce to ~Xpx (Recommended)* (the measured native height in the description) / *Keep 150px*, *Other* for another value. If yes, set `header_height_px` to a value close to the site's natural header height (typically 80–110px).
 
+> **Search bar width stays the base's.** `.hr-search` is `min-width: 400px; max-width: 440px`, sitting between the logo and the close button. Header matching changes the header's colors, height and gutters — **never the search bar's width**: do not add `flex: 1`, `max-width: none` or `width: 100%` rules on `.hr-header > .hr-search`, its form or `#hr-search` so that it "fills" the header. A bar spanning the whole header looks nothing like the default search (field case: a ~1040px bar at 1440px). Step 17b compares the rendered bar to 400–440px.
+
 ### Step 3 — Add foreground overrides for dark/colored backgrounds
 
 When the header background is **dark or strongly colored**, the default dark text, icons, and close button become illegible. Append this CSS block to `resultStyles` (before the **TILE FILL** rule) — it is a fixed, targeted set of HR-scoped overrides, not tile styling:
@@ -212,6 +214,7 @@ For a **dark** header, and only when the operator confirmed the `Foreground` pic
 - [ ] `header_background_color_rgba` set to the exact detected/supplied color (not a guess).
 - [ ] `header_border_color` and `search_bar_background_color` updated to a matching subtle tint.
 - [ ] `header_height_px` discussed with operator if the default 150px looks oversized.
+- [ ] Search bar width left at the base 400–440px (no `flex: 1` / `max-width: none` / `width: 100%` on the bar, its form or `#hr-search`).
 - [ ] Dark header foreground overrides block added (if operator opted in and bg is dark/colored).
 - [ ] Mobile overlay: matched with the selector block (no header tokens exist there), margin reset on **both** `hr-nav` rows, and the bar reaches both screen edges at 375px.
 - [ ] The overrides block is placed **before** the TILE FILL rule in `resultStyles`.
