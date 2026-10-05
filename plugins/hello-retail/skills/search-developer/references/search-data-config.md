@@ -71,6 +71,8 @@ Content search renders matching **categories, brands, site pages, blog posts** a
 
 ## Initial content sizing — ask, with the shop's grid as the recommendation (Step 13d)
 
+**Heading alignment: centered.** The initial-content heading and its italic subtitle share one token, `initial_content_header_alignment`, whose base default is `"left"` — set it to `"center"` in every design that declares it (a value edit on a declared token, never a new declaration). **The token alone does not centre anything when the initial panel is `align-items: flex-start`** (the panel is a flex column, so the heading and subtitle shrink to their text and `text-align` has no room to act — field case: computed `center`, heading still visibly left). Whenever the build left-aligns the initial panel, also append `.hr-overlay-search .hr-results .hr-products.initialcontent .hr-products-header.hr-initial-content-header, .hr-overlay-search .hr-results .hr-products.initialcontent .hr-initial-content-subtitle { align-self: stretch; }`. **Prove it rendered:** the heading text's horizontal centre must equal the panel's centre (±2px) — computed `text-align` alone is not the test. Once a query is typed the heading moves (`.hr-moved`) and is left-aligned by its own base rule; say so in the report if the operator wants both alike.
+
 The initial content ("before you search" panel) is the first thing a shopper sees, so its grid should read like the shop's own category grid. **The operator decides; you work out the recommendation from the survey.**
 
 **Measure during the survey,** on the category page at desktop viewport:
