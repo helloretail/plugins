@@ -79,6 +79,12 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
 - [ ] Option text too long so it disappears / overwrites the amount-of-products
 - [ ] Filter sidebar: styling is off and elements get cut off
 - [ ] Filter sidebar: every time you choose an option it reloads the bar
+- [ ] Open-state icon: the dropdown arrow doesn't flip or rotate when a filter dropdown is
+  open (check every filter dropdown, desktop and tablet)
+- [ ] **Filter removal** (known-template-issues T9): apply the price filter plus two other
+  filters, then remove each applied filter one at a time. Only that filter must go — the
+  other two stay applied and the price filter must not stay behind while a different filter
+  is removed. "Clear all" working is not a PASS for this item.
 - [ ] Open a filter or the sorting dropdown, then click outside it (product grid, page
   background) → it closes. The base design JS only closes a dropdown when another heading is
   clicked; a dropdown that stays open until then is a FAIL (fix: the outside-click listener in
@@ -110,6 +116,11 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
   symbol on the range slider are not a defect — the shared `ui_utility.register_filter`
   component has no currency parameter (QA team); flag only a **wrong** currency)*
 - [ ] Price filter: highest price is shown in the middle instead of at the right end of the screen
+- [ ] Price filter at tablet (820px): the min and max value labels sit aligned with the slider
+  and don't stick out past its edge or sit lower than the rest of the slider
+- [ ] Price filter typed boxes: type min, Tab, type max, Tab — and again max first, then min.
+  Both values stay set; the dropdown doesn't close or apply after the first field
+  (known-template-issues T1)
 - [ ] Price slider: strange price range shown
 - [ ] BUG — price filter: when adding a range, it adds an x-button
 - [ ] Mobile: price slider gets cut off

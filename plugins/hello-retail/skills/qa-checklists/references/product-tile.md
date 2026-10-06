@@ -44,6 +44,11 @@ functionality instead: click-through, PDP-price parity, CTA/ATC, translations
 - [ ] Elements move around (e.g. long titles, or depending on the tile size)
 - [ ] Different elements set up on different solutions
 - [ ] Wrong language (e.g. VAT-price text)
+- [ ] Label casing differs from the shop's own tile: compare the exact string of the VAT
+      label, the stock text and the SKU label (UPPERCASE / lowercase / Capitalised) against
+      the shop's tile — not only between the Hello Retail solutions
+- [ ] CTA button text alignment (centred vs left-aligned) differs from the shop's own tile —
+      compare per tile width; note when the shop itself mixes both
 - [ ] Alignment
 - [ ] Remove/add space in between elements
 - [ ] Elements overwrite each other
@@ -118,6 +123,10 @@ functionality instead: click-through, PDP-price parity, CTA/ATC, translations
 - [ ] Extra: variant images are missing
 - [ ] Extra: size info is missing
 - [ ] Extra: color info is missing
+- [ ] Variant chips vs the product page: open the PDP of a tile with several variants and
+      compare the set and the order of the variants. The tile must show the same variants as
+      the PDP, in the same order, with nothing hidden, reordered or swapped for a different
+      set (and a "+ N" overflow count that matches what is hidden)
 
 ## Image
 
@@ -187,6 +196,11 @@ functionality instead: click-through, PDP-price parity, CTA/ATC, translations
 - [ ] Format: add/remove decimals (e.g. strange format)
 - [ ] Format: add/remove thousand separator (e.g. use `.` instead of `,`)
 - [ ] Placement: alignment
+- [ ] Cart vs tile price basis: add a product to the cart from the tile and compare the cart
+      price with the tile price. When the two use a different basis (e.g. incl. vs excl. VAT),
+      record it as an **observation for the CSM** with both values — never pass it silently
+      as "the shop's native pattern". It is not a FAIL when the ticket or a customer decision
+      covers the tile's basis, but the shopper-facing difference is still reported
 
 ### Dual VAT prices (incl. / excl. VAT)
 
