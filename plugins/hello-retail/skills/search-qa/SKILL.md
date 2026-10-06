@@ -113,6 +113,17 @@ design — never assume the designs are shared.
   full workflow (steps 0–8, ending with that domain's report) for domain A before starting
   domain B. Keep per-domain findings separate; nothing carries over between domains except the
   design diff (next bullet).
+- **Build every domain's artefacts from that domain's own sources — never from a sibling's
+  files.** Each domain's config inventory comes from its own `search_listConfigs(website-uuid)`
+  call, and every config key written into its report, manifest or fix plan is copied from that
+  call's output — not from another domain's report, even when the designs are copies of each
+  other. Each domain's coverage manifest is extracted fresh from the checklist sources
+  (`../qa-checklists/SKILL.md` Step 3), never by duplicating another domain's manifest and
+  editing it, and every verdict line cites evidence observed on *this* domain. Before saving a
+  report, check that each config key in it appears in that domain's `search_listConfigs`
+  output. (Real 2026-10 case, 15-storefront run: one domain's mobile key was written into
+  another domain's report, and a "mobile product tab translated — PASS" line was carried from
+  the French storefront's manifest into the Spanish one, whose tab label was actually empty.)
 - **Diff the designs before repeating the code pass.** After loading domain B's design via
   `search_getDesign`, diff its three fields (`resultTemplate`, `resultStyles`,
   `initializationCode`) against domain A's:
