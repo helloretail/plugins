@@ -42,12 +42,23 @@ For each candidate, **verify in the live page** (via the browser MCP or the surv
 - It is **the customer's primary search affordance**, not a third-party widget input (Algolia, Klevu, Searchanise, Loop54, Nosto, Boost, Yotpo, Rebuy, Clerk.io).
 - It is **not** part of an unrelated form (newsletter, login, faceted-filter "search within filter").
 - **Is there a separate, adjacent icon/submit button next to the input** (a magnifying-glass button, a "Sök"/"Search" button) — a *second* clickable element in the same widget, distinct from the input? If yes, note it now as its own candidate for the Step 3c check (native-form submit).
+- **The selector matches exactly the elements you intend — count them, don't trust the id.** Themes reuse ids: a hidden mobile form often repeats the desktop input with the same `id`, and `document.querySelector` silently returns only the first one while the base `querySelectorAll(trigger_selector)` binds every match. Run this for the candidate selector at the desktop **and** the mobile breakpoint:
+
+  ```javascript
+  [...document.querySelectorAll("<candidate selector>")].map((el) => ({
+    tag: el.tagName.toLowerCase(),
+    form: el.closest("form")?.id || el.closest("form")?.className || "-",
+    visible: el.getBoundingClientRect().width > 0,
+  }));
+  ```
+
+  More than one row where you meant one, or a row that isn't visible at that breakpoint → scope the selector until it matches only the intended input (Step 2). Field case store-IT-2 (2026-10): two inputs shared one `id`, the desktop one and a hidden copy in the mobile form; the bare id selector bound both and the duplicate was found only after the push.
 
 ## Step 2 — Pick the selector
 
 Prefer the **most specific selector that still matches every legitimate trigger** the customer wants opening HR Search:
 
-- A single ID (`#search`, `#search_mini_form input`) when the input is uniquely identifiable.
+- A single ID (`#search`, `#search_mini_form input`) when the input is uniquely identifiable — the match count in Step 1 says so, not the fact that it is an id. When the id repeats, scope it by its form or wrapper (`#desktop-search-form #search`).
 - A scoped attribute selector (`header input[type='search']`, `.site-header input[name='q']`).
 - A union of selectors when desktop + mobile use different elements: `"header input[type='search'], .mobile-nav input[type='search']"`.
 
@@ -337,6 +348,7 @@ Rules:
 ## Self-check
 
 - [ ] `trigger_selector` in every emitted `search.js` is a customer-specific selector — not the bare `input[type='search']` default.
+- [ ] The trigger selector's matches were counted at the desktop and the mobile breakpoint (Step 1): every match is an intended, visible trigger for that variant — no hidden duplicate that reuses the same id.
 - [ ] `placement_selector` (desktop-embedded only) passed the three numeric checks: `offsetParent === BODY`, `offsetTop === docTop`, `offsetTop ≈ header bottom` — on the homepage, a category page and a product page (the wrapper tag can change per template), with the measured numbers for each stated in the report. Not an element inside the header, not the trigger's form/wrapper, not set for overlay variants.
 - [ ] When no page element passed, the **placement anchor** was injected (config-block insertion before the base offset lines; in-flow zero-height sibling for a body-child static/sticky header, absolute-pinned for fixed/nested headers), `placement_selector` points at it, it passed the same three checks, and the report names the branch, the header wrapper and the numbers. The operator was asked only because the header wrapper itself couldn't be identified — never as a substitute for injecting.
 - [ ] Rendered with the embedded search open: header fully visible and interactive, nav dropdowns open **over** the panel (`overlay_z_index` below the header's stacking context), panel covers the page content below the header.
