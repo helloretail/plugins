@@ -217,11 +217,31 @@ say which ones you exercised. On every fixture page, run and record the same set
   clear-all — plus the standing template bugs
   (`../qa-checklists/references/known-template-issues.md`): **type into the price min/max
   fields** (blur AND Enter — the result set must change; slider drag working is not a PASS,
-  T1) · **apply one custom/extraData facet** (length/width-style) and verify its applied chip
-  renders and clears (T2) · **facet option order** per facet, checking card comments first for
-  a protected custom order (T3) · with a filter panel open, **nothing from the grid bleeds
-  over it** (z-index, T4) · and after closing the panel, **no residue** — stray scrollbars,
-  lingering overlay, or a scroll-locked page.
+  T1) · **then the two-field sequence** — min, Tab, max, Tab, and again max first, then min:
+  both values stay set and the dropdown doesn't close or apply after the first field ("not
+  reproduced" only after both orders pass, T1) · **single-filter removal** — apply the price
+  filter plus two other filters and remove each one at a time: only that filter goes and the
+  price filter must not stay behind while another is removed ("clear all" working is not a
+  PASS, T9) · **apply one custom/extraData facet** (length/width-style) and verify its applied
+  chip renders and clears (T2) · **facet option order** per facet, checking card comments
+  first for a protected custom order (T3) · with a filter panel open, **nothing from the grid
+  bleeds over it** (z-index, T4) · every filter dropdown's **open-state icon** (the arrow
+  flips or rotates while the dropdown is open) · the price slider's **min and max value labels
+  at 820px** sit aligned with the slider and don't stick out past its edge · and after closing
+  the panel, **no residue** — stray scrollbars, lingering overlay, or a scroll-locked page.
+- **Tile parity extras** (against the customer's own tile, per
+  `../qa-checklists/references/product-tile.md`): the exact casing of the **VAT label, stock
+  text and SKU label** · **CTA button text alignment** (centred vs left-aligned) · **variant
+  chips vs the product page** — same set and order, nothing hidden, reordered or swapped, and a
+  "+ N" count that matches · **cart vs tile price basis** — add a product to the cart from the
+  tile and compare; a different basis (e.g. incl. vs excl. VAT) is an observation for the CSM
+  with both values, never silently "native pattern".
+- **Cross-cutting** (detail in `../qa-checklists/SKILL.md` Step 3): **cross-domain diff** for a
+  multi-domain customer (compare filter formatting, label casing, wording and tile layout
+  across the sibling domains) · **page chrome** — favicon and page title on every page type
+  visited, with Hello Retail on and off (customer-side unless HR causes it; a low-priority
+  observation) · **two ways before "not reproduced"** — an issue named in a manual report, card
+  comment or QA chat is tested in at least two different ways before it is closed.
 - **Pagination:** page 1 · after one load-more/scroll · after two — and click through a
   **newly-loaded** tile to confirm its link and CTA still work (re-binding after load is a routine
   miss; verify it rather than assuming). **Repeat one load-more/scroll-to-load cycle at 820 and
