@@ -572,11 +572,21 @@ These are the most important checks — get these right.
       breakpoint (1440 / 820 / 375).** Capture the pair in a single screenshot (or two
       same-zoom crops) and walk the elements one by one: label presence (Best Seller /
       clearance-style), **badge casing** (UPPERCASE vs lowercase — the exact string, not just
-      presence) and **badge/sale-label colour**, icon integrity (nothing clipped or cut off),
-      alignment of icons/headings/prices, hover state, ATC button width, tile heights across a
+      presence) and **badge/sale-label colour**, **casing of the VAT label, stock text and SKU
+      label** (against the shop's own tile, not only between the HR solutions), icon integrity
+      (nothing clipped or cut off), alignment of icons/headings/prices, **CTA button text
+      alignment (centred vs left-aligned)**, hover state, ATC button width, tile heights across a
       row. This is the single biggest bucket of eyes-on-the-page defects skill runs missed
       (~35 items across 12 of 14 properties, 2026-08-24 comparison) — the paired capture is
       what makes each of them visible; save it as evidence even when everything matches.
+- [ ] **Variant chips vs the product page** — open the PDP of a tile with several variants and
+      compare the set and the order of the variants: the tile must show the same variants as
+      the PDP, in the same order, with nothing hidden, reordered or swapped, and a "+ N" count
+      that matches what is hidden
+- [ ] **Cart vs tile price basis** — add a product to the cart from the tile and compare the
+      cart price with the tile price; when the basis differs (e.g. incl. vs excl. VAT), record
+      an observation for the CSM with both values instead of passing it as the shop's native
+      pattern
 - [ ] **Wishlist / favourites toggle — ON and OFF, state and count** — where the tile carries a
       wishlist control: toggle it on (icon state changes, any header wishlist count
       increments), then off (state and count revert). A heart with reversed state or a count
@@ -664,12 +674,22 @@ These are the most important checks — get these right.
 ### Filters & Sorting
 
 - [ ] Filters work and options make sense — **operate every filter control, don't just look at
-      it**; the three standing template bugs below have each been found manually on multiple
+      it**; the standing template bugs below have each been found manually on multiple
       domains and by zero skill runs (`../qa-checklists/references/known-template-issues.md`)
 - [ ] **Typed price-filter input registers** (known-template-issues T1) — type a value into the
       price min AND max fields, blur AND press Enter (both paths), and verify the result set
       actually changes. Slider-drag working is NOT a PASS for this item — the typed path is the
-      standing defect.
+      standing defect. **Then the two-field sequence:** type min, Tab, type max, Tab — and again
+      max first, then min. Both values must stay set and the dropdown must not close or apply
+      after the first field; "not reproduced" is only valid after both orders pass.
+- [ ] **Single-filter removal** (T9) — apply the price filter plus two other filters, then
+      remove each applied filter one at a time: only that filter may go, the other two stay
+      applied, and the price filter must not stay behind while a different filter is removed.
+      "Clear all" working is NOT a PASS for this item.
+- [ ] **Open-state icon** — each filter dropdown's arrow flips or rotates while the dropdown is
+      open (check every filter dropdown at desktop and tablet)
+- [ ] **Tablet price-slider alignment (820)** — the min and max value labels sit aligned with
+      the slider and don't stick out past its edge or sit lower than the rest of it
 - [ ] **Custom-filter applied-state chip** (T2) — apply one custom/extraData facet and verify
       the applied chip renders in the selected-filters row and can be cleared; standard-facet
       chips working is not a PASS for this item
@@ -783,12 +803,26 @@ These are the most important checks — get these right.
       case: one run marked the feed N/A while the other verified the working tab on the same
       domain.)
 - [ ] Category links, blog links, and site links all work (no 404s)
+- [ ] **Content-tab items (e.g. Inspiration) all have a valid image** — no empty space where the
+      image should be, no broken image icon, no non-image file (PDF, PSD) used as the image;
+      check every item on every domain, not a sample
 - [ ] No duplicate links (if duplicates exist, check that hierarchies are added to differentiate them)
 - [ ] **0-match text per feed tab has correct grammar/gender agreement** — a template that
       composes the "no matches" sentence around the tab title (`"Nessun " + title + " trovato"`)
       breaks agreement whenever the title's gender/number doesn't fit the fixed prefix/suffix.
       Check this per tab (Category/Brand/Blog independently), not just the general product
       0-results state (real case, store-IT 2026-08-07).
+
+### Cross-cutting (every run — detail in `../qa-checklists/SKILL.md` Step 3)
+
+- [ ] **Cross-domain diff** — for a multi-domain customer, compare filter value formatting,
+      label casing, SKU/stock wording and content-tab items across the sibling domains; a
+      domain that differs from its siblings is a finding
+- [ ] **Page chrome** — favicon and page title on every page type visited (home, category,
+      PDP, cart, 404, …), with Hello Retail on and off; customer-side unless HR causes it,
+      so a low-priority observation
+- [ ] **Two ways before "not reproduced"** — an issue named in a manual report, card comment
+      or QA chat is tested in at least two different ways before it is closed
 
 ### Dashboard — OPERATOR (manual)
 
