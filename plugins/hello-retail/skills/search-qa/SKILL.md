@@ -647,14 +647,22 @@ These are the most important checks — get these right.
       cleared-looking box reads as "my search was lost" to a shopper). Reproduce on 2 different
       filter controls before grading FAIL, and re-check on both desktop and mobile configs (real
       case, store-IT 2026-08-10, desktop embedded).
-- [ ] **Overlay-opening characters survive into the query.** Two variants, both with real
-      keystrokes: (a) type a full word in one continuous motion into the native search box —
-      the overlay's input must end up containing every character typed; (b) type ONE
-      character, wait for the overlay to open and settle (~1s), then type the rest — the first
-      character must not be lost. Critical on mobile, where the overlay renders its own
+- [ ] **Overlay-opening characters survive into the query.** Four variants, all with real
+      keystrokes, each graded separately: (a) type a full word in one continuous motion into
+      the native search box — the overlay's input must end up containing every character
+      typed; (b) type ONE character, wait for the overlay to open and settle (~1s), then type
+      the rest — the first character must not be lost; (c) **tap the field and type a full
+      word immediately**, with no pause for the overlay to render — repeat 3 times on a fresh
+      load each time, and FAIL if any attempt loses characters; (d) **close and reopen**: type a
+      query, close the overlay with its ✕, tap the search field again and type a new word —
+      the overlay's input must receive the new word, not keep the old query while the text
+      lands in the hidden native field. Critical on mobile, where the overlay renders its own
       `#hr-search-input` and the native-input handoff can silently drop the trigger
       keystroke(s) (real 2026-07 case: "planteringslåda" became "ringslåda" — wrong results,
-      no visible error; fix before publish).
+      no visible error; fix before publish). (b) passing does **not** cover (c): in a 2026-10
+      15-storefront run, (b) passed everywhere while (c) dropped the leading characters on
+      most domains ("cotton" → "tton") — known-template-issues T9 — and (d) sent the reopened
+      query to the hidden header field on several of them.
 
 ### Initial State (before typing)
 
@@ -775,8 +783,10 @@ These are the most important checks — get these right.
       Product Tile Comparison list at mobile viewport — mobile is a separate design; a state
       style or badge that passes on desktop can still be missing here
 - [ ] Repeat the **overlay-opening-keystroke test** (Search Trigger & Behaviour) at mobile —
-      the mobile design's own `#hr-search-input` and its native-input handoff are where
-      dropped-character bugs live; real typing only, never programmatic value-setting
+      all four variants (a)–(d), at **375 and at 820** (the mobile config usually serves the
+      tablet band too) — the mobile design's own `#hr-search-input` and its native-input
+      handoff are where dropped-character bugs live; real typing only, never programmatic
+      value-setting
 - [ ] Content feed chip labels contain no duplicated text (e.g. "Category | Category" — if the
       same value appears on both sides of the separator, it is a template bug)
 

@@ -101,6 +101,23 @@ domains yet missed on two others in the same period.
   disabled — "never show OOS in recoms" is a standing HR rule, not a judgment call. The
   dashboard OOS-filter/boost setting itself stays OPERATOR; the rendered symptom is checkable.
 
+### T9 · Mobile search drops the first characters typed right after the tap
+
+- **Features:** Search (mobile config — and the tablet band whenever it serves ≤992px).
+- **Cause:** the mobile `initializationCode` focuses a hidden `.hr-dummy` input on the trigger
+  click (`createDummyInput()`, so iOS opens the keyboard inside the user gesture) and moves
+  focus to `#hr-search-input` once the overlay has rendered — but nothing copies what was
+  typed into the dummy across, so every keystroke before the render is lost. The identical
+  function, comment included, is in the mobile designs of unrelated customers (seen
+  2026-10-06 on a 15-storefront account and on a separate customer's design built months
+  apart); not yet diffed against a design a fresh `search_createConfig` attaches.
+- **Verify:** search-qa's overlay-opening keystroke check, variant (c) — on a fresh load at 375
+  and 820, tap the search field and type a full word immediately, 3 times. "cotton" arriving
+  as "tton" (wrong results, no error) reproduces it. Variant (b), which waits for the overlay
+  before typing on, passes on affected designs — it cannot see this.
+- **Code tell:** `createDummyInput()` present and no handler that reads `.hr-dummy`'s value
+  into `overlay_input_selector` before focusing it.
+
 ---
 
 ## Retired entries
