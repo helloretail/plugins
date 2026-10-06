@@ -7,6 +7,18 @@ Playwright ones (`browser_evaluate`, `browser_hover`); the Claude in Chrome fall
 the SKILL.md BROWSER TOOL table. What each snippet finds goes into the named RESPONSE FORMAT section:
 VARIATIONS, LABEL VOCABULARY, PARENT HOOKS, ALIGNMENT, SHELL CSS NOTES.
 
+**Native means the shop's own rendering, never Hello Retail's — for every snippet in this file.**
+The specimen, the variation survey, labels, ancestor CSS, alignment, the mobile check, hidden-state
+classes, page-type CSS, hover and the native side of the fidelity check all measure the shop's own
+grid. Before taking anything from a page, run the Hello Retail guard (TILE INSPECTION → *Pick a
+clean specimen*) on one tile of that page's grid. A `REJECT` means the grid is Hello Retail's output
+— a recom box, a Pages design, any `[data-aw_source]` tile — and nothing on it counts as native: it
+only repeats what an earlier Hello Retail design decided. Skip the page and take the measurement from
+a category page the shop renders itself; when every category page is Hello Retail-rendered, stop and
+ask the operator for a native reference and say so under ASSUMPTIONS (field case store-IT-2,
+2026-10: three label pages were Hello Retail Pages tiles, and a ribbon bound to the feed flag those
+tiles used disagreed with the native grid on 13 of 24 tiles).
+
 ## TILE INSPECTION — COPY THE REAL HTML
 
 The template starts from a byte-faithful copy of one native tile. On Playwright, capture the
@@ -469,8 +481,14 @@ never made it into the HR tile because the reference category carried no new pro
      bästsäljare, bestselgere, populair, suosituimmat, più venduti, bestsellery, mais vendidos
    - Locale not in the list → use the two or three words the site itself uses for those pages and
      note them under ASSUMPTIONS.
-2. **Visit each hit** (the popup sweep is already done for the domain) and re-run the tile
-   survey snippet above; diff the badge lists against the reference category.
+2. **Visit each hit** (the popup sweep is already done for the domain), run the Hello Retail
+   guard on the page's grid (the native-only rule at the top of this file), then re-run the tile
+   survey snippet above; diff the badge lists against the reference category. New, sale and
+   bestseller pages are often a Hello Retail Pages design or a recom box rather than the shop's own
+   listing — a `REJECT` means skip the page and look for its labels on the shop's own category pages.
+   **A "native never shows this" conclusion needs at least three native category pages** that
+   passed the guard — for a label, a badge or any other tile element. One reference category is not
+   enough to rule something out.
 3. **For every label type not seen before:** capture its full markup, computed styles
    (background, color, font-size/weight, padding, border-radius, corner position/offsets),
    any icon, and 1–2 carrier product names. Multiple labels on one tile? Note the stacking
