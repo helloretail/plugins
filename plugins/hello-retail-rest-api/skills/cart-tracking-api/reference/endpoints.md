@@ -71,9 +71,10 @@ the plain SDK is present - see [SKILL.md](../SKILL.md)'s Overview.
 
 ## Opted-out and anonymous shoppers
 
-This is the one tracking endpoint in this plugin where the opted-out sentinel
-doesn't behave like "a normal request that just happens to carry a neutral
-id." Verified 2026-09-11: sending `trackingUserId:
+This is one of two tracking endpoints in this plugin - the other is
+[conversion-tracking-api](../../conversion-tracking-api/reference/endpoints.md#opted-out-and-anonymous-shoppers) -
+where the opted-out sentinel doesn't behave like "a normal request that just
+happens to carry a neutral id." Verified 2026-09-11: sending `trackingUserId:
 "000000000000000000000000"` produces the exact same response
 (`"Not tracked for anonymous user"`) as omitting the field entirely, or
 sending `customerId` without a valid `apiKey`. Functionally, Hello Retail

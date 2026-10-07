@@ -91,7 +91,7 @@ these shoppers, not just the field.
 | `query` | string | Yes | Search term; `"*"` matches everything |
 | `key` | string | Yes | See Authentication |
 | `id` | number | No | Draft version ID |
-| `trackingUserId` | string | No | See Authentication |
+| `trackingUserId` | string | No | See [Personalization identity](#personalization-identity-trackinguserid) |
 | `format` | `"json"` \| `"html"` | No | Default `json`. `"html"` is for the managed widget only |
 | `deviceType` | `"DESKTOP"` \| `"MOBILE"` | No | Affects any device-specific config (e.g. mobile-only filters) |
 | `includeRetailMediaInReview` | boolean | No | Include retail-media campaigns still in review state |
