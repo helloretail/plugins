@@ -59,7 +59,7 @@ the recommended option and record the question under Manual checks for the opera
 | Pages | `references/pages.md` | Placement, design & styling, filters, category filter, sorting, loading, products, translations, dashboard |
 | Retail Media | `references/retail-media.md` | isBanner code, `hr-b-image` class, image sizing/naming, banner rendering |
 | Newsletter Content tile & Triggered Emails | `references/newsletter.md` | **v1, authored (no QA-workbook sheet exists)** — foundation diff vs the shared default, markers/dynamic-ness, translation, renderer (N) or email-client (T) compatibility, data binding, Liquid gotchas, rendered checks, "similar to the customer's tile" table; runner: `newsletter-qa` |
-| Known template issues (every run) | `references/known-template-issues.md` | Standing template-level defects walked on **every** QA run regardless of feature — typed price input, custom-filter chips, facet ordering, label z-index, separator/suffix, scroll-lock, back-nav popup, OOS-in-recoms |
+| Known template issues (every run) | `references/known-template-issues.md` | Standing template-level defects walked on **every** QA run regardless of feature — typed price input, custom-filter chips, facet ordering, label z-index, separator/suffix, scroll-lock, back-nav popup, OOS-in-recoms, single-filter removal |
 
 ## Execution flow
 
@@ -1282,6 +1282,27 @@ don't get skill screenshots.
 
 Items are phrased as *known defects to look for* — an item "Missing OOS-label" means
 *check that the OOS label is present and correct*.
+
+**Cross-cutting checks — every run, every feature.** Three checks that belong to no single
+checklist and that manual QA keeps finding after a skill run has passed:
+
+- **Cross-domain diff (multi-domain customers).** After each domain's own walk, compare the
+  verdicts and the measured values across the sibling domains before closing the runs — filter
+  value formatting, label and VAT-text casing, SKU and stock wording, content-tab items, tile
+  layout. A domain that differs from its siblings is a finding on its own (or a question for
+  the CSM when the difference is a language or locale choice), even when each domain passes
+  its own checks in isolation. Record the comparison in each report's Summary.
+- **Page chrome on every page type tested.** Besides the Hello Retail elements, check the
+  favicon and the page title on every page type you visit (home, category, PDP, cart, 404, and
+  any other), with Hello Retail on and with it off, so you can tell who causes a difference. A
+  missing favicon or a placeholder or empty title is usually the customer's own site, not
+  Hello Retail: report it as a low-priority observation, and FAIL it only when a Hello Retail
+  script or widget is what changes it.
+- **Two ways before "not reproduced".** When a manual report, a card comment or the QA chat
+  mentions an issue, test it in at least two different ways before closing it as "not
+  reproduced" — a different input order, a different path to the same state, another
+  breakpoint, a fresh load. A single method that passes only proves that method works (a typed
+  price filter that works min-then-Enter can still close after one field).
 
 ### Step 4 — Report
 

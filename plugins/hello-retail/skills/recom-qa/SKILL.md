@@ -715,11 +715,17 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       breakpoint (1440 / 820 / 375).** Capture the pair in a single screenshot (or two
       same-zoom crops) and walk the elements one by one: label presence (Best Seller /
       clearance-style), **badge casing** (UPPERCASE vs lowercase — the exact string) and
-      **badge/sale-label colour**, icon integrity (nothing clipped), alignment of
-      icons/headings/prices, hover state, ATC button width, tile heights across the row. This
-      was the single biggest bucket of missed eyes-on-the-page defects (~35 items across 12 of
-      14 properties, 2026-08-24 comparison) — save the paired capture as evidence even when
-      everything matches.
+      **badge/sale-label colour**, **casing of the VAT label, stock text and SKU label**
+      (against the shop's own tile, not only between the HR solutions), icon integrity
+      (nothing clipped), alignment of icons/headings/prices, **CTA button text alignment
+      (centred vs left-aligned)**, hover state, ATC button width, tile heights across the row.
+      This was the single biggest bucket of missed eyes-on-the-page defects (~35 items across
+      12 of 14 properties, 2026-08-24 comparison) — save the paired capture as evidence even
+      when everything matches.
+- [ ] **Variant chips vs the product page** — open the PDP of a tile with several variants and
+      compare the set and the order of the variants: the tile must show the same variants as
+      the PDP, in the same order, with nothing hidden, reordered or swapped, and a "+ N" count
+      that matches what is hidden
 
 ### Products Per Row & Breakpoints
 
@@ -759,6 +765,10 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       walk the **"Dual VAT prices"** block in the product-tile catalogue — both values
       present, labelled correctly, consistent with the VAT rate, sale prices in the same VAT
       mode, toggle followed
+- [ ] **Cart vs tile price basis** — add a product to the cart from the tile and compare the
+      cart price with the tile price; when the basis differs (e.g. incl. vs excl. VAT), record
+      an observation for the CSM with both values instead of passing it as the shop's native
+      pattern
 - [ ] **Sale products** — strikethrough original price; discount badge matches native format/position
 - [ ] **Sale price math** — the discounted price matches the displayed discount (a "−20%"
       badge → 20% off the strikethrough price); verify on 2–3 sale products, hunting for them
@@ -1003,6 +1013,17 @@ drawer → *then* enable Show). Judge it against the drawer, not the category gr
       drawer width; prices/badges correct and consistent with native tiles; **requested image width
       sane for the slot** (a 70px thumbnail requesting a 596px source is a real ~8.5× waste —
       measure it with the image-weight probe, `../qa-checklists/SKILL.md` → Step 3).
+
+### Cross-cutting (every run — detail in `../qa-checklists/SKILL.md` Step 3)
+
+- [ ] **Cross-domain diff** — for a multi-domain customer, compare label and VAT-text casing,
+      SKU/stock wording, variant chips and tile layout across the sibling domains; a domain
+      that differs from its siblings is a finding
+- [ ] **Page chrome** — favicon and page title on every page type crawled (home, category,
+      PDP, cart, 404, …), with Hello Retail on and off; customer-side unless HR causes it,
+      so a low-priority observation
+- [ ] **Two ways before "not reproduced"** — an issue named in a manual report, card comment
+      or QA chat is tested in at least two different ways before it is closed
 
 ### Dashboard — OPERATOR (manual)
 
