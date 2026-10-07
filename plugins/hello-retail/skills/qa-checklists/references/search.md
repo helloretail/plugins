@@ -247,6 +247,8 @@ for the accessibility-template generation.
 - [ ] Multiple filters with the same name
 - [ ] Make the filter box wider so more text is shown
 - [ ] Not working / missing dropdown menu (nothing happens when clicking on it)
+- [ ] Open-state icon: the dropdown arrow doesn't flip or rotate when a filter dropdown is
+      open (check every filter dropdown, desktop and tablet)
 - [ ] Inconsistent / not shown in the same order (desktop vs mobile)
 - [ ] Add brand as a separate filter (shown under Category)
 - [ ] Styling off (e.g. strange font, background color and letter spacing)
@@ -316,6 +318,10 @@ for the accessibility-template generation.
 
 - [ ] Filter boxes differ in size
 - [ ] x-button disappears (same color as the background)
+- [ ] **Filter removal** (known-template-issues T9): apply the price filter plus two other
+      filters, then remove each applied filter one at a time. Only that filter must go — the
+      other two stay applied and the price filter must not stay behind while a different
+      filter is removed. "Clear all" working is not a PASS for this item.
 
 ### Options
 
@@ -387,6 +393,10 @@ for the accessibility-template generation.
 - [ ] Removes every other filter from the list when you add a specific price range
 - [ ] Mobile: NEW price range — only highlight the selected price range
 - [ ] Price range is overwritten by other filter options added afterwards
+- [ ] Typed price boxes: type min, Tab, type max, Tab — and again max first, then min. Both
+      values stay set; the dropdown doesn't close or apply after the first field (known-template-issues T1)
+- [ ] Tablet (820px): the min and max value labels sit aligned with the slider and don't stick
+      out past its edge or sit lower than the rest of the slider
 
 ### Category filter
 
@@ -429,6 +439,9 @@ for the accessibility-template generation.
 - [ ] Brand feed: shows the brand logo multiple times…
 - [ ] All hierarchies shown (the last hierarchy twice)
 - [ ] Names (links) don't match the page you get redirected to…
+- [ ] Content-tab items (e.g. Inspiration): every item has a valid image — no empty space
+      where the image should be, no broken image icon, no non-image file (PDF, PSD) used as
+      the image. Check every item on every domain, not a sample
 - [ ] Disappears at '0 matches'
 - [ ] Tablet: make sure we show all content feed links that match the search term
 - [ ] Mobile: adds a scrollbar next to the headline

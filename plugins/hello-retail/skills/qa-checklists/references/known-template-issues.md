@@ -36,7 +36,11 @@ domains yet missed on two others in the same period.
   component).
 - **Verify:** type a value into the price **min** and **max** fields, then **blur AND press
   Enter** (both paths) — the result set must change. Dragging the slider working is not a PASS
-  for this item; the typed path is the defect.
+  for this item; the typed path is the defect. **Then run the two-field sequence:** type min,
+  Tab, type max, Tab — and again in the reverse order (max first, then min). Both values must
+  stay set, and the dropdown must not close or apply after the first field (a filter that
+  closes after one field leaves the second one impossible to set, and a second attempt can
+  clear both). "Not reproduced" is only a valid verdict after **both orders** pass.
 - **Origin:** found manually on 5 domains / 5 platforms, never by a skill run (2026-08-24
   comparison). Base fix (wiring the inputs to the slider's handler) is parked with the
   base-template owners.
@@ -101,7 +105,18 @@ domains yet missed on two others in the same period.
   disabled — "never show OOS in recoms" is a standing HR rule, not a judgment call. The
   dashboard OOS-filter/boost setting itself stays OPERATOR; the rendered symptom is checkable.
 
-### T9 · Mobile search drops the first characters typed right after the tap
+### T9 · Removing one applied filter removes the wrong one (or leaves the price filter behind)
+
+- **Features:** Search, Pages.
+- **Verify:** apply the **price filter plus two other filters**, then remove each applied
+  filter **one at a time** (once per filter, each from a fresh set of three). Only the filter
+  you removed may go: the other two must stay applied, the result set must match what is left,
+  and the price filter must not stay behind while a different filter disappears. "Clear all"
+  working is not a PASS for this item — the single-removal path is the defect.
+- **Origin:** found manually, never by a skill run — runs only exercised "clear all" and the
+  filter counts.
+
+### T10 · Mobile search drops the first characters typed right after the tap
 
 - **Features:** Search (mobile config — and the tablet band whenever it serves ≤992px).
 - **Cause:** the mobile `initializationCode` focuses a hidden `.hr-dummy` input on the trigger
