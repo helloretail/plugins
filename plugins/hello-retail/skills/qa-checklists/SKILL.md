@@ -560,7 +560,9 @@ first check:
    manifest silently drops the long tail, and its total stops being comparable with other
    runs of the same checklist). Write it to
    `QA/[customer]/coverage-[feature]-[YYYY-MM-DD].md` as an unchecked `- [ ]` list (gitignored
-   with the rest of `QA/`; for a multi-domain run, one manifest per domain). TaskCreate
+   with the rest of `QA/`; for a multi-domain run, one manifest per domain, each extracted
+   from the sources on its own — never a copy of a sibling domain's manifest with the domain
+   name swapped, and never seeded with another domain's verdicts or config keys). TaskCreate
    entries may *supplement* the manifest for phase tracking, but the file is the record —
    task lists get compacted, files don't.
 2. **Seed the top of the manifest with the prior run's open items.** If a prior report for
