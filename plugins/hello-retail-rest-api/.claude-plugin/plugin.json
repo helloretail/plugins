@@ -1,7 +1,7 @@
 {
   "name": "hello-retail-rest-api",
   "displayName": "Hello Retail (REST API)",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Skills and reference docs that teach AI coding assistants the intricacies and edge cases of Hello Retail's public REST APIs, for building custom frontend solutions.",
   "author": {
     "name": "Hello Retail",
