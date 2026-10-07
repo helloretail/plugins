@@ -306,11 +306,11 @@ page's initial render):
 ```
 
 **Same page, after the shopper picked a brand filter and a sort order**
-(a refinement request - note `firstLoad` would be `false` here in a real
-integration, since this isn't the page's initial render; Hello Retail's own
-example collection leaves it `true` on every example, which is why this
-plugin's SKILL.md calls out deciding it per-request rather than copying the
-examples verbatim):
+(a refinement request - `firstLoad` stays `true` here because the filters
+changed, so the facet counts must refresh; a request that only paginates or
+re-sorts would send `false`. Hello Retail's own example collection leaves it
+`true` on every example, which is why this plugin's SKILL.md calls out
+deciding it per-request rather than copying the examples verbatim):
 
 ```json
 {
@@ -405,7 +405,7 @@ examples verbatim):
   "products": {
     "start": 0,
     "count": 20,
-    "fields": ["title", "originalUrl", "extraDataList.tags"],
+    "fields": ["title", "originalUrl", "extraDataList.tags", "trackingCode"],
     "filters": [],
     "sorting": []
   }

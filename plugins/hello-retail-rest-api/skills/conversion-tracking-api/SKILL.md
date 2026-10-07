@@ -106,7 +106,7 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
   the sentinel rather than omitting the field - the rule from
   [tracking-user-id](../tracking-user-id/SKILL.md) doesn't change - but don't
   expect an opted-out shopper's purchase to be attributed anywhere. See
-  [cart-tracking-api](../cart-tracking-api/SKILL.md#opted-out-and-anonymous-shoppers)
+  [cart-tracking-api](../cart-tracking-api/reference/endpoints.md#opted-out-and-anonymous-shoppers)
   for the same behavior explained in more depth.
 - **`trackingUserId` is format-validated when present, but the error text is
   not byte-for-byte identical to the other tracking endpoints.** Verified
