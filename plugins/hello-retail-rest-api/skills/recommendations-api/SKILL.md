@@ -171,10 +171,11 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
      whatever the box was already configured to do in the dashboard.
   3. Confirm the box has actually been configured in My Hello Retail to filter
      dynamically on the relevant context field(s) - if it hasn't, tell the
-     customer that needs to happen first (there is no MCP tool observed for
-     configuring a box's algorithm/filters remotely; this appears to be a My
-     Hello Retail dashboard-only action), rather than working around it by
-     changing API modes.
+     customer that needs to happen first, rather than working around it by
+     changing API modes. With MCP access, `recoms_getAlgorithm` shows the
+     box's current algorithm steps and filters; changing them happens in My
+     Hello Retail, or via `recoms_updateAlgorithm` if you're authorized to
+     make that change.
   4. Ask the customer which context field name(s) that dashboard config
      expects. This cannot be reliably guessed for most custom properties - a
      truly custom attribute routes through a customer-chosen
