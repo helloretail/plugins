@@ -8,7 +8,7 @@ Steps 13b–13d: the **config-level** search data that lives next to the design 
 | Sort options | `search_getSorting` | `search_updateSorting` |
 | Content feed (link content) | `search_getLinkContent` | `search_updateLinkContent` |
 | Initial content | `search_getInitialContent` | `search_updateInitialContent` |
-| Content data per type | `dataFields_getContentFields(contentType)` | — |
+| Content data per type | `dataFields_getContentFields(contentType)` · `contentData_getReindexStatus` · `search_getLinkContent` → `availableEngines` | — |
 
 After every write, **read back and verify**, then report the resulting table to the operator.
 
@@ -52,9 +52,15 @@ Content search renders matching **categories, brands, site pages, blog posts** a
 ]
 ```
 
-- **Omit `engineId`** — the website's existing engine for that type is reused, or a default one is auto-created. After the first write, read back and pin the returned `engineId` in later updates.
+- **Data check — run it per type, before the write.** The operator's pick is always written; the check decides whether it goes in clean or flagged. Three questions:
+  1. `search_getLinkContent` → `availableEngines` has a non-archived engine of that `contentType`;
+  2. `dataFields_getContentFields(contentType)` → content fields are indexed for it;
+  3. `contentData_getReindexStatus` → the content index is populated (not idle/empty for that type).
+
+  Any of the three fails → **add the type anyway, and flag it.** Omitting `engineId` makes the MCP create a default engine, and a freshly created engine has an empty index, so the section renders its no-content text on every query — on a real build (2026-10) a Brands entry added this way showed "Ingen Mærker blev fundet" for `procab`, `robe` and `litec` alike, and because nothing had flagged it, QA chased it as a design defect. The flag is one line in the diff message, under MISSING DATA and in the hand-off: *"BRAND: engine created empty / content index not populated — the section shows its no-content text on every query until the content is indexed"*. The operator then knows it is a data gap (index the content, or drop the type later), not something to fix in the design.
+- **`engineId`** — pass the id of the existing engine from `availableEngines`; omit it only when exactly one engine of that type already exists (it is reused). After the first write, read back and pin the returned `engineId` in later updates.
 - **Titles from the file, subtitle localized explicitly.** The titles are in `translations.json` (`Categories`, `Brands`). The subtitle is not — and when you omit it, the API fills an **English** default ("Use search to explore Categories") even on a non-English site. So translate the subtitle yourself (nl pattern: "Gebruik de zoekfunctie om categorieën te ontdekken") and mark it `self-translated — no entry` in the translation table.
-- **Verify data exists per type** with `dataFields_getContentFields(contentType)` and the storefront survey; a type with no content behind it renders its no-content state on every query. Config-before-data is fine, but flag it.
+- The storefront survey is the sanity check on the data check: a type the shop doesn't expose (no brand pages, no blog) has nothing to index, so its flag is permanent and the hand-off says so.
 - Each content type at most once; `count` default 6 fits the content column.
 - The overlay's content column strings (`text_go_directly_to`, `text_category_no_content_*`) are part of the Step-12 localization — the titles here are what renders as the section headings.
 - **`show_vertical_link_content` (resultTemplate boolean — core-intake **M2** on mobile: categories as their own tab vs the horizontal strip; `references/mobile-toggles.md`) must be `true` for a content-feed type to render as a reliable, always-visible tab.** With it `false` ("horizontal" mode), the base template statically hides the `product-tab` button and the JS-driven `toggle_tab_visibility()` only reveals each tab once its content type has real, non-initial-content results for the current query — so a content-feed tab (e.g. Category) can appear to "not be its own tab" or flicker in/out depending on what's typed, even though the MCP config is correct. Setting it `true` renders every configured content type as a stable top-level tab (`Produkter | Kategorier | ...`) from initial load. Field-proven on store-B, 2026-08-25 — the operator specifically asked for Category as a separate tab, and toggling this single boolean (no template/JS change) was the fix.
@@ -119,7 +125,7 @@ Without the override, `count: 8` renders 5+3 — a full row and an orphan row �
 - [ ] Sorting = price asc/desc with localized texts (unless the operator asked for more).
 - [ ] The price filter and the price sort both use the tile's PRICE BASIS field (`price` or `priceExVat`); the field is named in the report, and a field other than `price` is flagged in the diff message and under *Base defects*; no build ships one on each.
 - [ ] Q2 not on the card → the `availableFields` menu (field + LIST/RANGE/BOOLEAN, current entries marked) was shown before asking; every configured field exists in `availableFields`; unknown fields → MISSING DATA + indexing offer, never substituted; BOOLEAN entries carry localized true/false texts.
-- [ ] Content feed: the Q3 answer added verbatim (or left empty on "none"); if Q3 wasn't on the card it was in the batched ask, not assumed; titles from `translations.json`; subtitles explicitly localized (never the English auto-default) and marked self-translated; empty-data types flagged.
+- [ ] Content feed: the Q3 answer added verbatim (or left empty on "none"); if Q3 wasn't on the card it was in the batched ask, not assumed; titles from `translations.json`; subtitles explicitly localized (never the English auto-default) and marked self-translated; every type went through the three-part data check (engine exists · content fields indexed · index populated) before the write — a failing type is still written as asked and flagged in the diff message, under MISSING DATA and in the hand-off, never added silently.
 - [ ] `show_category_content_hierarchy` set `true` in `resultStyles` only when CATEGORY is configured and the operator asked for the path; left `false` otherwise.
 - [ ] If any content-feed type must show as its own reliable tab, `show_vertical_link_content = true` is set in `resultTemplate` — `false` gates tabs behind "has real results" and can make a correctly-configured content type look like it isn't a separate tab.
 - [ ] Shop's tiles per row, filter sidebar and tile width measured; the `Initial grid` question asked with the calculated layout as "(Recommended)" (or that layout applied and listed under *Applied defaults* when nobody answered); count fills whole rows; the column override (and `max-width` when 1200px is too narrow) appended whenever the base wouldn't render the chosen columns; tiles per row counted on the rendered panel after the push.
