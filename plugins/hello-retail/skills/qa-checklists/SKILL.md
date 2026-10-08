@@ -1288,8 +1288,7 @@ checklist and that manual QA keeps finding after a skill run has passed:
 
 - **Cross-domain diff (multi-domain customers).** After each domain's own walk, compare the
   verdicts and the measured values across the sibling domains before closing the runs — filter
-  value formatting, label and VAT-text casing, SKU and stock wording, content-tab items, tile
-  layout. A domain that differs from its siblings is a finding on its own (or a question for
+  value formatting, label and VAT-text casing, SKU and stock wording, tile layout. A domain that differs from its siblings is a finding on its own (or a question for
   the CSM when the difference is a language or locale choice), even when each domain passes
   its own checks in isolation. Record the comparison in each report's Summary.
 - **Two ways before "not reproduced".** When a manual report, a card comment or the QA chat
