@@ -839,9 +839,6 @@ These are the most important checks — get these right.
 - [ ] **Cross-domain diff** — for a multi-domain customer, compare filter value formatting,
       label casing, SKU/stock wording and content-tab items across the sibling domains; a
       domain that differs from its siblings is a finding
-- [ ] **Page chrome** — favicon and page title on every page type visited (home, category,
-      PDP, cart, 404, …), with Hello Retail on and off; customer-side unless HR causes it,
-      so a low-priority observation
 - [ ] **Two ways before "not reproduced"** — an issue named in a manual report, card comment
       or QA chat is tested in at least two different ways before it is closed
 

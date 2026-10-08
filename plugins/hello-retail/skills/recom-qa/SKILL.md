@@ -1019,9 +1019,6 @@ drawer → *then* enable Show). Judge it against the drawer, not the category gr
 - [ ] **Cross-domain diff** — for a multi-domain customer, compare label and VAT-text casing,
       SKU/stock wording, variant chips and tile layout across the sibling domains; a domain
       that differs from its siblings is a finding
-- [ ] **Page chrome** — favicon and page title on every page type crawled (home, category,
-      PDP, cart, 404, …), with Hello Retail on and off; customer-side unless HR causes it,
-      so a low-priority observation
 - [ ] **Two ways before "not reproduced"** — an issue named in a manual report, card comment
       or QA chat is tested in at least two different ways before it is closed
 
