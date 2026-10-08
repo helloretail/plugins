@@ -17,15 +17,15 @@ After every write, **read back and verify**, then report the resulting table to 
 The list comes from **core-intake Q2** (SKILL.md → *Core intake*) — the operator's pick from `availableFields`, in their order. The basic set below is the **fallback**, applied when the operator answers "defaults" or picks nothing. Titles and direction texts come from `translations.json` **before anything else** — the sort labels are filed as `sort: Lowest price` / `sort: Highest price`, the filter titles under their English names; the key table is in `references/localization-header.md` → *Search-data strings*. Only a string the file doesn't have is translated by you (or taken from the storefront's own wording), and it is marked as such in the translation table shown with the diff.
 
 ```json
-// search_updateFilters
+// search_updateFilters — <price field> = the tile's PRICE BASIS: "price" or "priceExVat"
 [
-  { "field": "hierarchies", "title": "<locale: Categories>" },
-  { "field": "price",       "title": "<locale: Price>" }
+  { "field": "hierarchies",   "title": "<locale: Categories>" },
+  { "field": "<price field>", "title": "<locale: Price>" }
 ]
 
-// search_updateSorting — price only, both directions
+// search_updateSorting — price only, both directions, on the SAME field as the filter
 [
-  { "field": "price", "ascendingText": "<locale: Lowest price>", "descendingText": "<locale: Highest price>" }
+  { "field": "<price field>", "ascendingText": "<locale: Lowest price>", "descendingText": "<locale: Highest price>" }
 ]
 ```
 
@@ -36,7 +36,7 @@ What the file gives — da: `Kategorier` / `Pris` / `Laveste pris (lav til høj)
 - **When the other device's config already exists on the website** (`search_listConfigs` lists a desktop config while you build mobile, or the reverse): read the sibling's `search_getFilters` / `search_getSorting` / `search_getLinkContent` and open Q2/Q3 with the `Sibling` picker — *"same as <desktop|mobile>, or different?"*, options *Same as <desktop|mobile>* / *Different — I'll pick*. "Same" → copy its filters, sort options and link content verbatim into the new config (titles already localized; `sorting_selectors` / `size_selector` re-expressed in the new variant's wrapper form — `references/filter-sorting.md`, which also says what to flag when the sibling's A→Z set includes Category, Size or number filters; the hierarchy boolean and M2 are still asked). "Different" → the normal menu. Offer, never assume — a customer can legitimately want fewer filters on mobile.
 - **Q2 not answered on the card → show the menu, then ask.** `search_getFilters` and `search_getSorting` each return, besides the current entries, `availableFields` — every field the website can filter/sort on (standard HR fields + extraData fields indexed for search). Present that list in chat, numbered, with each field's type — **LIST** (option checkboxes), **RANGE** (min–max slider), **BOOLEAN** (yes/no) — and the current entries marked, so the operator picks from what actually exists instead of naming fields from memory; then the `Filters` picker (*Defaults — Categories + Price* / *Keep the current entries* when there are any / *A different set — I'll list the numbers*; the numbers in order through *Other*, or in a prose follow-up) and the `Sorting` picker (*Price ascending + descending* / *Keep the current sort options* when there are any / *A different set — I'll list them*) in the same call as Q3 (`Content`). The A→Z set and the size filter follow in the call after, the picked LIST filters as their options (`references/filter-sorting.md`).
 - **Q2 answered on the card → validate, don't trust.** Every named field must appear in `availableFields`; a field that isn't there is a MISSING DATA line with an indexing offer (`dataFields_updateProductFieldsIndexing`, then re-read), **never a near-match substitute** ("Color" is not `extraData.colour` until the operator says so). BOOLEAN fields require localized `trueText` / `falseText` in `search_updateFilters`; in `search_updateSorting` a direction is offered exactly when its text is given, so supply text only for the directions the operator wants. **Flag fields that are empty in the feed** — a null `brand` produces an empty facet (config can be set up ahead of the feed team, but say so).
-- Filter on the field the tile **displays** — e.g. if the tile shows `price`, don't range-filter on `priceExVat` (and vice versa), or slider bounds won't match visible prices.
+- **Price field = the tile's PRICE BASIS, for the filter and the sort.** The tile skill reports which feed field the visible price binds to (`price` incl. VAT, or `priceExVat`); `availableFields` offers both, and "Price" on the card or in the picker resolves to that one — the range filter *and* the sort option, together. A filter on the other field has slider bounds the shopper never sees (ex-VAT tile, filter on `price`: a 1.000–2.000 range returned tiles displayed at 800–1.600); a sort on the other field orders by numbers that aren't on screen. Both shipped on one build (2026-10) and were found by two separate QA passes, because the filter was fixed without the sort. No PRICE BASIS section in the tile hand-over → ask the tile skill (or compare the native price with both fields of a `productData_get` row yourself); never default to `price`. The report's Search data block names the field, and **when it is anything other than `price` the build flags it** — one line in the diff message and under *Base defects*: *"price filter and sort set on `priceExVat` (not `price`): the tile shows ex-VAT prices"* — so the operator sees the deviation before approving the push and can override it.
 
 ## Content feed / link content (Step 13c)
 
@@ -117,6 +117,7 @@ Without the override, `count: 8` renders 5+3 — a full row and an orphan row �
 
 - [ ] Filters read before write; default set (Categories + Price) applied when empty; existing non-empty config folded in or confirmed with the operator; titles localized.
 - [ ] Sorting = price asc/desc with localized texts (unless the operator asked for more).
+- [ ] The price filter and the price sort both use the tile's PRICE BASIS field (`price` or `priceExVat`); the field is named in the report, and a field other than `price` is flagged in the diff message and under *Base defects*; no build ships one on each.
 - [ ] Q2 not on the card → the `availableFields` menu (field + LIST/RANGE/BOOLEAN, current entries marked) was shown before asking; every configured field exists in `availableFields`; unknown fields → MISSING DATA + indexing offer, never substituted; BOOLEAN entries carry localized true/false texts.
 - [ ] Content feed: the Q3 answer added verbatim (or left empty on "none"); if Q3 wasn't on the card it was in the batched ask, not assumed; titles from `translations.json`; subtitles explicitly localized (never the English auto-default) and marked self-translated; empty-data types flagged.
 - [ ] `show_category_content_hierarchy` set `true` in `resultStyles` only when CATEGORY is configured and the operator asked for the path; left `false` otherwise.
