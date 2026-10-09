@@ -8,6 +8,16 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.40.2 — 2026-10-09
+
+### Added
+
+- Wiki: a *Click tracking on the buy button* section on the cross-platform add-to-cart page, and the Starweb add-to-cart page now covers click tracking and the added-to-cart feedback icon.
+
+### Fixed
+
+- `tile-extractor` checks its finished tile for the `trackClick` call on every buy / add-to-cart button before hand-over, so a shop's buy button copied verbatim no longer ships without click tracking.
+
 ## 1.40.1 — 2026-10-07
 
 ### Fixed
