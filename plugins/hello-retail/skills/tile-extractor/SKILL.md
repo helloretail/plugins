@@ -118,7 +118,7 @@ run returns nothing.
 
 5. **Check third-party widgets** — inspect how ratings actually work (Loox, rateit, Lipscore, Yotpo, etc.) and what the native ATC / quick-view / wishlist controls are bound to (`references/rating-widgets.md`).
 
-6. **Check price format** — separators, decimals, symbol position, symbol in DOM text or CSS pseudo-element, a trailing `,-`, incl./excl. VAT pairs, "from" prices on variant products, unit prices (per kg / l), a lowest-30-day (Omnibus) price next to sale prices.
+6. **Check price format** — separators, decimals, symbol position, symbol in DOM text or CSS pseudo-element, a trailing `,-`, incl./excl. VAT pairs, "from" prices on variant products, unit prices (per kg / l), a lowest-30-day (Omnibus) price next to sale prices. **Record the price basis** while you are here: which feed field the visible price binds to — `price` (incl. VAT) or `priceExVat` — decided by comparing the native tile's number with both fields of the same product's `productData_get` row, never by the shop's market. It goes out as the PRICE BASIS section; the shell skills filter and sort on that field, so a wrong basis puts a price slider on numbers the shopper never sees (field case 2026-10: an ex-VAT B2B tile with the range filter on `price` — a 1.000–2.000 range returned tiles displayed at 800–1.600).
 
 6b. **Label vocabulary sweep — survey the dedicated label pages, not just the reference category.** Most shops concentrate labels on dedicated pages: "New" on the New Arrivals page, discount/sale tags on Sale/Offers/Outlet, "Bestseller" on Top sellers — the reference category may show none of them. From the main navigation, open each such page, re-run the tile survey there (after the step-2 guard), and capture every label type's design + variations (`references/survey-snippets.md` → LABEL VOCABULARY). Labels found only on these pages are still tile variations — the template must render them. "Native never shows this" — for a label or any other element — needs three native category pages that passed the guard.
 
@@ -187,6 +187,11 @@ only in your own context — if you learned it, it is in one of these sections.
 
 ### ALIGNMENT
 - native tile content is <left|center|right>-aligned (computed `text-align: …` on title/price/description)
+
+### PRICE BASIS
+- visible price binds to `price` (incl. VAT) | `priceExVat` (ex VAT) | both (<which element shows which>)
+  — proven on <product URL>: native shows <number>, feed `price` = <n>, `priceExVat` = <n>.
+  The shell filters and sorts on this field (search-developer Step 13b / pages-developer).
 
 ### SHELL CSS NOTES
 - hover-only: <selector> shown on <trigger>: <declarations>
