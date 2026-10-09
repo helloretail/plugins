@@ -142,6 +142,26 @@ document.addEventListener("submit", function(event) {
 
 Check for this during Step 1's survey, not only after a redirect is reported. Combinable with Step 3b when a trigger both toggles a drawer and sits in a submitting form. Verify: click every clickable control in the search widget with a real click (Playwright `browser_click` / Chrome MCP `computer` — never a synthetic `dispatchEvent`/`.click()`), then press a real Enter keypress in the input. For each: confirm no page navigation occurred and HR Search is the UI that opens.
 
+### Step 3c′ — the shop's own Enter handler on the input: intercept the key, not only the form
+
+**A `submit` interceptor does nothing when the shop never submits.** jQuery-era themes (OpenCart, older Magento/PrestaShop, custom shops) bind `keydown`/`keypress` on the search input themselves and navigate with `location = url` on `keyCode == 13` — there is no form submission to stop, the magnifier button has its own `click` handler, and the input is often not even inside a `<form>`. With only the click and submit interceptors of 3b/3c in place, typing works and the magnifier is caught, but a real **Enter** press still sends the visitor to the native results page (field case store-FI-1, 2026-10: `common.js` bound `#search input` keydown → `/sogning?search=…`; caught only by an instant `fill()` + Enter test after the first push).
+
+**Find it in the survey, before the first push:** fetch the theme's scripts loaded on the page and grep them for the trigger selector next to `keydown`, `keypress`, `keyCode == 13` / `which == 13` / `key === "Enter"`, or `location =` / `location.href =`. A hit means the shop owns Enter. Then add, next to the click/submit interceptors — capture phase, all three key events, because themes differ in which one they use and the base template's own `keyup` binding on the trigger must still see the first keystrokes:
+
+```js
+// The shop's own Enter handler would send the visitor to its native results page before the overlay has taken focus
+["keydown", "keypress", "keyup"].forEach(function(type) {
+	document.addEventListener(type, function(event) {
+		if (event.key !== "Enter" || !event.target.closest || !event.target.closest(trigger_selector)) return;
+		event.preventDefault();
+		event.stopImmediatePropagation();
+		activate();
+	}, true);
+});
+```
+
+Scoped to the trigger only, so Enter inside the overlay's own input (which `search_redirects` handles) is untouched. **Verify Enter three ways before the push, each with the URL read afterwards:** (1) paced real typing then Enter, (2) `fill()` / instant value then Enter — this is the path a shop-side handler wins, because the overlay has not taken focus yet, (3) the magnifier click. All three must open the overlay and leave the page URL where it was (`?hr-search=…` appended, no native results path). A pass on (1) alone is not a pass.
+
 ## Step 3d — Native predictive-search / backdrop bound to the trigger itself: CSS-suppress, don't chase the listener
 
 **A different failure shape from 3b/3c — and one that survives both checks passing.** The trigger can be the customer's genuine, correctly-selected `input[type='search']` (3b doesn't apply — no icon/drawer toggle to intercept) with no adjacent submit button in a native `<form>` (3c doesn't apply either), and the build can still be broken: **typing into the input** triggers the theme's **own** predictive-search dropdown (Shopify predictive-search, Algolia/Klevu/Searchanise autocomplete, etc.) and/or a shared native backdrop element (the same dark overlay the theme uses for its cart drawer, mobile menu, *and* search — often a single generic `.js-overlay`/`.search-overlay` class toggled by an `is-visible`/`is-open` class add). Both render **on top of or blended with** HR's own overlay, and the header can appear tinted/dimmed underneath.
