@@ -824,9 +824,6 @@ These are the most important checks — get these right.
       case: one run marked the feed N/A while the other verified the working tab on the same
       domain.)
 - [ ] Category links, blog links, and site links all work (no 404s)
-- [ ] **Content-tab items (e.g. Inspiration) all have a valid image** — no empty space where the
-      image should be, no broken image icon, no non-image file (PDF, PSD) used as the image;
-      check every item on every domain, not a sample
 - [ ] No duplicate links (if duplicates exist, check that hierarchies are added to differentiate them)
 - [ ] **0-match text per feed tab has correct grammar/gender agreement** — a template that
       composes the "no matches" sentence around the tab title (`"Nessun " + title + " trovato"`)
@@ -837,11 +834,8 @@ These are the most important checks — get these right.
 ### Cross-cutting (every run — detail in `../qa-checklists/SKILL.md` Step 3)
 
 - [ ] **Cross-domain diff** — for a multi-domain customer, compare filter value formatting,
-      label casing, SKU/stock wording and content-tab items across the sibling domains; a
-      domain that differs from its siblings is a finding
-- [ ] **Page chrome** — favicon and page title on every page type visited (home, category,
-      PDP, cart, 404, …), with Hello Retail on and off; customer-side unless HR causes it,
-      so a low-priority observation
+      label casing and SKU/stock wording across the sibling domains; a domain that differs
+      from its siblings is a finding
 - [ ] **Two ways before "not reproduced"** — an issue named in a manual report, card comment
       or QA chat is tested in at least two different ways before it is closed
 
