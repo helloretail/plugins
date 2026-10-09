@@ -439,9 +439,6 @@ for the accessibility-template generation.
 - [ ] Brand feed: shows the brand logo multiple times…
 - [ ] All hierarchies shown (the last hierarchy twice)
 - [ ] Names (links) don't match the page you get redirected to…
-- [ ] Content-tab items (e.g. Inspiration): every item has a valid image — no empty space
-      where the image should be, no broken image icon, no non-image file (PDF, PSD) used as
-      the image. Check every item on every domain, not a sample
 - [ ] Disappears at '0 matches'
 - [ ] Tablet: make sure we show all content feed links that match the search term
 - [ ] Mobile: adds a scrollbar next to the headline

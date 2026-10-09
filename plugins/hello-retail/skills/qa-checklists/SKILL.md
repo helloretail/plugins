@@ -1283,21 +1283,14 @@ don't get skill screenshots.
 Items are phrased as *known defects to look for* — an item "Missing OOS-label" means
 *check that the OOS label is present and correct*.
 
-**Cross-cutting checks — every run, every feature.** Three checks that belong to no single
+**Cross-cutting checks — every run, every feature.** Two checks that belong to no single
 checklist and that manual QA keeps finding after a skill run has passed:
 
 - **Cross-domain diff (multi-domain customers).** After each domain's own walk, compare the
   verdicts and the measured values across the sibling domains before closing the runs — filter
-  value formatting, label and VAT-text casing, SKU and stock wording, content-tab items, tile
-  layout. A domain that differs from its siblings is a finding on its own (or a question for
+  value formatting, label and VAT-text casing, SKU and stock wording, tile layout. A domain that differs from its siblings is a finding on its own (or a question for
   the CSM when the difference is a language or locale choice), even when each domain passes
   its own checks in isolation. Record the comparison in each report's Summary.
-- **Page chrome on every page type tested.** Besides the Hello Retail elements, check the
-  favicon and the page title on every page type you visit (home, category, PDP, cart, 404, and
-  any other), with Hello Retail on and with it off, so you can tell who causes a difference. A
-  missing favicon or a placeholder or empty title is usually the customer's own site, not
-  Hello Retail: report it as a low-priority observation, and FAIL it only when a Hello Retail
-  script or widget is what changes it.
 - **Two ways before "not reproduced".** When a manual report, a card comment or the QA chat
   mentions an issue, test it in at least two different ways before closing it as "not
   reproduced" — a different input order, a different path to the same state, another

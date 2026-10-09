@@ -238,10 +238,9 @@ say which ones you exercised. On every fixture page, run and record the same set
   with both values, never silently "native pattern".
 - **Cross-cutting** (detail in `../qa-checklists/SKILL.md` Step 3): **cross-domain diff** for a
   multi-domain customer (compare filter formatting, label casing, wording and tile layout
-  across the sibling domains) · **page chrome** — favicon and page title on every page type
-  visited, with Hello Retail on and off (customer-side unless HR causes it; a low-priority
-  observation) · **two ways before "not reproduced"** — an issue named in a manual report, card
-  comment or QA chat is tested in at least two different ways before it is closed.
+  across the sibling domains) · **two ways before "not reproduced"** — an issue named in a
+  manual report, card comment or QA chat is tested in at least two different ways before it is
+  closed.
 - **Pagination:** page 1 · after one load-more/scroll · after two — and click through a
   **newly-loaded** tile to confirm its link and CTA still work (re-binding after load is a routine
   miss; verify it rather than assuming). **Repeat one load-more/scroll-to-load cycle at 820 and
