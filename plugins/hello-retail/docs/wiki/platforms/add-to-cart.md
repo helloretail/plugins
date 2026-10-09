@@ -84,6 +84,22 @@ $(document).on("submit", "#hello-retail-{{ key }} form.js-product-form", onSubmi
 Before binding anything, click a rendered tile's button for real: custom elements (`<product-form>`,
 `is="…"`) and themes with their own rebind logic often work with no code from us.
 
+## Click tracking on the buy button
+
+Every buy / add-to-cart element in a Hello Retail tile carries the click-tracking call, on every surface and every platform:
+
+```html
+<button type="button" class="…the shop's own classes…" onclick="hrq.push(['trackClick','{{ product.trackingCode }}'])">…</button>
+```
+
+- **Always, also when the button is copied verbatim.** A shop's native buy button never has this call, so copying it as-is (`tile-extractor` Output Rule 10) always leaves it out. Adding it is part of copying a buy button, not a separate step to remember.
+- **Prepend, never replace.** When the native button already has an `onclick`, the tracking call goes first: `onclick="hrq.push([…]); originalHandler()"`.
+- **Buy actions only.** Variant, info, view and sold-out CTAs and the tile links navigate to the product page; `fix_links` (`#aw_source=`) attributes those clicks, so they get no `trackClick`.
+- **Added when the tile is copied.** `tile-extractor` places the call on the copied button and checks its finished tile before hand-over (its Output Rule 11), so a tile built from the shop's markup never leaves without it.
+- **Verify with a real click:** the network shows `POST https://core.helloretail.com/serve/collect/click` next to the shop's own cart request. `POST /serve/collect/cart` alone is the generic cart collection, not click attribution.
+
+Without the call, add-to-cart clicks from Hello Retail tiles are never attributed to Hello Retail. Real case (2026-10): a desktop search shipped for two weeks with the shop's native buy button copied verbatim and no `trackClick`, until search QA flagged it.
+
 ## Related
 
 - Platform pages: [platforms.md](./platforms.md)
@@ -94,4 +110,5 @@ Before binding anything, click a rendered tile's button for real: custom element
 ## Timeline
 - 2026-05-21: Category created to consolidate cross-cutting cart-integration patterns.
 - 2026-09-14: Moved here from `cheat-sheets/add-to-cart/README.md` to sit with the platform pages; the per-platform cheat-sheet copies were merged into `platforms/<platform>/add-to-cart.md`. Corrected the Viskan row — the recipe is a delegated click handler with a stepper, not an `.hr-form` submit binding — and added the DanDomain, BigCommerce and Wikinggruppen rows.
+- 2026-10-08: Added *Click tracking on the buy button* — the rule, the copy-verbatim trap, and where `tile-extractor` adds it.
 - 2026-09-23: The tile carries the shop's own form, never a Hello Retail one; selectors now name the copied theme form first and the legacy `.hr-form` / `.aw-buy-form` classes only for reading older designs.
