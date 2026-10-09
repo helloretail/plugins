@@ -8,6 +8,13 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.41.1 — 2026-10-09
+
+### Removed
+
+- `search-qa`, `recom-qa` and `pages-qa` no longer check the favicon and page title on every page type visited (added in 1.40.0); these belong to the customer's own site and are not a Hello Retail check.
+- `search-qa` no longer checks that every content-tab item (such as Inspiration) has a valid image (added in 1.40.0), and the cross-domain comparison no longer lists content-tab items.
+
 ## 1.41.0 — 2026-10-09
 
 ### Changed
