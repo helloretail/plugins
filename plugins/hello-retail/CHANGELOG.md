@@ -8,6 +8,16 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.42.0 — 2026-10-12
+
+### Added
+
+- `retailmedia-qa` runs the pre-handoff QA of Retail Media banners (`/retailmedia-qa [URL] [card]`): a code pass on every banner-hosting design plus a measured rendered pass on desktop, tablet and mobile, including the 404 page, the sidecart and the rule that a page shows the banner in one recom box only. It answers every line of the ClickUp card's banner checklists and never edits campaigns or designs.
+
+### Changed
+
+- `qa-checklists` now hands single-feature Retail Media QA to `retailmedia-qa` instead of running the walk itself.
+
 ## 1.41.2 — 2026-10-09
 
 Maintenance release — no user-visible changes.
