@@ -7,9 +7,9 @@ description: >
   "manual QA", "go through the QA list for [feature]", "what should I check for [feature]", or wants
   the item-by-item catalogue of known defects to verify before handoff. Trigger even if the user
   only names a feature and says "checklist". For a single-feature QA prefer the full per-feature
-  skills — search-qa / recom-qa / pages-qa — which run the two-pass QA on top of this catalogue;
-  this skill is the shared catalogue + procedure behind them, and the direct entry for
-  multi-feature, Setup & Data, and Retail Media walks.
+  skills — search-qa / recom-qa / pages-qa / retailmedia-qa — which run the two-pass QA on top of
+  this catalogue; this skill is the shared catalogue + procedure behind them, and the direct entry
+  for multi-feature and Setup & Data walks.
 ---
 
 # Hello Retail D&TS — QA Checklists
@@ -57,7 +57,7 @@ the recommended option and record the question under Manual checks for the opera
 | Recommendations | `references/recommendations.md` | Supervisor & HR panel, placement, design, tile, headline, sliders, product / category / upsell / cart recoms, API & click tracking |
 | Search | `references/search.md` | Accessibility templates, Supervisor, dashboard, placement, header, search field, logo, design, AI, open/close, initial content, tile, 0-matches, filters & sorting, content feeds, recently searched, new mobile search, translations |
 | Pages | `references/pages.md` | Placement, design & styling, filters, category filter, sorting, loading, products, translations, dashboard |
-| Retail Media | `references/retail-media.md` | isBanner code, `hr-b-image` class, image sizing/naming, banner rendering |
+| Retail Media | `references/retail-media.md` | isBanner code, `hr-b-image` class, image sizing/naming, banner rendering; runner: `retailmedia-qa` |
 | Newsletter Content tile & Triggered Emails | `references/newsletter.md` | **v1, authored (no QA-workbook sheet exists)** — foundation diff vs the shared default, markers/dynamic-ness, translation, renderer (N) or email-client (T) compatibility, data binding, Liquid gotchas, rendered checks, "similar to the customer's tile" table; runner: `newsletter-qa` |
 | Known template issues (every run) | `references/known-template-issues.md` | Standing template-level defects walked on **every** QA run regardless of feature — typed price input, custom-filter chips, facet ordering, label z-index, separator/suffix, scroll-lock, back-nav popup, OOS-in-recoms, single-filter removal |
 
@@ -1625,7 +1625,7 @@ the supporting docs are bundled under `${CLAUDE_PLUGIN_ROOT}/docs/`. Two things 
   Capture **storefront screens only** — never dashboard/Supervisor screens, and nothing
   containing customer end-user data. To share evidence, hand off the customer's folder
   `QA/[customer]/` (report + screenshots) — e.g. zipped and attached to the ClickUp card.
-- The per-feature QA skills (`search-qa`, `recom-qa`, `pages-qa`) are the default for
-  "QA this customer" requests; use this skill directly when the user explicitly wants the
-  checklist walk or an area they don't cover (multi-feature / full-onboarding walks,
-  Setup & Data, Retail Media, feed/data, order feed).
+- The per-feature QA skills (`search-qa`, `recom-qa`, `pages-qa`, `retailmedia-qa`) are the
+  default for "QA this customer" requests; use this skill directly when the user explicitly
+  wants the checklist walk or an area they don't cover (multi-feature / full-onboarding walks,
+  Setup & Data, feed/data, order feed).
