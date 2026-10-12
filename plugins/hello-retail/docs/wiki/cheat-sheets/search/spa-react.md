@@ -163,9 +163,15 @@ instance.close_overlay = close_overlay; // inside activate(), right after overla
 
 The desktop embedded base adds `hr-search-disable-scroll` to `<body>` in `open_overlay()` and removes it only in `close_overlay()`. The class sets `overflow: hidden` and `height: 100vh` on `<body>` and blurs every direct child. If the init runs again while the overlay is open (a route change that re-executes the config, `hrq.push(["reload"])`, a GTM re-fire), `close_overlay()` never runs. The class stays behind, and the page is blurred and cannot scroll until a full reload.
 
-Clear the class at the top of the init, before anything else runs:
+Clear the class early in the init, **right after the device-width guard**, never before it. The guard decides whether this template should run on this device, so nothing may run ahead of it:
 
 ```js
+var ui_utility = ui_utility_vanilla;
+if (ui_utility.window_size().width <= 992) {
+	// Don't activate on mobile
+	return;
+}
+
 document.querySelector("body").classList.remove("hr-search-disable-scroll"); // SPA FIX
 ```
 
