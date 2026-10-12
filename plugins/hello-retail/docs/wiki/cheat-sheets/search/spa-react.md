@@ -159,6 +159,28 @@ The `window.helloRetailCurrentSearchInstance` contract only works if you **assig
 instance.close_overlay = close_overlay; // inside activate(), right after overlay creation
 ```
 
+## Stale scroll lock after re-init (desktop embedded)
+
+The desktop embedded base adds `hr-search-disable-scroll` to `<body>` in `open_overlay()` and removes it only in `close_overlay()`. The class sets `overflow: hidden` and `height: 100vh` on `<body>` and blurs every direct child. If the init runs again while the overlay is open (a route change that re-executes the config, `hrq.push(["reload"])`, a GTM re-fire), `close_overlay()` never runs. The class stays behind, and the page is blurred and cannot scroll until a full reload.
+
+Clear the class early in the init, **right after the device-width guard**, never before it. The guard decides whether this template should run on this device, so nothing may run ahead of it:
+
+```js
+var ui_utility = ui_utility_vanilla;
+if (ui_utility.window_size().width <= 992) {
+	// Don't activate on mobile
+	return;
+}
+
+document.querySelector("body").classList.remove("hr-search-disable-scroll"); // SPA FIX
+```
+
+If your init adds its own body classes while the overlay is open, remove them on the same line.
+
+The mobile overlay base does not use this class, so it does not need the line.
+
+> Field-proven: it ships in the LIVE desktop configs of three Viskan storefronts (two NG, one Streamline).
+
 ---
 
 ## Debug recipe (DevTools console)
@@ -178,3 +200,4 @@ document.querySelectorAll('.hr-overlay-search').length          // 0 while "open
 ## Timeline
 - 2026-06-12: Created from a custom-React-shop incident: route-change handler did a partial reset (`overlay_active` stale, detached-overlay renders, no-op instance teardown). Full fix shipped as init v1.3 on that config.
 - 2026-08-25: Cross-linked to the new [onboarding/spa-tracking.md](../../onboarding/spa-tracking.md) (official `hrq.push(["reload"])` mechanism). The `reload`-vs-custom-teardown interaction is documented there as an open question.
+- 2026-10-12: Added the stale scroll-lock reset (`hr-search-disable-scroll` removed at init) for desktop embedded configs.
