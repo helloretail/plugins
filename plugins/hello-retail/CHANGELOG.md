@@ -8,6 +8,12 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.42.1 — 2026-10-12
+
+### Added
+
+- Wiki `cheat-sheets/search/spa-react.md`: removing `hr-search-disable-scroll` from `<body>` at init (right after the device-width guard), so a desktop embedded search that runs again on an SPA does not leave the page blurred and unscrollable.
+
 ## 1.42.0 — 2026-10-12
 
 ### Added
