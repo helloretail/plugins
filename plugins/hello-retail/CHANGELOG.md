@@ -8,6 +8,12 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.43.0 — 2026-10-13
+
+### Changed
+
+- `retailmedia-qa` now reports a banner whose corners, border or shadow differ from the shop's category-page tiles as a note with an operator question, not as a finding, because it can be deliberate.
+
 ## 1.42.2 — 2026-10-12
 
 ### Changed
