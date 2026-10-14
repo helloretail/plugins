@@ -84,7 +84,9 @@ The recom box around the product tile. For tile-level items (price, labels, CTA,
 - [ ] Styling is off (e.g. slider bar)
 - [ ] Mobile/tablet: drag movement doesn't work *(test with the automation's drag tool — e.g.
       Playwright `browser_drag` across the slider; when no drag/touch emulation is available,
-      record SKIPPED → operator device check, never silently omit)*
+      record SKIPPED → operator device check, never silently omit). A real finger swipe can't
+      be automated — always record "swipe — needs manual check" on the operator list*
+- [ ] Arrows exist, work, and reach the end of the slider — every box, every viewport
 - [ ] Triggers multiple recoms on the same page
 - [ ] Use the customer's own arrow design
 
@@ -146,10 +148,18 @@ The recom box around the product tile. For tile-level items (price, labels, CTA,
 - [ ] urls/productNumber-(box) selector missing
 - [ ] IF cart is empty: don't show the recom
 - [ ] Side cart / cart page shows wrong totals or item counts after adding via the recom
-      (often the customer's own cart code — flag as WARN "customer-side" with a suggested
-      fix, never leave it unreported)
+      (often the customer's own cart code — record it as a NOTE under the report's
+      Customer-side notes with a suggested fix, never leave it unreported; only an item that
+      isn't added at all is a FAIL)
+- [ ] ATC from **every** cart recom box → the cart table and totals update
+- **Known limitation — not a finding:** a product already in the cart shown again in a cart or
+  upsell recom when there is no product URL to crawl. List it once under the report's Known
+  limitations.
 
 ## API
 
-- [ ] Click tracking (check that the `#aw_source=` fragment exists) *(rendered — check tile links on the live site)*
+- [ ] Click tracking — click a tile / ATC button on the live site and confirm the
+      click-attribution request (`trackClick` → `/serve/collect/click`) in the network log; an
+      `#aw_source=` fragment in the link is never evidence *(rendered — `../SKILL.md` Step 3,
+      three-layer tracking rule)*
 - [ ] API log: API requests of recoms *(OPERATOR — dashboard API log)*

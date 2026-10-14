@@ -210,6 +210,11 @@ what covers the drafted changes; never present the rendered result as QA of that
 > vague on a point you need, one clarifying question is fine (`AskUserQuestion` when the card's
 > own text supplies the options, prose otherwise) — but never block the QA on it:
 > run full coverage and record the ambiguity as WARN + operator question.
+>
+> Then ask the **operator questions at the start** (`../qa-checklists/SKILL.md` Step 1.5) for
+> whatever the card leaves open — for recoms: which variants a tile shows and where a variant
+> click leads, tablet tiles per row, and whether the boxes should scroll with a two-finger
+> trackpad swipe or the mouse wheel. Graded against the answer, never as a WARN after the fact.
 
 ### 1. Crawl all standard placement pages and map every recom box
 
@@ -361,8 +366,9 @@ the actual container width, not the viewport.
 >    (`product-recommendations`, `product-card-small`, `scroll-shadow`) — not just
 >    `.addwish-recom`. Searching the wrong selector looks identical to "nothing rendered".
 >
-> If you still can't reach it (checkout-step upsells, headless flows), record **SKIPPED** with the
-> reason and put a walk-through on the operator list — never FAIL an upsell you couldn't open.
+> If you still can't reach it (checkout-step upsells, headless flows), record **SKIPPED —
+> could not trigger, needs manual check** with the reason and put a walk-through on the operator
+> list — never FAIL an upsell you couldn't open, and never skip one silently.
 >
 > **Record the trigger mechanism in the inventory — reached or not.** Theme builds differ: some
 > upsells live in a side-cart drawer, some in a post-ATC confirmation modal that opens on every
@@ -432,6 +438,15 @@ from the image-weight probe's native pass — and, if a search-qa report for thi
 exists, diff your baseline facts against its before saving; contradicting baselines mean one
 measurement is wrong.
 
+**Label survey — one category page is NOT enough.** Labels are context- and feed-driven ("New"
+on the New Arrivals page, sale badges on Deals/Outlet). From the main navigation, visit the pages
+most likely to carry labels and list every label type on the native **category** tiles, with at
+least 2 carrier products each and a screenshot; record the layer per type (DOM element, or baked
+into the product image — image-baked labels are N/A for parity). In step 3, find those products
+in the boxes and verify each label's exact text, colour and position; labels must not overlap at
+375px. A label type with no carrier product in any box is "state unverified", not a PASS
+(`../qa-checklists/references/product-tile.md` → Labels).
+
 ### 3. Compare HR recom tiles vs native tiles
 
 For each HR recom box, work through the **Product Tile Design** checklist below. If the card
@@ -454,6 +469,10 @@ every verdict.
   as a single garbled number (`349,-122`) and passes every whole-unit sample (2026-08-04: graded
   PASS, cosmetic, and FAIL by three runs on identical code — only the run that read both branches
   was right).
+- **Breadth** — on top of the fixtures, scan every loaded tile in every box for a "0" or empty
+  price, and compare 10 products (at least 3 on sale) against the same products on the native
+  category page: price, old price, sale label and its colour. Repeat in a logged-out / private
+  window. If the native category tile is wrong too, it is customer data, not an HR defect.
 
 ### 4. Check page-fit and responsiveness
 
@@ -471,6 +490,11 @@ the headline or tile content.
 | **Laptop** (~1024px) | Match native at this width | Tiles per row may reduce — verify it matches |
 | **Tablet** (iPad Air, 820×1180) | Match native at this width | Grid usually narrows to 2–3 tiles |
 | **Mobile** (iPhone SE, 375×667) | Match native mobile | Typically 1–2 tiles, swipe works, buttons tappable |
+
+**Tablet is a full pass at both 1024 and 820** — every recom box, at the same depth as desktop
+and mobile (tiles, carousel, CTA, page-fit); anything untested on tablet makes the verdict
+**partial**, never PASS. Tiles per row that differ from native are graded against the
+operator's answer (`../qa-checklists/SKILL.md` Step 1.5).
 
 The tablet and mobile widths are the **standard QA devices** (iPad Air / iPhone SE — matching
 the QA team's physical test devices). The deliberately small 375px phone width is the point:
@@ -496,8 +520,10 @@ Work through the **Carousel Behaviour** and **CTA Buttons & Tracking** checklist
 ordered: confirm they work, products actually load in, and the arrows copy the customer's own
 arrow design where one exists. Every buy button must fire
 `hrq.push(['trackClick','{{ product.trackingCode }}'])` — **buy/ATC buttons only**: variant,
-view, and sold-out CTAs are navigation links tracked via `fix_links` (`#aw_source=`), so never
-expect (or flag a missing) `trackClick` on them (QA team).
+view, and sold-out CTAs are navigation links tracked via `fix_links`, so never expect (or flag
+a missing) `trackClick` on them (QA team). Tracking evidence is the click-attribution request
+(`trackClick` → `/serve/collect/click`) after a real click — never an `#aw_source=` fragment in
+the link (`../qa-checklists/SKILL.md` Step 3, three-layer rule).
 
 ### 6. Run the per-recom-type checks and the catalogue walk
 
@@ -629,6 +655,11 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       with no obscurer named is not a complete finding
 - [ ] **Vertical rhythm** — spacing above/below the box consistent with the customer's own
       section spacing
+- [ ] **Cut-off and alignment on a mix of tiles, every viewport** — zoom on every box using a
+      mix of worst-case tiles (long titles, sale, variants, reviews, labels), never one or two:
+      nothing clipped at the edges, button text sits like native, tiles in a row are the same
+      height, tiles per view match the site's other boxes, heading spacing matches the shop's
+      own headings. A size list cut off because its length can't be predicted is not reported
 
 ### Product Tile Design
 
@@ -667,7 +698,9 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       oversized AND no stray large-image popup appears (both are the same bfcache/lazy-load
       restore defect family — the popup variant hit two unrelated shops; recurring
       cross-domain defect, `../qa-checklists/references/known-template-issues.md` T7 — test
-      explicitly on every recom QA)
+      explicitly on every recom QA). Take a rapid screenshot burst right after Back — any hint
+      of an oversized image is "possible flash — needs a manual look" on the operator list,
+      never PASS
 - [ ] **In-tile image slider swipes — inside swiper clones too** — where the tile carries its
       own image slider/dots, swipe it in a tile near the START of the carousel AND in a
       loop-mode **clone slide** (the duplicated tiles at the edges): a slider that works in
@@ -678,14 +711,12 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       whatever native does); a control that renders but ignores clicks is a finding even
       though presence-parity passes. Compare the selected-state styling against native per the
       interactive-state rule.
-- [ ] **Tile-vs-PDP state cross-check (data consistency, not label parity)** — for sale and
-      pre-order/OOS tiles in the sample, open the product's own PDP and confirm the tile's
-      claimed state agrees with the product's actual state: sale tag on the tile vs pre-order
-      on the PDP, discount on the tile vs none on the PDP. **The native listing tile stays the
-      only reference for how a label should look** (never grade label presence from the PDP —
-      see the sold-out item in Price); the PDP is the reference for whether the *data* behind
-      the tile's state is true. Cross-check `productData_get` on disagreement — usually a
-      feed/variant-resolution fix.
+- [ ] **Tile state vs feed data (data consistency, not label parity)** — for sale and
+      pre-order/OOS tiles in the sample, confirm the tile's claimed state agrees with the
+      product's data: `productData_get` (price, old price, `inStock`) and the same product's
+      native category-page tile. A sale tag where the feed has no old price, or a sold-out tile
+      for an in-stock product, is usually a feed/variant-resolution fix. The product page is
+      never the reference, for the label or for the data.
 - [ ] **Tile height consistency** — all tiles in a slider are the same height (watch this
       especially when the scaffold `.hr-product` wrapper was removed for a complete native
       card tile — flex stretch usually holds, but ragged heights mean the card needs
@@ -698,7 +729,8 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
 - [ ] **No scaffold-vs-card conflict** — when the tile is the customer's complete native card
       (own border/background/padding), the scaffold `.hr-product` border/centering must not
       fight it (double border, forced text-centering)
-- [ ] **Badges** — every native badge type replicated (sale, new, bestseller, clearance…) —
+- [ ] **Badges** — every native badge type from the step-2 label survey replicated (sale, new,
+      bestseller, clearance…), compared against the native **category** page, never the PDP —
       DOM-element badges only: a label baked into the product image itself travels with
       `imgUrl` and is N/A, never a gap (product-tile catalogue → Labels)
 - [ ] **Wishlist / favourites button** — present if native tiles have one — scoped **per
@@ -722,17 +754,19 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       This was the single biggest bucket of missed eyes-on-the-page defects (~35 items across
       12 of 14 properties, 2026-08-24 comparison) — save the paired capture as evidence even
       when everything matches.
-- [ ] **Variant chips vs the product page** — open the PDP of a tile with several variants and
-      compare the set and the order of the variants: the tile must show the same variants as
-      the PDP, in the same order, with nothing hidden, reordered or swapped, and a "+ N" count
-      that matches what is hidden
+- [ ] **Variants vs the native category tile** — compare at least 5 variant products tile by
+      tile against the same products on the native category page (never the PDP): the same
+      sizes/variants in the same order, the same sold-out marking, a "+ N" count that matches
+      what is hidden, and clicking a size, swatch or dropdown behaves like native. Which sizes
+      are shown and where a variant click leads are customer decisions — card first, else the
+      operator answer at the start (`../qa-checklists/SKILL.md` Step 1.5)
 
 ### Products Per Row & Breakpoints
 
 - [ ] **Desktop (~1440px)** — tiles per row matches native category grid
 - [ ] **Laptop (~1024px)** — matches native at this width
-- [ ] **Tablet (~768px)** — matches native at this width
-- [ ] **Mobile (~390px)** — matches native mobile (typically 1–2)
+- [ ] **Tablet (820px)** — matches native at this width
+- [ ] **Mobile (375px)** — matches native mobile (typically 1–2)
 - [ ] **Swiper breakpoints** — breakpoints in the template config align with the above
 - [ ] **Tablet band measured against NATIVE, not against the box's own config default.** Test
       all four Step 2.5 viewports — 1440, 1024, 820, 375 — and record **tiles-per-row plus
@@ -775,9 +809,11 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       actively — "no sale product seen" is not a PASS, record "state unverified" instead
 - [ ] **Variant products** — price range or "from X"; CTA is the variant-selection label, not "Add to cart"
 - [ ] **Sold-out products** — sold-out label shown; CTA disabled or replaced — judged against
-      the native **listing tile** for the same product, never the PDP: PDP-only availability
-      text is not a tile reference, and native tiles showing nothing for OOS products make an
-      HR tile showing nothing a PASS (product-tile catalogue → OOS)
+      the native **category-page tile** for the SAME product, never the PDP, with paired
+      screenshots of both tiles; compare at least 3 sold-out products, including the sold-out
+      button's text and colour. PDP-only availability text is not a tile reference, and native
+      tiles showing nothing for OOS products make an HR tile showing nothing a PASS
+      (product-tile catalogue → OOS)
 - [ ] **No OOS products served in recoms with an active ATC**
       (`../qa-checklists/references/known-template-issues.md` T8) — rendered scan of every
       sampled box for `inStock: false` products (cross-check suspicious tiles via
@@ -795,11 +831,12 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
   - **ACCEPTED — do not flag:** `trackClick` missing on variant CTAs ("SE VARIANTER" /
     "Choose variant"), view CTAs, or sold-out CTAs. `trackClick` belongs on buy/ATC actions
     only (elements that add to cart without navigating); navigation CTAs are covered by
-    `fix_links` via the `#aw_source=` fragment, and conversions still attribute through the
-    link click. Confirmed by the QA team.
+    `fix_links`, and conversions still attribute through the link click. Confirmed by the QA
+    team. The `#aw_source=` fragment in a link is never tracking evidence — see the next item.
 - [ ] **Tracking fires** — confirm via the **three-layer protocol** (`../qa-checklists/SKILL.md`
       Step 3): code (`hrq.push` in the design source) + DOM (handler on the rendered button) +
-      network (a click-attribution request for the clicked product's tracking code). A
+      network (a click-attribution request — `trackClick` → `/serve/collect/click` — for the
+      clicked product's tracking code; the network layer is the only PASS evidence). A
       `POST /serve/collect/cart` alone is HR's generic cart collection, NOT trackClick proof;
       code-absence alone is NOT a Blocker (shared mechanisms can fire outside the template).
       Layers disagreeing = **WARN — attribution unconfirmed** + a dashboard-analytics operator
@@ -811,10 +848,13 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       (adds to cart in place, opens the mini-cart, redirects to the cart page, or no
       redirect), then verify the HR tile's buy button does exactly the same — a cart-page
       redirect is only a defect if the native button doesn't do it
-- [ ] **Side cart / cart sanity after ATC** — after adding from an HR tile, the side cart /
-      cart page shows the right product, quantity, and total; wrong totals or counts are
-      often the customer's own cart code → WARN "customer-side" with a suggested fix, never
-      unreported
+- [ ] **ATC from the HR tile vs the native tile, side by side, every box, every viewport** —
+      add the same product from an HR tile and from a native tile at 1440 / 1024 / 820 / 375
+      and compare: the mini-cart / pop-up appears on top (never under HR content), the same
+      price format, currency and icons in it, the quantity chosen (set e.g. 5) is the quantity
+      added, the header cart count updates, and a second click does the same as native. The
+      cart is the customer's: differences are NOTEs under Customer-side notes with a suggested
+      fix, never unreported — only an item that isn't added at all is a FAIL
 
 ### Carousel Behaviour
 
@@ -822,16 +862,19 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       products load in
 - [ ] **Arrows copy the customer's design** — where the site has its own carousel arrows, HR
       arrows replicate them (never default HR pink)
+- [ ] **Arrows exist, work, and reach the end** — every box, at every viewport: click through
+      to the last slide and back
 - [ ] **Prev arrow disabled at start** — visually disabled or hidden on the first slide
-- [ ] **Swipe / drag** — touch swipe and desktop mouse-drag both work; test with the
-      automation's drag tool (e.g. Playwright `browser_drag` across the slider) — when no
-      drag/touch emulation is available, record SKIPPED → operator device check, never
-      silently omit
-- [ ] **Mouse-wheel / trackpad scroll matches the shop** — if the shop's own desktop slider
-      scrolls sideways with the mouse wheel or a two-finger trackpad swipe, hover the HR box and
-      do the same: it moves too when the design has `mousewheel` on (that one option covers both
-      inputs); when it doesn't, WARN → operator decision (mirroring it is opt-in), never FAIL.
-      A box that only moves with its arrows while the shop's slider swipes is exactly this WARN
+- [ ] **Swipe / drag** — desktop mouse-drag works; test with the automation's drag tool (e.g.
+      Playwright `browser_drag` across the slider). A real finger swipe can't be automated —
+      always record **"swipe — needs manual check"** on the operator list, never PASS and
+      never silently omitted
+- [ ] **Mouse-wheel / trackpad scroll as agreed** — whether the boxes should scroll sideways
+      with the mouse wheel or a two-finger trackpad swipe is customer-dependent: card first,
+      else the operator answer at the start (`../qa-checklists/SKILL.md` Step 1.5). Hover the
+      HR box and scroll: expected → it must move (the design's `mousewheel` option covers both
+      inputs; FAIL if it doesn't); not expected → N/A (by spec). Never raised as a WARN after
+      the fact
 - [ ] **Wheel axis matches the shop — vertical scroll over the box must not get trapped** — when
       both sliders scroll with the wheel, test the *vertical* direction separately: hover the HR
       box and scroll down (Playwright `page.mouse.wheel(0, 600)` with the pointer over the box;
@@ -883,7 +926,8 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
 
 ### Mobile
 
-- [ ] **Touch swipe works**
+- [ ] **Touch swipe works** — real finger swipe: "swipe — needs manual check" on the operator
+      list (see Carousel Behaviour)
 - [ ] **All tile heights equal on mobile**
 - [ ] **CTA buttons visible and tappable** — not cut off or overlapping
 - [ ] **Images correct** — no broken images or wrong aspect ratio
@@ -952,9 +996,9 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
 **Cart recom:**
 
 - [ ] **ATC from the cart-page recom actually works — and the right surface responds** — add a
-      product to the cart from the cart page's own recom box and verify all three: the cart
-      genuinely updates (row count / totals — confirm via `fetch('/cart.js')` or the rendered
-      cart), the theme's expected surface reacts (line added in place, mini-cart opens, or
+      product to the cart from **every** cart recom box on the cart page and verify all three:
+      the cart genuinely updates (the cart table and totals — confirm via `fetch('/cart.js')`
+      or the rendered cart), the theme's expected surface reacts (line added in place, mini-cart opens, or
       whatever native ATC does on this page — a silent no-op and a wrong-surface redirect are
       both findings), and the recom box itself survives the cart's re-render (AJAX carts
       re-paint the page region the box lives in — a box that vanishes or goes dead after its
@@ -980,15 +1024,19 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       Fix pattern: strip everything except digits and the decimal separator before the decimal
       swap, e.g. `replace(/[^0-9,]/g, "").replace(",", ".")`.
 - [ ] **urls / productNumber selector** — configured so the recom knows the cart contents
+- **Known limitation — not a finding:** a product already in the cart shown again in the recom
+  when there is no product URL to crawl. One line under Known limitations.
 - [ ] **Sidebar → separate mobile design** — if the desktop cart recom is a sidebar, a different
       design exists for mobile
 
 **Upsell recom:** — reach it via the **side-cart procedure** in step 1 (add product → open the
 drawer → *then* enable Show). Judge it against the drawer, not the category grid.
 
-- [ ] **Reached and rendered at all** — confirm you actually opened the placement before judging
+- [ ] **Reached and rendered at all — every upsell box on the card, at every viewport** —
+      actually trigger each one (and confirm you opened the placement) before judging
       anything. Search `#aw-box-<key>` and the theme's own component tags, not just
-      `.addwish-recom`. Unreachable → **SKIPPED** + operator walk-through, never FAIL.
+      `.addwish-recom`. Can't be triggered → **"could not trigger — needs manual check"** +
+      operator walk-through, never FAIL and never skipped silently.
 - [ ] **urls / productNumber selector** — same as cart, depending on the upsell's placement. Note: the box returning products is
       *consistent with* a working selector but not proof the source is cart contents — dashboard
       check.
@@ -1055,8 +1103,9 @@ Checks against `templateCode` / `templateStyles` that the rendered pass can't se
       rendered HTML — it may sit inside a `{% if %}` branch that didn't render for the products
       you saw. Broken tracking means conversions never attribute — invisible in the UI.
       **ACCEPTED — do not flag:** no `trackClick` on variant / view / sold-out CTA branches —
-      those are navigation links covered by `fix_links` (`#aw_source=`); only buy/ATC actions
-      need it (QA team).
+      those are navigation links covered by `fix_links`; only buy/ATC actions need it (QA
+      team). An `#aw_source=` fragment is never tracking evidence — the rendered verdict needs
+      the `/serve/collect/click` request.
 - [ ] **ATC re-binding is clone-safe** — the add-to-cart hook runs from the swiper
       `on: { afterInit }` (or uses delegated handlers), so loop-mode clone slides and re-renders
       don't produce dead or double-firing buttons.
@@ -1088,7 +1137,9 @@ Checks against `templateCode` / `templateStyles` that the rendered pass can't se
 - [ ] **No leftover placeholders** — headline isn't "Myshop"/base placeholder; no `[NOTE]` or TODO
       markers left in the template.
 - [ ] **Localization integrity** — every hardcoded string in the template is in the store
-      language; no stray English in a non-English store (or vice-versa).
+      language; no stray English in a non-English store (or vice-versa). A wrong-language
+      string that never reaches the live storefront — neither visible nor in the rendered DOM —
+      is not reported at all, not even LATENT (`../qa-checklists/SKILL.md` Step 3).
 - [ ] **Liquid gotchas** — price uses an HR price filter: `| price` + `| currencySymbol`,
       `| priceWithCurrencySymbol`, or `| priceWithCurrency: product.currency` — **any of these is
       fine when the rendered format matches the customer's; never flag a working
@@ -1154,10 +1205,20 @@ card; graded against native only (../qa-checklists/SKILL.md Step 1.5; link the Q
 full page loads · QA target: Draft/Internal Review / LIVE /
 mixed (see inventory) · Passes run: rendered + code / code only / rendered only (no website-uuid)]
 
+## Per-viewport verdicts
+| Viewport | Verdict | Reason / notes |
+[one row each for 1440 / 1024 / 820 / 375: PASS / FAIL / NOTE / NOT TESTED + reason — any
+viewport not (fully) tested makes the overall verdict "partial", never PASS]
+
 ## Known template issues (NOTE)
 [the standing entries from ../qa-checklists/references/known-template-issues.md with per-site
 status: verified (reproduces) / not reproduced / N/A / SKIPPED — template-level, routed to the
 base-template owners, outside this onboarding's defect counts]
+
+## Known limitations
+[one line each, not bugs, outside the defect counts — platform limits (e.g. wishlist on
+Viskan), a product already in the cart re-shown when there is no product URL to crawl,
+waived / shelved items with who and when (../qa-checklists/SKILL.md Step 4)]
 
 ## Recom Box Inventory
 | Box ID | Heading | Type | State | QA target | Homepage | Category | PDP | Cart | 404 | Slides |
@@ -1210,6 +1271,10 @@ every KNOWN — pending [owner/ETA] finding (Step 1.5), separate from the number
 with a "Corrections — do not action these" block listing every code-pass or prior-report
 finding this run overturned, each with the evidence that retired it]
 
+## Customer-side notes
+[one-liners for the CSM to pass on — shop-side items and cart behaviour after an HR
+add-to-cart that differs from native (NOTEs, not defects)]
+
 ## Manual checks for the operator
 [unchecked - [ ] list: every OPERATOR item plus MCP items skipped for missing coordinates,
 each with where to check it (dashboard page / Supervisor / ClickUp). State explicitly these
@@ -1227,6 +1292,13 @@ entry per FAIL from Issues Found:
 - Verify: the checklist item + page/box to re-check after the fix
 End with: "To execute: open Claude Code in this folder and say — read this report and apply
 the Handoff fix plan."]
+
+## Appendix — ruled out
+[candidate findings investigated and dismissed this run, one line each with the evidence —
+never in the findings list]
+
+## Session notes
+[the run's own tooling / setup problems — never findings, never counted]
 ```
 
 **Multi-domain runs:** one file per domain, each in the format above and fully self-contained
