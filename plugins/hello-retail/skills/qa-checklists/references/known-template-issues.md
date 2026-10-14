@@ -37,10 +37,15 @@ domains yet missed on two others in the same period.
 - **Verify:** type a value into the price **min** and **max** fields, then **blur AND press
   Enter** (both paths) — the result set must change. Dragging the slider working is not a PASS
   for this item; the typed path is the defect. **Then run the two-field sequence:** type min,
-  Tab, type max, Tab — and again in the reverse order (max first, then min). Both values must
-  stay set, and the dropdown must not close or apply after the first field (a filter that
-  closes after one field leaves the second one impossible to set, and a second attempt can
-  clear both). "Not reproduced" is only a valid verdict after **both orders** pass.
+  Tab, type max, Tab — and again in the reverse order (max first, then min) — then repeat both
+  orders confirming each field with **Enter** instead of Tab. Both values must stay set, and
+  the dropdown must not close or apply after the first field (a filter that closes after one
+  field leaves the second one impossible to set, and a second attempt can clear both). Run it
+  at **every viewport** (1440, 1024, 820, 375) and check the input boxes are not cut off.
+  "Not reproduced" is only a valid verdict after **both orders, with Tab and with Enter**, pass.
+- **Not this item:** the dropdown closing after a **slider drag** is released is expected
+  behaviour — never report it. Closing or applying after **one typed field** is this entry:
+  it goes in the report's standing "Known template issues" NOTE block, not the bug list.
 - **Origin:** found manually on 5 domains / 5 platforms, never by a skill run (2026-08-24
   comparison). Base fix (wiring the inputs to the slider's handler) is parked with the
   base-template owners.
@@ -57,13 +62,17 @@ domains yet missed on two others in the same period.
 ### T3 · Facet ordering not alphabetical / not size-logical
 
 - **Features:** Search, Pages.
-- **Verify:** open **every** facet and record its option order — brands/colors alphabetical,
-  sizes in logical S-M-L(+numeric) order, Category following the hierarchy. **Check the card
-  comments FIRST:** some customers order a custom sort that must NOT be "fixed" to
-  alphabetical (real case: a customer's custom size order, explicitly protected in comments —
-  blind alphabetical sorting would have broken it). Ticket-covered order → PASS (by spec).
-  **Out of scope:** the sorting control's own options — they follow the configured order
-  (default sort first) and are never alphabetised, so their order is not a T3 finding.
+- **Verify:** open **every** facet and record its option order — sizes in logical
+  S-M-L(+numeric) order, Category following the hierarchy, and the other option lists
+  graded against the **agreed** order. Whether options should be alphabetical is
+  customer-dependent: take it from the card, else from the operator question at the start
+  (`../SKILL.md` Step 1.5), and grade against that answer. **Check the card comments FIRST:**
+  some customers order a custom sort that must NOT be "fixed" to alphabetical (real case: a
+  customer's custom size order, explicitly protected in comments — blind alphabetical sorting
+  would have broken it). Ticket-covered order → PASS (by spec).
+  **Out of scope:** the order of the filter **groups** (headings) — set by usage, never graded
+  or reported — and the sorting control's own options — they follow the configured order
+  (default sort first) and are never alphabetised, so neither is a T3 finding.
 - **Origin:** caught on 2 cards, missed on 5 with the same defect class (2026-08-24 comparison).
 
 ### T4 · Discount/sale labels bleed over opened filter panels (z-index)
@@ -95,7 +104,10 @@ domains yet missed on two others in the same period.
 - **Features:** Recoms, Search.
 - **Verify:** open a PDP from an HR tile, press browser Back — the restored page must show no
   stray large-image popup and no oversized tile image (bfcache restore re-runs lazy-load/slider
-  JS badly). Same bug hit two unrelated shops (store-F, store-CH).
+  JS badly). Same bug hit two unrelated shops (store-F, store-CH). The flash can last a
+  fraction of a second, so take a **rapid screenshot burst** right after Back and right after
+  removing an applied filter; any hint of an oversized image is recorded as "possible flash —
+  needs a manual look" on the operator list, never as "not reproduced".
 
 ### T8 · OOS products served inside recoms with a clickable ATC
 
@@ -111,8 +123,10 @@ domains yet missed on two others in the same period.
 - **Verify:** apply the **price filter plus two other filters**, then remove each applied
   filter **one at a time** (once per filter, each from a fresh set of three). Only the filter
   you removed may go: the other two must stay applied, the result set must match what is left,
-  and the price filter must not stay behind while a different filter disappears. "Clear all"
-  working is not a PASS for this item — the single-removal path is the defect.
+  and the price filter must not stay behind while a different filter disappears. Then remove
+  the chips **in a different order** and flag any chip that needs **two clicks** to go.
+  "Clear all" working is not a PASS for this item — the single-removal path is the defect.
+  **Mandatory, never skipped**, on desktop **and** on tablet/mobile.
 - **Origin:** found manually, never by a skill run — runs only exercised "clear all" and the
   filter counts.
 
@@ -130,6 +144,12 @@ domains yet missed on two others in the same period.
   and 820, tap the search field and type a full word immediately, 3 times. "cotton" arriving
   as "tton" (wrong results, no error) reproduces it. Variant (b), which waits for the overlay
   before typing on, passes on affected designs — it cannot see this.
+- **Not this item — late HR-script load:** when typing is ignored for the first seconds after
+  page load because the shop loads the HR script late (the overlay doesn't open at all and the
+  text stays in the native field until the script arrives), the cause is on the customer's
+  side. It goes in the report's Known limitations once the customer is aware, otherwise in
+  Customer-side notes. T10 is the case where the overlay opens and the leading characters
+  vanish.
 - **Code tell:** `createDummyInput()` present and no handler that reads `.hr-dummy`'s value
   into `overlay_input_selector` before focusing it.
 

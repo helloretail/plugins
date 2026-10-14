@@ -4,8 +4,8 @@ Applies to the product tile in **every** solution (Search, Recoms, Pages) unless
 otherwise. Reference = the customer's own category-page tile. **Pages caveat:** if HR Pages
 replaced every category page and no native tile exists anywhere (toggling Pages off shows a
 blank page), skip the design-parity items as `N/A — no native reference` and verify tile
-functionality instead: click-through, PDP-price parity, CTA/ATC, translations
-(see pages-qa SKILL.md → Step 3).
+functionality instead: click-through, price parity with the feed data, CTA/ATC, translations
+(see pages-qa SKILL.md → Step 3). The product page is never the tile reference.
 
 > **Messy native tile → advisory, never silent replication:** matching the customer's tile is
 > the requirement even when their own design is messy (cramped layout, poor alignment, awkward
@@ -14,10 +14,15 @@ functionality instead: click-through, PDP-price parity, CTA/ATC, translations
 > HR implementation.
 >
 > **Overlap sweep at every breakpoint:** run the element/alignment items below at desktop,
-> tablet (iPad Air, 820px), and mobile (iPhone SE, 375px) using **worst-case tiles** — longest
-> title, sale tile with strikethrough + discount label, every badge present. Overlap and
-> cut-off defects (discount price overlapping other text, text clipped) usually appear only on
-> smaller screens with maximal content — a desktop-only pass silently misses them.
+> laptop/tablet (1024px and iPad Air, 820px), and mobile (iPhone SE, 375px), zoomed on every
+> box and the search results, using a **mix of worst-case tiles** — longest title, sale tile
+> with strikethrough + discount label, variants, reviews, every badge present — never one or
+> two tiles. Overlap and cut-off defects (discount price overlapping other text, text clipped)
+> usually appear only on smaller screens with maximal content — a desktop-only pass silently
+> misses them. Check that nothing is clipped at the edges, button text sits like native, tiles
+> in a row are the same height, tiles per view match the site's other boxes, and heading
+> spacing matches the shop's own headings. A size list cut off because its length can't be
+> predicted is not reported.
 
 ## Tile
 
@@ -67,12 +72,13 @@ functionality instead: click-through, PDP-price parity, CTA/ATC, translations
 
 ### OOS (out of stock) product
 
-> **The native reference is the native listing tile — never the PDP.** Grade every item below
-> against what the customer's own category/search-grid tile shows for the same product, and
-> name that page in the verdict. PDP-only availability text (e.g. "Snart på lager –
-> Leveringstid: UDSOLGT") is not a tile reference: if native listing tiles show nothing for
-> OOS products, an HR tile showing nothing is parity — the "missing label/status" items below
-> are then N/A (real retired finding, 2026-08-19).
+> **The native reference is the native category-page tile — never the PDP.** Grade every item
+> below against what the customer's own category-page tile shows for **the same product**, with
+> paired screenshots of both tiles, and name that page in the verdict. Compare at least 3
+> sold-out products, including the sold-out button's text and colour. PDP-only availability
+> text (e.g. "Snart på lager – Leveringstid: UDSOLGT") is not a tile reference: if native
+> category tiles show nothing for OOS products, an HR tile showing nothing is parity — the
+> "missing label/status" items below are then N/A (real retired finding, 2026-08-19).
 
 - [ ] Not set up
 - [ ] RECOMS: OOS products should **never** show
@@ -123,10 +129,12 @@ functionality instead: click-through, PDP-price parity, CTA/ATC, translations
 - [ ] Extra: variant images are missing
 - [ ] Extra: size info is missing
 - [ ] Extra: color info is missing
-- [ ] Variant chips vs the product page: open the PDP of a tile with several variants and
-      compare the set and the order of the variants. The tile must show the same variants as
-      the PDP, in the same order, with nothing hidden, reordered or swapped for a different
-      set (and a "+ N" overflow count that matches what is hidden)
+- [ ] Variants vs the native category tile: compare at least 5 variant products tile by tile
+      against the same products on the native category page (never the PDP) — the same
+      sizes/variants in the same order, the same sold-out marking, a "+ N" overflow count that
+      matches what is hidden, and clicking a size or dropdown behaves like native. Which sizes
+      are shown and where a variant click leads depend on the customer: card first, else the
+      operator question at the start (`../SKILL.md` Step 1.5)
 
 ## Image
 
@@ -183,6 +191,12 @@ functionality instead: click-through, PDP-price parity, CTA/ATC, translations
 > symbol or suffix, `| remove: '.'`, and a bare `| priceWithCurrency` with no
 > `: product.currency` argument.
 
+- [ ] **Zero or empty prices** — scan every loaded tile for a "0" or empty price, not only the
+      fixtures
+- [ ] **Price parity on a wide sample** — compare 10 products (at least 3 on sale) against the
+      same products on the native category page: price, old price, sale label and its colour.
+      Repeat in a logged-out / private window. If the native category tile is wrong too, report
+      it as customer data, not an HR defect
 - [ ] Missing
 - [ ] Wrong price (e.g. rounded up/down)
 - [ ] Styling is off (might be a CSS problem)
@@ -278,16 +292,22 @@ functionality instead: click-through, PDP-price parity, CTA/ATC, translations
 - [ ] Extra: amount-of-products option missing from the tile
 - [ ] Extra: amount-of-products option doesn't work properly
 - [ ] IF buy button: add tracking code *(buy/ATC actions only — variant / view / sold-out CTAs
-      are navigation links covered by `fix_links` / `#aw_source=`; never flag a missing
-      `trackClick` on those — QA team)*
+      are navigation links covered by `fix_links`; never flag a missing `trackClick` on those —
+      QA team. Evidence is the click-attribution request (`trackClick` → `/serve/collect/click`)
+      after a real click, never an `#aw_source=` fragment in the link)*
 - [ ] Buy button behaviour doesn't match the customer's own buy button — **check the native
       button first** (adds to cart in place? opens the mini-cart? redirects to the cart page?
       no redirect at all?), then verify ours does exactly the same. If their button
       intentionally redirects to the cart page, ours must too — "Redirects to the cart page"
-      above is a defect only when the native button doesn't do it
+      above is a defect only when the native button doesn't do it. Add the same product from
+      the HR tile **and** from the native tile at every viewport and compare side by side: the
+      mini-cart / pop-up appears on top of the HR overlay (never under it), the same price
+      format, currency and icons, the quantity chosen (set e.g. 5) is the quantity added, the
+      header count updates, and a second click does the same as native
 - [ ] After ATC from an HR tile: side cart / cart page shows the wrong product, quantity, or
-      total price — often the customer's own cart code: flag as WARN "customer-side" with a
-      suggested fix rather than an HR FAIL, but never leave it unreported
+      total price — the cart is the customer's, so differences from native are recorded as
+      NOTEs under the report's Customer-side notes with a suggested fix, never left
+      unreported; only an item that isn't added at all is a FAIL
 - [ ] Selected/active state doesn't match native — for stateful controls (variant/unit toggles
       like Bottle/Case, swatches, size pickers): **click the control in the HR tile AND on a
       native tile** and compare the active styling (bold outline, border weight, background,
@@ -310,8 +330,10 @@ functionality instead: click-through, PDP-price parity, CTA/ATC, translations
 > **Survey the shop's full badge vocabulary before judging labels.** Labels are context-driven:
 > "New" lives on the New Arrivals page, sale badges on Deals/Outlet — a single reference
 > category page may show none of them. Visit the nav pages likely to carry labels (New
-> Arrivals / Deals / Sale / Bestsellers), list every label type with 1–2 carrier product names,
-> then verify each type reproduces on the HR tile by pulling exactly those products. A label
+> Arrivals / Deals / Sale / Bestsellers), list every label type seen on the native **category**
+> tiles with at least 2 carrier product names, then verify each type reproduces on the HR tile
+> by pulling exactly those products — the exact text, colour and position. Labels must never
+> sit on top of the HR search overlay or filter panels, and must not overlap at 375px. A label
 > verdict from one category page is not a PASS (field-confirmed miss, 2026-07: the shop's "New"
 > label never appeared in HR because the reference category had no new products).
 >

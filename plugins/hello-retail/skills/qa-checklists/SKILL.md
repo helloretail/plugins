@@ -287,6 +287,11 @@ domain on multi-domain runs) with these sections, every entry citing author + da
   with this overlay type — team member, Jul 7").
 - **Known open** — items the ticket already tracks as pending, with owner and ETA ("placement
   divs — customer's developer, back Aug 10").
+- **Waived / shelved** — items a team member has explicitly waived or shelved for this
+  customer ("header search desync — waived by the CSM", "currency drift — shelved by
+  development"), from the card **or supplied by the operator** at the start of the run. Record
+  who and when; each becomes one line in the report's **Known limitations** (Step 4), never a
+  finding.
 - **Copy lineage** — whether the card says this build was copied from another domain or
   customer ("copy of store-NO-3", "copy from store-E", "literal copy of the danish
   domain"). When it does, record the source and add two checks to the manifest: **(a) were the
@@ -316,8 +321,27 @@ domain on multi-domain runs) with these sections, every entry citing author + da
   Found under a "Known / pending — already tracked in the ticket" sub-block, never as a fresh
   defect.
 - Matches a **Declined** item → **N/A (declined in ticket)** with the citation.
+- Matches a **Waived / shelved** item → one line under **Known limitations** with the
+  citation (card comment or operator, date), outside the defect counts.
 - **Tier 3 (no card):** ambiguous deviations stay WARN + operator question per the Step 3
   rule — never a unilateral FAIL, never a silent PASS.
+
+**Operator questions at the start — customer-dependent behaviour.** Some expected behaviour
+differs per customer and can't be graded from the checklist alone. Read the card first; for
+whatever it leaves open, ask the operator **before the walk** (never as a WARN after the fact),
+in one `AskUserQuestion` call — only the questions that apply to the feature under QA:
+
+- *Filter order* (Search, Pages) — should the options inside each filter be alphabetical?
+  (Filter-group order is never graded, so it is not asked.)
+- *Variants* (all tile features) — which sizes/variants should a tile show, and where does a
+  variant click lead?
+- *Tablet grid* (all) — should tiles per row at tablet (1024 / 820) match native exactly?
+  If HR differs from native and nothing settled it, ask when you find it.
+- *Wheel scroll* (Recoms) — should the boxes scroll with a two-finger trackpad swipe or the
+  mouse wheel?
+
+Also ask, in prose, whether anything has already been waived or shelved for this customer. Record
+each answer in the brief as a **Decision** (source: operator, date) and grade against it.
 
 **Guardrails — all three are hard rules:**
 
@@ -487,7 +511,10 @@ Then fix the remaining inputs:
   special characters (å/ø/æ/ü/ß) · one garbage string for the 0-results state.
 - **Viewports:** 1440, 1024, 820, 375 — all four, every run. "Desktop + mobile" is not a
   breakpoint pass; the tablet band is where separate mobile configs and swiper breakpoints
-  diverge from native.
+  diverge from native. **Tablet is a full pass at both 1024 and 820** — search, every recom
+  box, Pages and filters, at the same depth as desktop and mobile. Any item not tested on
+  tablet makes the run's verdict **partial**, never PASS. Tiles per row at tablet that differ
+  from native are graded against the operator's answer (Step 1.5 operator questions).
 - **Pages:** category · sub-category · PDP · cart · 404 · plus any dedicated sale/new page.
 - **Login states:** **guest is the default** — every finding is a guest-session finding unless
   tagged otherwise. During the native survey, check for signs that behaviour is login-gated:
@@ -576,7 +603,10 @@ first check:
    cycle while real bugs wait on it.
 3. **Mark each item off in the manifest as you verify it**, recording the verdict inline
    (`- [x] <item> — PASS`). An item you decide not to run is still marked — as `SKIPPED —
-   <reason>` or `OPERATOR` — never left unchecked without a word.
+   <reason>`, `NOT TESTED — <reason>` or `OPERATOR` — never left unchecked without a word.
+   Rendered items carry **one verdict per viewport** (`1440 PASS · 1024 PASS · 820 FAIL ·
+   375 NOT TESTED — <reason>`), and sampled items name how many products were checked —
+   sample many products, never one.
 4. **No report until the manifest is exhausted — carried-forward items included.** Step 4's
    completeness gate diffs the report against this manifest; any item missing from both is a
    blocking gap, not a rounding error.
@@ -594,7 +624,7 @@ the run look productive: a false FAIL costs more than a missed cosmetic nit — 
 refute it, and it buries the real findings (four findings in one report were retired this way
 in a single CSM review, 2026-08-19).
 
-**Verdict discipline — six rules that decide whether two runs can agree.**
+**Verdict discipline — seven rules that decide whether two runs can agree.**
 
 1. **Name the fixture in the verdict.** Every FAIL/WARN/PASS on a sampled item says which Step 2.5
    fixture produced it (which SKU, which query, which viewport). A verdict with no fixture named
@@ -634,10 +664,10 @@ in a single CSM review, 2026-08-19).
    finding needs positive evidence of a defect, not an unresolved doubt. Four precision
    failures that each produced a retired finding in one real report (CSM corrections,
    2026-08-19):
-   - **Same-surface reference.** Every "native shows X" claim about a tile must be observed on
-     the native **listing tile** (category/search grid — the surface the HR tile replaces),
-     never on the PDP, cart, or another surface, and the verdict names the page where the
-     reference was seen. A PDP-only availability label is not "missing" from an HR tile whose
+   - **Same-surface reference.** Every "native shows X" claim about a tile — labels, prices,
+     variants, sold-out state — must be observed on the native **category-page tile** for the
+     same product, never on the PDP, cart, or another surface, and the verdict names the page
+     where the reference was seen. A PDP-only availability label is not "missing" from an HR tile whose
      native listing counterpart shows nothing.
    - **DOM element vs image pixels.** Before reporting a missing badge/label, check the layer:
      if the label has no matching element/text node in the native tile's DOM, it is artwork
@@ -653,6 +683,12 @@ in a single CSM review, 2026-08-19).
      when a tool can confirm it — `productData_get` settles whether a feed field carries HTML.
      Run the check; only without coordinates does it become an operator question (recorded
      OPERATOR/SKIPPED), never a WARN implying a defect.
+7. **Let the page settle before reading any count or total.** Product counts, result totals,
+   pagination labels and cart totals can flash a stale or intermediate value while the page
+   re-renders. Wait for the render to finish (network quiet, spinner gone), read the value,
+   wait a moment and read it again — the settled value is the verdict. A wrong value that
+   shows briefly and then corrects itself is a transient flash: **Low** at most, described as
+   such, never a High/Medium count defect.
 
 **Divergence-prone items — these have actually flipped between runs; give them the strict
 treatment.** Each needs its fixture named (rule 1) and its evidence quantified (rule 2) before
@@ -795,6 +831,8 @@ mobile-viewport page — some popups are breakpoint-specific), look for and hand
    profiles on the operator's machine, not end-user browsers. **Never remove the banner's DOM
    node via JS instead of clicking** — consent is never registered, the HR script stays
    blocked, and scroll-locks linger; the symptom looks identical to a broken implementation.
+   **A cookie/consent banner overlapping an HR element (search overlay, recom box, filter
+   panel) is never a finding** — it is answered once and gone for the shopper.
 2. **Newsletter / discount signup popups** (Klaviyo and co.) — close via the ✕ / "no thanks"
    control. **Never enter an email address, never subscribe, never fill any field** to make a
    modal go away.
@@ -849,7 +887,12 @@ Mark each item you *can* verify:
   (Step 1.5); goes in the Issues Found "Known / pending" sub-block, not the defect list
 - **N/A** — feature/option not part of this customer's setup; **N/A (declined in ticket)** when
   it was requested, investigated, and turned down in the card (cite the comment)
+- **NOTE** — real and worth passing on, but not a defect of this implementation (cart
+  behaviour after an HR add-to-cart, customer-side items, standing template issues); goes in
+  the matching report section, not the defect list
 - **SKIPPED** — could not verify (say why, e.g. MCP coordinates missing)
+- **NOT TESTED** — not reached on this viewport or in this run (say why); any NOT TESTED
+  makes the overall verdict **partial**, never PASS
 - **OPERATOR** — manual dashboard/Supervisor/ClickUp check; goes to the operator's list, never PASS/FAIL
 
 **Code-only findings — grade them separately, don't inflate the customer-facing list.** A code
@@ -898,15 +941,22 @@ uncomments it expecting it to work.
 
 **The latent sweep is mandatory, not optional depth.** The LATENT bucket only works if the code
 pass actually reads the branches that never rendered. For every design in scope, sweep ALL
-string sources for wrong-language / wrong-currency leftovers: every `{# text … #}` input
+string sources for wrong-currency / price-format leftovers: every `{# text … #}` input
 default, every hardcoded template string, AND every string literal in the init JS (price-slider
 labels like `" kr"` hide there) — **including blocks gated behind conditions that were false
 for the whole run** (`{% if filters.size > 0 %}`, `{% if sorting.options.size > 0 %}`). A
 leftover invisible today because the feature returns no data becomes customer-visible the
 moment a dashboard toggle flips — grade it LATENT and name the trigger. (Real case,
-2026-07-31: of two same-day runs on one domain, one found Swedish defaults plus a `" kr"`
-slider label in a German store's Full-search config; the other read the same config and missed
-them — the strings sat behind never-true branches.)
+2026-07-31: of two same-day runs on one domain, one found a `" kr"` slider label in a German
+store's Full-search config; the other read the same config and missed it — the string sat
+behind a never-true branch.)
+
+**Translation strings that never reach the live storefront are not findings.** A
+wrong-language or untranslated string that exists only in code — a text-input default, a
+hardcoded literal, a branch that never rendered — and is not present on the live page, neither
+as visible text nor in the rendered DOM (e.g. an `aria-label`), is **not reported at all**: not
+LATENT, not in Code-only, not in Issues Found (team decision). Report a translation problem only
+when the rendered pass shows it on the storefront.
 
 **Severity discipline — not every mismatch is a defect.** Cosmetic/structural divergences that
 don't break function (breakpoint counts that differ from the native grid, tile-height deltas from
@@ -1030,6 +1080,11 @@ overlay with `pointer-events: none`, a `preventDefault` handler, or a synthetic-
 artifact — see the input-fidelity preflight); and the hit-test is diagnosis, not verification —
 the finding's verdict still comes from the real click/tap that failed.
 
+**An open dropdown covering the content beneath it is not a finding.** Covering what is under
+it is what a dropdown does — a filter panel, sort list or menu laid over the tiles is
+expected. Distinct from known-template-issues T4, which stays a defect: grid content (labels,
+badges, images) painting **over** an open panel.
+
 **Cross-check every code-pass finding against rendered reality before reporting it.** A source
 read can be confidently wrong in both directions, and the rendered pass is what settles it.
 Recurring false positives worth pre-empting:
@@ -1059,8 +1114,14 @@ runs on one domain concluded "Blocker — no tracking at all" from source + DOM 
 3. **Network** — click a real ATC button and read the requests, attributing them precisely: a
    `POST /serve/collect/cart` is HR's **generic cart collection** (fires on cart events
    site-wide, regardless of which tile was clicked) — it is NOT evidence of per-box
-   `trackClick` attribution. Only a click-attribution request tied to the clicked product's
-   tracking code counts for the trackClick item.
+   `trackClick` attribution. Only a click-attribution request (`trackClick` →
+   `/serve/collect/click`) tied to the clicked product's tracking code counts for the
+   trackClick item — keep the network log across the navigation when the click leaves the page.
+
+**The network request is the only PASS evidence for click tracking.** An `#aw_source=`
+fragment in a tile link's `href` or in the landing URL is **never** evidence, for or against —
+it shows a link was rewritten, not that a click was recorded. This holds for navigation CTAs
+covered by `fix_links` too: their PASS also needs the click request observed.
 
 Report the three layers separately, each with what it showed. When they disagree (code says
 missing, network shows *something* firing), the verdict is **WARN — attribution unconfirmed**
@@ -1303,7 +1364,8 @@ checklist and that manual QA keeps finding after a skill run has passed:
 Before writing the file, diff the Step 3 coverage manifest against the draft report:
 
 1. Every manifest item must appear in the report with an explicit verdict — PASS, FAIL, WARN,
-   KNOWN (with owner/ETA), N/A, SKIPPED (with reason), or OPERATOR. PASS items may be summarised as counts per
+   NOTE, KNOWN (with owner/ETA), N/A, SKIPPED (with reason), NOT TESTED (with reason), or
+   OPERATOR. PASS items may be summarised as counts per
    section, but the manifest file itself keeps the per-item record, and the report links to it
    (`coverage-[feature]-[YYYY-MM-DD].md`) so the operator can audit line-by-line.
 2. Any manifest item still unchecked at this point is **unfinished work, not a footnote** — go
@@ -1339,6 +1401,30 @@ Issues Found (verdict `KNOWN — pending [owner/ETA]`), and every `PASS (by spec
 "matches native" from "deviates by design" without opening ClickUp. The report also carries a
 **"Known template issues" NOTE section** — the standing entries from
 `references/known-template-issues.md` with their per-site status (Step 3, manifest source c).
+
+**Five more sections in every report** — the same in `search-qa`, `recom-qa` and `pages-qa`:
+
+- **Per-viewport verdicts** — directly under the Summary: one row each for 1440, 1024, 820
+  and 375 with PASS / FAIL / NOTE / NOT TESTED and the reason. Any viewport not tested, or
+  tested only in part, makes the overall verdict **partial** — never PASS. Nothing is skipped
+  silently.
+- **Known limitations** — one line each, not bugs, outside the defect counts: platform limits
+  (e.g. wishlist buttons not supported on Viskan), search ignoring typing for the first seconds
+  because the shop loads the HR script late (customer side, once the customer is aware), a
+  product already in the cart shown again in a recom when there is no product URL to crawl,
+  the Pages default of showing the current category in its own filter, and every waived /
+  shelved item from the brief with who and when (Step 1.5).
+- **Customer-side notes** — one-liners for the CSM to pass on: items clearly on the shop's side
+  (a favourites-count icon, a cut-off cart bubble, a redundant cart heading) and cart
+  behaviour after an HR add-to-cart that differs from native (product-tile catalogue → CTA
+  buttons).
+- **Appendix — ruled out** — after the Handoff fix plan: every candidate finding investigated
+  and dismissed this run, one line each with the evidence that dismissed it — never in the
+  findings list. (The "Corrections — do not action these" block stays for prior-report and
+  code-pass findings this run overturned.)
+- **Session notes** — the last section: the run's own tooling and setup problems (a hung
+  browser worker, a login refresh, a screenshot that wouldn't save, an emulation limit). Never
+  in the findings, never counted.
 
 **Coverage honesty — a partial pass announces itself, loudly and specifically.** Whenever the
 rendered pass didn't run or ran degraded — HR login expired so drafts couldn't render,

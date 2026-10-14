@@ -88,7 +88,10 @@ distill the QA brief before the walk — for Pages it typically decides the QA s
 vs live), which category templates were ordered, filter/sorting requirements, and any
 deviation-by-design from the native category page. Grade with it throughout — `PASS (by spec)`
 / `N/A (declined in ticket)` / `KNOWN — pending [owner/ETA]`, each citing its comment — and
-append the brief's extra checks to the coverage manifest.
+append the brief's extra checks to the coverage manifest. Then ask the **operator questions at
+the start** (same step) for whatever the card leaves open — for Pages: whether filter options
+should be alphabetical, which variants a tile shows and where a variant click leads, and
+tablet tiles per row.
 
 **Coverage manifest is mandatory** (`../qa-checklists/SKILL.md` Step 3): as soon as the
 checklists are loaded, extract every item into
@@ -154,9 +157,9 @@ page is blank or has no product grid (just the empty HR container), there is no 
 baseline — **skip every design/tile-parity comparison item**: record them once as
 `N/A — Pages replaces the native page; no native reference exists` (don't repeat it per item)
 and run a **functionality-only pass** instead — filters and sorting work, load-more/scroll
-loading, tile click-through lands on the right PDP, tile prices match the PDP (the PDP replaces
-the native tile as the pricing reference), CTA/ATC works, translations, 0-product behaviour,
-mobile/tablet. If *some* category pages still render natively (e.g. News, or a page HR doesn't
+loading, tile click-through lands on the right PDP, tile prices match the feed data
+(`productData_get` — the PDP is never the reference), CTA/ATC works, translations, 0-product
+behaviour, mobile/tablet. If *some* category pages still render natively (e.g. News, or a page HR doesn't
 cover), use those as the reference before declaring it missing.
 
 **Feed-hierarchy check (when a `website-uuid` is provided):** call `feeds_get` and look
@@ -213,29 +216,38 @@ say which ones you exercised. On every fixture page, run and record the same set
   `"10%"`) and is invisible in the UI until you sort by it and read the order. Without a
   `website-uuid`, apply the sort and read the first ~10 values for lexicographic ordering,
   and route the feed-type check to the operator list.
-- **Filters:** one single facet · two facets combined · a facet combined with a sort · then
-  clear-all — plus the standing template bugs
+- **Filters:** the **filter set** matches the card and the native filters (e.g. a price
+  filter exists natively → it exists in Pages) with option counts shown · one single facet ·
+  two facets combined · a facet combined with a sort · then clear-all — plus the standing
+  template bugs
   (`../qa-checklists/references/known-template-issues.md`): **type into the price min/max
   fields** (blur AND Enter — the result set must change; slider drag working is not a PASS,
-  T1) · **then the two-field sequence** — min, Tab, max, Tab, and again max first, then min:
-  both values stay set and the dropdown doesn't close or apply after the first field ("not
-  reproduced" only after both orders pass, T1) · **single-filter removal** — apply the price
-  filter plus two other filters and remove each one at a time: only that filter goes and the
-  price filter must not stay behind while another is removed ("clear all" working is not a
-  PASS, T9) · **apply one custom/extraData facet** (length/width-style) and verify its applied
-  chip renders and clears (T2) · **facet option order** per facet, checking card comments
-  first for a protected custom order (T3) · with a filter panel open, **nothing from the grid
-  bleeds over it** (z-index, T4) · every filter dropdown's **open-state icon** (the arrow
-  flips or rotates while the dropdown is open) · the price slider's **min and max value labels
-  at 820px** sit aligned with the slider and don't stick out past its edge · and after closing
-  the panel, **no residue** — stray scrollbars, lingering overlay, or a scroll-locked page.
-- **Tile parity extras** (against the customer's own tile, per
+  T1) · **then the two-field sequence** — min, Tab, max, Tab, and again max first, then min,
+  then both orders with Enter instead of Tab, at all four viewports: both values stay set, the
+  dropdown doesn't close or apply after the first field and the boxes aren't cut off ("not
+  reproduced" only after both orders pass with Tab and Enter, T1; a close after a slider drag
+  is expected and never reported) · **single-filter removal — mandatory, never skipped** —
+  apply the price filter plus two other filters and remove each one at a time: only that
+  filter goes and the price filter must not stay behind while another is removed; then remove
+  the chips in a different order and flag any chip that needs two clicks, on desktop and
+  tablet/mobile ("clear all" working is not a PASS, T9) · **apply one custom/extraData facet**
+  (length/width-style) and verify its applied chip renders and clears (T2) · **facet option
+  order** per facet against the agreed order — card comments first for a protected custom
+  order, else the operator's answer; filter-group order is never graded (T3) · with a filter
+  panel open, **nothing from the grid bleeds over it** (z-index, T4) · every filter dropdown's
+  **open-state icon** (the arrow flips or rotates while the dropdown is open) · the
+  **filter-panel visual pass** from the Pages catalogue, with screenshots at all four
+  viewports · the price slider's **min and max value labels at 820px** sit aligned with the
+  slider and don't stick out past its edge · and after closing the panel, **no residue** —
+  stray scrollbars, lingering overlay, or a scroll-locked page.
+- **Tile parity extras** (against the customer's own category-page tile, per
   `../qa-checklists/references/product-tile.md`): the exact casing of the **VAT label, stock
-  text and SKU label** · **CTA button text alignment** (centred vs left-aligned) · **variant
-  chips vs the product page** — same set and order, nothing hidden, reordered or swapped, and a
-  "+ N" count that matches · **cart vs tile price basis** — add a product to the cart from the
-  tile and compare; a different basis (e.g. incl. vs excl. VAT) is an observation for the CSM
-  with both values, never silently "native pattern".
+  text and SKU label** · **CTA button text alignment** (centred vs left-aligned) · **variants
+  vs the native category tile** — at least 5 variant products: same sizes and order, same
+  sold-out marking, a "+ N" count that matches, and clicks behave like native (never the PDP
+  as reference) · **cart vs tile price basis** — add a product to the cart from the tile and
+  compare; a different basis (e.g. incl. vs excl. VAT) is an observation for the CSM with both
+  values, never silently "native pattern".
 - **Cross-cutting** (detail in `../qa-checklists/SKILL.md` Step 3): **cross-domain diff** for a
   multi-domain customer (compare filter formatting, label casing, wording and tile layout
   across the sibling domains) · **two ways before "not reproduced"** — an issue named in a
@@ -255,7 +267,10 @@ say which ones you exercised. On every fixture page, run and record the same set
   line number — with no code read available for Pages, that line number is the only handle the
   operator or HR support will have.
 - **Viewports:** all four Step 2.5 widths — 1440, 1024, 820, 375. "Desktop and mobile" skips the
-  tablet band, which is exactly where grid column counts diverge from native. **At every width,
+  tablet band, which is exactly where grid column counts diverge from native. Tablet (1024 and
+  820) is a full pass — grid, filters, sorting and loading at the same depth as desktop and
+  mobile; anything untested there makes the verdict **partial**, never PASS, and tiles per row
+  that differ from native are graded against the operator's answer. **At every width,
   measure the grid — never grade it by eye:** record tiles-per-row plus the measured container
   width, tile width, and gap (from `getBoundingClientRect()`) for the HR grid AND the native
   reference grid where one exists — the counted tiles-per-row must agree with what the measured
@@ -304,9 +319,15 @@ Step 1.5: card URL + fetch date + how — MCP details + browser comments (oldest
 details only, comments NOT read / pasted by operator / NONE-confirmed) **followed by the
 QA-surface line** (`QA surface: <url> (source: description dd/mm | comment by <author> dd/mm |
 operator confirmed)`), led — only when applicable — by the shared Step 4 banners (⚠️ RENDERED
-PASS SKIPPED/DEGRADED with the uncovered defect classes; ⚠️ COMMENTS UNREAD), with a **"Known
-template issues" NOTE section** (the standing entries from
-`../qa-checklists/references/known-template-issues.md` with per-site status), with the **Manual
+PASS SKIPPED/DEGRADED with the uncovered defect classes; ⚠️ COMMENTS UNREAD), with a
+**Per-viewport verdicts** table directly under the Summary (1440 / 1024 / 820 / 375 — PASS /
+FAIL / NOTE / NOT TESTED + reason; any viewport not fully tested makes the overall verdict
+"partial", never PASS), with a **"Known template issues" NOTE section** (the standing entries from
+`../qa-checklists/references/known-template-issues.md` with per-site status), a **Known
+limitations** section (one line each, outside the defect counts — e.g. the current category
+shown in its own filter, which is Pages default behaviour, and every waived / shelved item from
+the brief), a **Customer-side notes** section (one-liners for the CSM: shop-side items, cart
+behaviour after an HR add-to-cart that differs from native), with the **Manual
 checks for the operator** section (Pages analytics — spot-checkable via
 `pages_getAnalyticsOverview` — the show-OOS-in-Pages setting — readable via `pages_getConfig`
 — and all code-level Pages items; the `pages_*` read tools cover these, but this skill's code
@@ -316,7 +337,11 @@ routes instead of patching: the proposed fix in plain words, who applies it (ope
 dashboard, the customer, HR support, or the `pages-developer` skill for design/template
 fixes via `pages_updateDesign`), and the checklist item + page URL to re-verify. End
 it with the kickoff line: "To execute: open Claude Code in this folder and say — read this
-report and apply the Handoff fix plan." Then run `customer-handoff` (`../customer-handoff/SKILL.md`; record mode, stage `pages`; mandatory — do not ask whether to, do not skip)
+report and apply the Handoff fix plan." After the fix plan come an **Appendix — ruled out**
+(candidate findings investigated and dismissed, one line each with the evidence — never in the
+findings list) and, last, **Session notes** (the run's own tooling / setup problems — never
+findings, never counted); the shared section rules are in `../qa-checklists/SKILL.md` Step 4.
+Then run `customer-handoff` (`../customer-handoff/SKILL.md`; record mode, stage `pages`; mandatory — do not ask whether to, do not skip)
 so the verdicts and the fix plan land in the customer's living hand-off document under `output/handoffs/` (local for now).
 
 ## Boundaries
