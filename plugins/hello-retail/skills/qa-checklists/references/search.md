@@ -87,7 +87,11 @@ for the accessibility-template generation.
 - [ ] Focus disappears from the field when you type
 - [ ] Typing a title redirects to the product page
 - [ ] Acting strange, e.g. swaps over to the customer's own search field
-- [ ] Search icon (when clicked / press Enter): redirects to an empty page or their own full-search page
+- [ ] Search icon (when clicked / press Enter): redirects to an empty page or their own full-search page —
+      test from every page type (front, category, sub-category, product page, cart, 404, any
+      other the shop has): type a query, then click the shop's search icon AND press Enter;
+      both must stay in HR search, at every viewport
+- [ ] Duplicate search icons shown (the shop's and HR's, or two in the overlay)
 - [ ] Search icon (when clicked): reloads the search window
 - [ ] Search icon (when clicked): closes down search
 - [ ] Search icon: missing
@@ -132,6 +136,10 @@ for the accessibility-template generation.
 ## Open search
 
 - [ ] Not able to open search from specific pages
+- [ ] Opens from the wrong place — the overlay must open from the shop's search field / header
+      position the design intends, never pop out from the centre of the page. Check the opening
+      animation and the final position from every page type, at every viewport, and again
+      after scrolling down
 - [ ] Tile styling changes depending on what page you open it on (CSS issue)
 - [ ] From category page: e.g. filters still shown
 - [ ] From category/product page: breadcrumb shown at the top
@@ -226,15 +234,21 @@ for the accessibility-template generation.
 
 ## Filters / sorting
 
-> **Ordering rule:** filters are listed in **alphabetical order**, and the options inside each
-> filter are alphabetical too — with two exceptions: **Category** follows the category
-> hierarchy, and **Size** follows logical size order (XS, S, M, L, XL…), never alphabetical.
-> Verify both levels explicitly. The rule is about **filters** only — the sorting control's own
-> options are never alphabetised (see *Sorting* below).
+> **Ordering rule:** the order of the filter **groups** (the headings) follows usage and is
+> never graded or reported. The order of the **options** inside each filter is
+> customer-dependent: whether they should be alphabetical comes from the card, else from the
+> operator question at the start (`../SKILL.md` Step 1.5) — grade against that answer, with two
+> standing exceptions: **Category** follows the category hierarchy, and **Size** follows
+> logical size order (XS, S, M, L, XL…), never alphabetical. The sorting control's own options
+> are never alphabetised (see *Sorting* below).
 
-- [ ] Filters not listed in alphabetical order
-- [ ] Options within a filter not in the required order (alphabetical; Category → hierarchy;
-      Size → logical size order)
+- [ ] Options within a filter not in the agreed order (per the operator answer; Category →
+      hierarchy; Size → logical size order)
+- [ ] **Filter-panel visual pass** — screenshots at every viewport (1440, 1024, 820, 375):
+      every filter has an arrow that flips when opened, options aren't cramped, long names are
+      cut with "…", nothing overlaps with 5+ filters applied, count badges are visible against
+      their background, buttons show a hand cursor and return to their normal colour after a
+      click. A panel that closes only via its arrow is not reported unless the shop's own category-page filters close on an outside click.
 - [ ] Design: check the customer's own category filters (sometimes stated in the card)
 - [ ] Same width as their tiles (stated in the card)
 - [ ] Missing / not set up
@@ -321,7 +335,9 @@ for the accessibility-template generation.
 - [ ] **Filter removal** (known-template-issues T9): apply the price filter plus two other
       filters, then remove each applied filter one at a time. Only that filter must go — the
       other two stay applied and the price filter must not stay behind while a different
-      filter is removed. "Clear all" working is not a PASS for this item.
+      filter is removed. Remove the chips in a different order too and flag any chip that
+      needs two clicks. Mandatory, never skipped — desktop and tablet/mobile. "Clear all"
+      working is not a PASS for this item.
 
 ### Options
 
@@ -382,7 +398,8 @@ for the accessibility-template generation.
 - [ ] Styling is off (e.g. add color contrast)
 - [ ] Sliders are cut off / missing / not working
 - [ ] Price boxes for min/max price: not working (close the filter when clicked)
-- [ ] When you try to adjust the sliders → closes down the dropdown
+- **Not a defect — the dropdown closing after a slider drag is released.** That is expected;
+  only a close after one *typed* field is the known template bug (T1).
 - [ ] Added price range doesn't match the products shown…
 - [ ] Price amount fields: when you click the field the filter closes down
 - [ ] Filter slider: color contrast
@@ -393,8 +410,10 @@ for the accessibility-template generation.
 - [ ] Removes every other filter from the list when you add a specific price range
 - [ ] Mobile: NEW price range — only highlight the selected price range
 - [ ] Price range is overwritten by other filter options added afterwards
-- [ ] Typed price boxes: type min, Tab, type max, Tab — and again max first, then min. Both
-      values stay set; the dropdown doesn't close or apply after the first field (known-template-issues T1)
+- [ ] Typed price boxes: type min, Tab, type max, Tab — and again max first, then min, then
+      both orders with Enter instead of Tab, at every viewport. Both values stay set, the
+      dropdown doesn't close or apply after the first field, and the boxes aren't cut off
+      (known-template-issues T1)
 - [ ] Tablet (820px): the min and max value labels sit aligned with the slider and don't stick
       out past its edge or sit lower than the rest of the slider
 
@@ -428,7 +447,9 @@ for the accessibility-template generation.
 - [ ] Missing section
 - [ ] Add hierarchies (because there are duplicates)
 - [ ] Hierarchies shown twice
-- [ ] Redirects to another domain / 404 / home page
+- [ ] Redirects to another domain / 404 / home page — click at least 10 category and content
+      links per viewport: different destinations, no 404, and the page actually changes (on an
+      SPA the URL can change while the content stays)
 - [ ] Mobile: click a link, reopen search, type a search word and open the filter window → the search window breaks
 - [ ] No links shown
 - [ ] Only shows 1 link

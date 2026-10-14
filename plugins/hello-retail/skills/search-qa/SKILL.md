@@ -154,6 +154,9 @@ declined requests, known-open items). Grade with it throughout: `PASS (by spec)`
 brief's extra checks join the coverage manifest. When the card names a reference site for the
 overlay ("similar to [another-shop.com]"), judge **shell-design** items against that reference;
 **tile parity stays against the customer's own native tiles** unless the card says otherwise.
+Then ask the **operator questions at the start** (`../qa-checklists/SKILL.md` Step 1.5) for
+whatever the card leaves open — for Search: whether filter options should be alphabetical,
+which variants a tile shows and where a variant click leads, and tablet tiles per row.
 
 **Delivery-mode detection first** (`../qa-checklists/SKILL.md` Step 2): if the search is
 **API-based** (custom frontend against the Search API — `search_listConfigs` shows a config with
@@ -337,8 +340,8 @@ highest-signal checks; get them right.
 **Price cross-check (critical):** use the **price fixtures pinned in Step 2.5**
 (`../qa-checklists/SKILL.md`) — whole-unit, decimals/øre, the sale pair (**both** old and new), the
 catalogue's highest price — never "2–3 SKUs visible in the overlay". Search each fixture by name,
-compare against the same SKU on the native category page or PDP, and name the fixture in every
-verdict. Two things are being tested and they fail independently:
+compare against the same SKU on the native category page (never the PDP), and name the fixture
+in every verdict. Two things are being tested and they fail independently:
 
 - **Accuracy** — the numbers match. A gap larger than rounding is a blocker; note the percentage
   gap, which usually means a wrong customer group or price list in the feed. Do NOT assume VAT
@@ -347,6 +350,10 @@ verdict. Two things are being tested and they fail independently:
   fixture class**. A sample of round prices cannot see an unconditionally-emitted suffix; cross-read
   the emit site in the code pass before recording a PASS (see the Price block in
   `../qa-checklists/references/product-tile.md`).
+- **Breadth** — on top of the fixtures, scan every loaded tile for a "0" or empty price, and
+  compare 10 products (at least 3 on sale) against the same products on the native category
+  page: price, old price, sale label and its colour. Repeat in a logged-out / private window.
+  If the native category tile is wrong too, it is customer data, not an HR defect.
 
 ### 5. Walk the master checklist catalogue
 
@@ -435,7 +442,8 @@ wrong displayed price), cross-reference the two in the report.
 
 **Run the completeness gate first** (`../qa-checklists/SKILL.md` Step 4): diff the coverage
 manifest against the draft report — every manifest item must carry an explicit verdict (PASS /
-FAIL / WARN / N/A / SKIPPED-with-reason / OPERATOR); an unchecked item means going back to
+FAIL / WARN / NOTE / N/A / SKIPPED-with-reason / NOT TESTED-with-reason / OPERATOR), per
+viewport for rendered items; an unchecked item means going back to
 verify it, never dropping it. Put the reconciliation line ("Coverage: N/N items accounted
 for") in the Summary.
 
@@ -496,23 +504,23 @@ These are the most important checks — get these right.
 - [ ] **Variant products** — price range or "from X" label shown; CTA says "Choose variant" or
       equivalent (not "Add to cart")
 - [ ] **Sold-out products** — "Sold out" label shown; CTA disabled or absent — **judged against
-      the native listing tile for the same product, never the PDP**: PDP availability text
+      the native category-page tile for the SAME product, never the PDP**, with paired
+      screenshots of both tiles; compare at least 3 sold-out products, including the sold-out
+      button's text and colour. PDP availability text
       (e.g. "Snart på lager – Leveringstid: UDSOLGT") is not a tile reference, and if native
-      listing tiles show nothing for OOS products, an HR tile showing nothing is parity → PASS
+      category tiles show nothing for OOS products, an HR tile showing nothing is parity → PASS
       (real retired finding, 2026-08-19). Name the native page the reference label was seen on.
       **If native uses more than one distinct OOS label** (e.g. "restocking soon" vs.
       "discontinued"), test at least 2 different OOS fixtures, not one — a single hardcoded HR label can match one
       sub-state and silently mismatch the other on the identical `inStock:false` flag
       (`../qa-checklists/references/product-tile.md`).
-- [ ] **Tile-vs-PDP state cross-check (data consistency, not label parity)** — for the sale and
-      OOS fixtures in the sample, open the product's **own PDP** and confirm the tile's claimed
-      state agrees with the product's actual state: a sale tag on the tile with a pre-order
-      state on the PDP, a discount on the tile with none on the PDP, or a tile missing
-      price/CTA where the PDP has both are feed/variant-resolution defects. **This does not
-      touch the same-surface rule above:** the native *listing tile* stays the only reference
-      for how a label should look or whether one should exist (never grade label presence from
-      the PDP); the PDP is the reference for whether the *data* behind the tile's state is
-      true. Cross-check `productData_get` when the two disagree — the fix is usually feed-side.
+- [ ] **Tile state vs feed data (data consistency, not label parity)** — for the sale and OOS
+      fixtures in the sample, confirm the tile's claimed state agrees with the product's data:
+      `productData_get` (price, old price, `inStock`) and the same product's native
+      category-page tile. A sale tag where the feed has no old price, a sold-out tile for an
+      in-stock product, or a tile missing price/CTA where the native category tile has both
+      are feed/variant-resolution defects — the fix is usually feed-side. The product page is
+      never the reference, for the label or for the data.
 - [ ] **Popular/Bestseller badge** — if native tiles show a popular or bestseller badge, verify it
       appears in HR tiles too
 - [ ] **CTA buttons** — all buttons present on native tiles also appear in HR tiles (primary buy
@@ -545,16 +553,23 @@ These are the most important checks — get these right.
 - [ ] **ATC / Buy button tracking** — button has `onclick="hrq.push(['trackClick','{{ product.trackingCode }}'])"`
   - **Buy/ATC actions ONLY — do not flag other CTAs.** `trackClick` belongs on elements that add
     to cart without navigating. Variant CTAs ("Choose variant" / "SE VARIANTER"), view CTAs
-    ("Se mer" / "View product"), and sold-out CTAs are navigation links — `fix_links` covers them
-    via the `#aw_source=` fragment, so a "missing" `trackClick` there is **correct, never a bug**
-    (and conversions still attribute through the link click). Confirmed by the QA team.
+    ("Se mer" / "View product"), and sold-out CTAs are navigation links — `fix_links` covers
+    them, so a "missing" `trackClick` there is **correct, never a bug** (and conversions still
+    attribute through the link click). Confirmed by the QA team.
+  - **Evidence is the network request only** — after a real click, the click-attribution
+    request (`trackClick` → `/serve/collect/click`) for that product; an `#aw_source=` fragment
+    in the href is never PASS evidence (`../qa-checklists/SKILL.md` Step 3, three-layer rule).
 - [ ] **Buy button behaviour parity** — check what the customer's own buy button does first
       (adds to cart in place, opens the mini-cart, redirects to the cart page, or no redirect),
       then verify the HR tile's buy button does exactly the same — a cart-page redirect is
       only a defect if the native button doesn't do it
-- [ ] **Side cart / cart sanity after ATC** — after adding from an HR tile, the side cart /
-      cart page shows the right product, quantity, and total; wrong totals are often the
-      customer's own cart code → WARN "customer-side" with a suggested fix, never unreported
+- [ ] **ATC from the HR tile vs the native tile, side by side, at every viewport** — add the
+      same product from an HR tile and from a native tile at 1440 / 1024 / 820 / 375 and
+      compare: the mini-cart / pop-up appears **on top of** the overlay (never under it), the
+      same price format, currency and icons in it, the quantity chosen (set e.g. 5) is the
+      quantity added, the header cart count updates, and a second click does the same as
+      native. The cart is the customer's: differences are NOTEs under Customer-side notes
+      with a suggested fix, never unreported — only an item that isn't added at all is a FAIL
 - [ ] **Quick buy / quick view stacking** — if native tiles have a quick-buy popup, it must
       open **on top of** the search overlay, never behind it (**post-publish check** — record
       as OPERATOR "re-check after publish" when QA-ing a draft)
@@ -590,10 +605,12 @@ These are the most important checks — get these right.
       row. This is the single biggest bucket of eyes-on-the-page defects skill runs missed
       (~35 items across 12 of 14 properties, 2026-08-24 comparison) — the paired capture is
       what makes each of them visible; save it as evidence even when everything matches.
-- [ ] **Variant chips vs the product page** — open the PDP of a tile with several variants and
-      compare the set and the order of the variants: the tile must show the same variants as
-      the PDP, in the same order, with nothing hidden, reordered or swapped, and a "+ N" count
-      that matches what is hidden
+- [ ] **Variants vs the native category tile** — compare at least 5 variant products tile by
+      tile against the same products on the native category page (never the PDP): the same
+      sizes/variants in the same order, the same sold-out marking, a "+ N" count that matches
+      what is hidden, and clicking a size, swatch or dropdown behaves like native. Which sizes
+      are shown and where a variant click leads are customer decisions — card first, else the
+      operator answer at the start (`../qa-checklists/SKILL.md` Step 1.5)
 - [ ] **Cart vs tile price basis** — add a product to the cart from the tile and compare the
       cart price with the tile price; when the basis differs (e.g. incl. vs excl. VAT), record
       an observation for the CSM with both values instead of passing it as the shop's native
@@ -608,7 +625,14 @@ These are the most important checks — get these right.
 
 ### Search Trigger & Behaviour
 
-- [ ] Search opens correctly from the header on the homepage and category pages
+- [ ] **Search opens from every page type** — front, category, sub-category, product page,
+      cart, 404, and any other page type the shop has, at every viewport. On each, type a
+      query, then click the shop's search icon AND press Enter: both must stay in HR search.
+      Check for duplicate search icons too
+- [ ] **Overlay opens from the right place** — it must open from the shop's search field /
+      header position the design intends, never pop out from the centre of the page. Watch
+      the opening animation and the final position from every page type, at every viewport,
+      and again after scrolling down
 - [ ] Close button closes the overlay
 - [ ] Pressing Enter or the search icon does NOT redirect to the customer's own search results page
 - [ ] 404 page: search field redirects to HR search (not to a broken page)
@@ -627,7 +651,9 @@ These are the most important checks — get these right.
 - [ ] **Back-navigation from a PDP leaves the page clean** (T7) — open a PDP from a result
       tile, press browser Back: no stray large-image popup, no oversized tile image on the
       restored page (bfcache restore re-runs lazy-load/slider JS badly; same bug hit two
-      unrelated shops)
+      unrelated shops). Take a rapid screenshot burst right after Back and right after
+      removing an applied filter — any hint of an oversized image is "possible flash — needs
+      a manual look" on the operator list, never PASS
 - [ ] **Console checkpoints — five interactions, five verdicts.** "Console clean" is not one
       check: an overlay that types cleanly can still throw on close. Clear the console and record a
       separate verdict at each of: **(a) overlay open · (b) typing (see the keystroke item below) ·
@@ -672,7 +698,12 @@ These are the most important checks — get these right.
       no visible error; fix before publish). (b) passing does **not** cover (c): in a 2026-10
       15-storefront run, (b) passed everywhere while (c) dropped the leading characters on
       most domains ("cotton" → "tton") — known-template-issues T10 — and (d) sent the reopened
-      query to the hidden header field on several of them.
+      query to the hidden header field on several of them. **Before grading (c) FAIL, rule out a
+      late HR-script load:** if for the first seconds after page load the overlay doesn't open
+      at all and the text stays in the native field (the HR script hasn't loaded yet — check
+      when the `helloretail` script request completes), the cause is the customer's; record
+      it under Known limitations once the customer is aware, otherwise as a customer-side
+      note. T10 is the case where the overlay opens and the leading characters vanish.
 
 ### Initial State (before typing)
 
@@ -683,6 +714,9 @@ These are the most important checks — get these right.
 ### Results Quality
 
 - [ ] Relevant results appear (test with a product number and a generic category term)
+- [ ] **Out-of-stock products in results (info)** — always state whether OOS products appear
+      in search results (search the OOS fixture); informational — the show-OOS setting itself
+      stays on the operator list
 - [ ] No completely empty result pages for reasonable queries
 - [ ] Garbage input (e.g. `asdkjhgqwe`) → the 0-results state renders cleanly: the "0 results"
       text and the "Popular products" headline don't wrap or misalign next to each other
@@ -699,14 +733,24 @@ These are the most important checks — get these right.
       price min AND max fields, blur AND press Enter (both paths), and verify the result set
       actually changes. Slider-drag working is NOT a PASS for this item — the typed path is the
       standing defect. **Then the two-field sequence:** type min, Tab, type max, Tab — and again
-      max first, then min. Both values must stay set and the dropdown must not close or apply
-      after the first field; "not reproduced" is only valid after both orders pass.
-- [ ] **Single-filter removal** (T9) — apply the price filter plus two other filters, then
-      remove each applied filter one at a time: only that filter may go, the other two stay
-      applied, and the price filter must not stay behind while a different filter is removed.
-      "Clear all" working is NOT a PASS for this item.
+      max first, then min — and both orders again with Enter instead of Tab, at all four
+      viewports. Both values must stay set, the dropdown must not close or apply after the
+      first field, and the input boxes must not be cut off; "not reproduced" is only valid
+      after both orders pass with Tab and with Enter. Closing after a **slider drag** is
+      expected — never report it; a close after one typed field goes in the standing "Known
+      template issues" NOTE block, not the bug list.
+- [ ] **Single-filter removal** (T9) — **mandatory, never skipped**: apply the price filter
+      plus two other filters, then remove each applied filter one at a time: only that filter
+      may go, the other two stay applied, and the price filter must not stay behind while a
+      different filter is removed. Remove the chips in a different order too and flag any chip
+      that needs two clicks. Desktop AND tablet/mobile. "Clear all" working is NOT a PASS for
+      this item.
 - [ ] **Open-state icon** — each filter dropdown's arrow flips or rotates while the dropdown is
       open (check every filter dropdown at desktop and tablet)
+- [ ] **Filter-panel visual pass** — screenshots at all four viewports: options aren't cramped,
+      long names are cut with "…", nothing overlaps with 5+ filters applied, count badges are
+      visible against their background, buttons show a hand cursor and return to their normal
+      colour after a click. A panel that closes only via its arrow is not reported unless the shop's own category-page filters close on an outside click.
 - [ ] **Tablet price-slider alignment (820)** — the min and max value labels sit aligned with
       the slider and don't stick out past its edge or sit lower than the rest of it
 - [ ] **Custom-filter applied-state chip** (T2) — apply one custom/extraData facet and verify
@@ -720,20 +764,19 @@ These are the most important checks — get these right.
   component takes no currency parameter, so this is account-wide behaviour — confirmed
   not-an-issue by the QA team. Never mark it FAIL/WARN. Only flag the price slider if
   it shows the **wrong** currency or broken values.
-- [ ] Filter order matches the native category-page filter order (if filters exist natively)
-- [ ] **Filter ordering rule — two separate checks, two separate fixes, always report both.**
-      **(a) Filter-group order** — the filter headings (Kategorier / Merke / Pris …) are in the
-      agreed order (alphabetical unless the card says otherwise); fixed in the dashboard via
-      `search_updateFilters`. **(b) Filter-option order** — the values *inside* every LIST filter
-      are alphabetical; driven by `sorting_selectors` in `initializationCode` (see the code-pass
-      item "Filter option sorting is actually wired"). EXCEPT Category (follows the category
-      hierarchy) and Size (logical size order: XS, S, M, L, XL — never alphabetical).
-      **Grade (b) per filter, not per config:** on a real query open every LIST filter's dropdown
-      and read the first few options — a config where `brand` is A→Z but `skinType` is in feed
-      order is a FAIL for the unsorted ones. Fixing (a) does nothing for (b); "filter ordering
-      fixed" without saying which is an ambiguous verdict — name both with their state. When a
-      card or finding just says "filter sorting" / "filters not alphabetical", it means **(b)**.
-      Neither (a) nor (b) is about the **sorting control** — its options are never alphabetised
+- [ ] **Filter-option order — graded against the agreed order, per filter.** The order of the
+      filter **groups** (the headings — Kategorier / Merke / Pris …) follows usage and is
+      **never graded or reported**. The values *inside* every LIST filter follow the agreed
+      order: whether that is alphabetical comes from the card, else from the operator question
+      at the start (`../qa-checklists/SKILL.md` Step 1.5) — never assumed. It is driven by
+      `sorting_selectors` in `initializationCode` (see the code-pass item "Filter option sorting
+      is actually wired"). EXCEPT Category (follows the category hierarchy) and Size (logical
+      size order: XS, S, M, L, XL — never alphabetical).
+      **Grade per filter, not per config:** on a real query open every LIST filter's dropdown
+      and read the first few options — when alphabetical was agreed, a config where `brand` is
+      A→Z but `skinType` is in feed order is a FAIL for the unsorted ones. When a card or
+      finding just says "filter sorting" / "filters not alphabetical", it means option order.
+      None of this is about the **sorting control** — its options are never alphabetised
       (ACCEPTED rule under "Sort options work" below).
 - [ ] **Filter/sort order — desktop vs mobile consistency, not just vs native.** Open both
       configs' filter rows side by side (same query) — the two configs are separate designs and
@@ -751,8 +794,8 @@ These are the most important checks — get these right.
     (`search_getSorting`: default sort first, then price / newest / …), the same way the
     customer's own dropdown does; alphabetising them serves no purpose and is not something the
     team does. Grade the sort control on its option **set**, its **labels** (string-diffed
-    against native, below) and desktop/mobile consistency — never on A→Z order. The alphabetical
-    rule applies to filter groups and the options inside LIST filters only (previous item).
+    against native, below) and desktop/mobile consistency — never on A→Z order. An agreed
+    alphabetical order applies to the options inside LIST filters only (filter-option item above).
   - **Sort/filter label text — diff against native's own string, don't eyeball "looks correct."**
     A misspelling can read as perfectly fine in isolation ("Prezzo descrescente" looks like valid
     Italian) and only surfaces as wrong next to native's own spelling ("Prezzo **decrescente**").
@@ -812,6 +855,10 @@ These are the most important checks — get these right.
 
 ### Tablet
 
+- [ ] **Full tablet pass at 1024 and 820** — trigger, tiles, filters, content feed and the
+      keystroke checks at the same depth as desktop and mobile; anything untested on tablet
+      makes the verdict **partial**, never PASS. Tiles per row that differ from native are
+      graded against the operator's answer (`../qa-checklists/SKILL.md` Step 1.5)
 - [ ] Can scroll down to load more results (infinite scroll or pagination works)
 - [ ] Content feed shows all matching links, not just the first 12
 
@@ -823,7 +870,9 @@ These are the most important checks — get these right.
       that returns products first; only then record enabled/not-enabled. (Real 2026-07-31
       case: one run marked the feed N/A while the other verified the working tab on the same
       domain.)
-- [ ] Category links, blog links, and site links all work (no 404s)
+- [ ] Category links, blog links, and site links all work (no 404s) — click at least 10 per
+      viewport: different destinations, no 404, and the page actually changes (on an SPA the
+      URL can change while the content stays)
 - [ ] No duplicate links (if duplicates exist, check that hierarchies are added to differentiate them)
 - [ ] **0-match text per feed tab has correct grammar/gender agreement** — a template that
       composes the "no matches" sentence around the tab title (`"Nessun " + title + " trovato"`)
@@ -858,13 +907,13 @@ browser to check them (off-limits to browser automation). They go on the operato
 
 Checks against `resultTemplate` / `resultStyles` / `initializationCode` that the rendered pass can't see.
 
-- [ ] **Click tracking** — product links/buttons preserve HR click tracking: real buy/ATC buttons carry `hrq.push(['trackClick', …])`, navigation links go through `fix_links`, and no custom handler `preventDefault`s the click in a way that bypasses tracking. Broken tracking means conversions never attribute — invisible in the UI. **ACCEPTED — do not flag:** `trackClick` missing on variant / view / sold-out CTAs — those are navigation links covered by `fix_links` (`#aw_source=`); `trackClick` is required on buy/ATC actions only (QA team). **Grade this per branch, and say which branch each verdict covers** — enumerate every CTA the template emits (ATC · navigation/"read more" · variant · sold-out) and give each its own line. "Navigation links are correctly covered by `fix_links`" is a verdict about the navigation branch **only**; recording it as the item's verdict is how a missing `trackClick` on the ATC button passed as ✅ on one config while two other runs graded the same code ❌ (2026-08-04). Also check both configs separately — desktop and mobile are separate designs and one commonly has an abandoned tracking attempt (e.g. a `{% assign trackingCode = product.url | split: 'aw_source=' | last %}` computed and never used) that reads as tracking present at a glance.
+- [ ] **Click tracking** — product links/buttons preserve HR click tracking: real buy/ATC buttons carry `hrq.push(['trackClick', …])`, navigation links go through `fix_links`, and no custom handler `preventDefault`s the click in a way that bypasses tracking. Broken tracking means conversions never attribute — invisible in the UI. **ACCEPTED — do not flag:** `trackClick` missing on variant / view / sold-out CTAs — those are navigation links covered by `fix_links`; `trackClick` is required on buy/ATC actions only (QA team). A PASS on any branch needs the click-attribution request (`trackClick` → `/serve/collect/click`) observed after a real click; an `#aw_source=` fragment is never evidence. **Grade this per branch, and say which branch each verdict covers** — enumerate every CTA the template emits (ATC · navigation/"read more" · variant · sold-out) and give each its own line. "Navigation links are correctly covered by `fix_links`" is a verdict about the navigation branch **only**; recording it as the item's verdict is how a missing `trackClick` on the ATC button passed as ✅ on one config while two other runs graded the same code ❌ (2026-08-04). Also check both configs separately — desktop and mobile are separate designs and one commonly has an abandoned tracking attempt (e.g. a `{% assign trackingCode = product.url | split: 'aw_source=' | last %}` computed and never used) that reads as tracking present at a glance.
 - [ ] **Interactivity re-binding** — `add_to_cart()` (and any swatch / review / wishlist binding) is called after **both** `fix_links` call-sites (initial render **and** `load_more_results`), not just the first. Otherwise appended/filtered tiles render dead.
 - [ ] **Binding hygiene** — interactivity selectors scoped to the overlay (`.hr-overlay-search`, or the embedded container) and idempotent (a `data-*` guard or platform re-init), so re-renders don't double-fire.
 - [ ] **Trigger / placement selectors** — `trigger_selector` is customer-specific, not the bare `input[type='search']` default; `placement_selector` set for the embedded variant.
 - [ ] **Filter option sorting is actually wired — read the VALUE of `sorting_selectors`, not the presence of `sortFilter()`.** Every base `search.js` ships `sortFilters()` / `sortFilter()` / `sortSizes()`, so the sorting *mechanism* is in every config whether or not it does anything; with `/* text */ var sorting_selectors = "";` it is a no-op for every filter. Never record "options are alphabetized client-side" because the function exists — that is a verdict about the mechanism, not the wiring, and it is exactly how a real code pass passed two configs whose `sorting_selectors` were both `""` (store-NO-1 2026-09-01; the defect surfaced only when the operator pointed at the variable). When alphabetical options are expected (the rendered-pass ordering rule, or the card asked for it): (1) `sorting_selectors` must list **every** LIST filter that was agreed to be sorted — the card's or operator's list, cross-checked against `search_getFilters`; if no list was agreed, that is an operator question, not an assumption that all of them should be (Category and Size are the standard omissions); (2) each clause in the variant-correct wrapper form (desktop `.aw-filter__single-wrapper[data-filter="…"]` / mobile `.hr-search-overlay-filter-wrap[data-filter="…"]`) and well-formed — a malformed clause (e.g. `[extraDataList.ingredients]` with no `data-filter=`/quotes) throws a `SyntaxError` in `querySelectorAll` and silently disables sorting for **all** listed filters; (3) `size_selector` set only for size-aware ordering; (4) **both configs checked separately** — desktop and mobile are separate designs and one is routinely left at `""`. Report the finding as "filter **option** sorting" so it cannot be confused with filter-**group** order (a `search_updateFilters` concern). → `../search-developer/references/filter-sorting.md`
 - [ ] **No leftover placeholders** — `header_logo_url`, `webshop_name`, and the theme color are the customer's real values, not the base placeholders (`helloretailcdn.com/static/images/logo.png`, `"My shop"`, `#F13658`).
-- [ ] **Localization integrity** — every `{# text … #}` value is in the target locale; no `__Language` variant lines left over; interpolation tokens (`$query$`, `$totalResults$`, `$contentType$`, `<strong>…</strong>`) intact; no stray English in a non-English store (or vice-versa). **Run the latent sweep** (`../qa-checklists/SKILL.md` Step 3): every text-input default, every hardcoded string, and every `initializationCode` string literal (price-slider currency labels hide there) — including branches that never rendered this run (`{% if filters.size > 0 %}` etc.); grade unreachable leftovers LATENT with their trigger named, never skip them because the branch didn't render. **A "no stray strings found" verdict needs a targeted grep, not a paraphrase of the sweep.** Two independent 2026-08 code passes of the same store-IT config reached opposite conclusions on this exact item — one claimed a full sweep found zero non-Italian strings, the other found two (the recently-searched remove/re-search `aria-label`s, built as JS string concatenation around a feature-specific handler, not a declared `{# text #}` input). Before recording PASS, actually grep `initializationCode` for `"` string literals near event handlers for every dynamic-content feature (recently-searched, tooltips, ARIA labels set via JS) — these hide from a scan that only checks declared template inputs.
+- [ ] **Localization integrity** — every `{# text … #}` value is in the target locale; no `__Language` variant lines left over; interpolation tokens (`$query$`, `$totalResults$`, `$contentType$`, `<strong>…</strong>`) intact; no stray English in a non-English store (or vice-versa). **Run the latent sweep** (`../qa-checklists/SKILL.md` Step 3): every text-input default, every hardcoded string, and every `initializationCode` string literal (price-slider currency labels hide there) — including branches that never rendered this run (`{% if filters.size > 0 %}` etc.); grade unreachable currency/price leftovers LATENT with their trigger named, never skip them because the branch didn't render. **A wrong-language string that never reaches the live storefront — neither visible nor in the rendered DOM — is not reported at all, not even LATENT** (`../qa-checklists/SKILL.md` Step 3). **A "no stray strings found" verdict needs a targeted grep, not a paraphrase of the sweep.** Two independent 2026-08 code passes of the same store-IT config reached opposite conclusions on this exact item — one claimed a full sweep found zero non-Italian strings, the other found two (the recently-searched remove/re-search `aria-label`s, built as JS string concatenation around a feature-specific handler, not a declared `{# text #}` input). Before recording PASS, actually grep `initializationCode` for `"` string literals near event handlers for every dynamic-content feature (recently-searched, tooltips, ARIA labels set via JS) — these hide from a scan that only checks declared template inputs.
 - [ ] **Liquid gotchas** — price uses an HR price filter: `| price` + `| currencySymbol`, `| priceWithCurrencySymbol`, or `| priceWithCurrency: product.currency` — **any of these is fine when the rendered format matches the customer's; do not flag a working `price` + `currencySymbol` as "should be `priceWithCurrency`"** (the only real price failures are Shopify's `| money`, a hardcoded symbol, and a bare `| priceWithCurrency` missing its `: product.currency` argument — reverted as wrong in a real run, store-NO-1 2026-09-01); no nonexistent `| raw`; never `| remove: '.'` (breaks thousands separators — use targeted `| replace: 'kr.', 'kr'`); banner branch untouched; TILE FILL rule present when the tile root isn't `.hr-search-overlay-product-link`.
 - [ ] **`| strip_html` — only when the field actually carries HTML.** Not a blanket rule; flagging it reflexively is a known false positive. A bare `{{ product.title }}` in element text is the **correct** build convention (see `../tile-extractor/references/liquid-rules.md`); `product.description` is the field that routinely contains real HTML. Verify first: check the **rendered** tile for tags leaking as visible text, escaped entities (`&amp;`, `&lt;`) or unexpected nested elements in the title, and cross-check the field in `productData_get`. Clean rendered text + plain-text feed → **PASS, no filter needed**. **Never ship "can't confirm from code alone" as a WARN** — the `productData_get` check IS the check (descriptions are normally already stripped in the feed; plain text is the expected case). Without a website-uuid it becomes an operator item, recorded OPERATOR — never a WARN implying a defect (retired hedge, 2026-08-19).
 - [ ] **Price format — compare against the customer's own output, not the locale.** A Swedish store rendering `1,180.00 SEK` (comma thousands, period decimals) may be exactly what its native tiles do; "correcting" it to `1 180,00 kr` then breaks parity. Always diff against a native tile on the same page before flagging a separator or currency-suffix difference. **But parity on your sample is not a clean bill of health for the code** — this rule justifies *not flagging a difference*, never *declaring the emit site correct*. Read how the suffix is emitted: unconditional (`{{ product.price | price }}<span>,-</span>`) breaks the moment a price carries decimals, and passes every whole-unit fixture on the way there. Check it on the `<ins>` and `<del>` branches separately, and against the decimals/øre fixture — a rendered PASS here plus an unconditional emit is a **FAIL**, not a code-hygiene note.
@@ -896,10 +945,20 @@ full page loads · QA target: LIVE / REVIEW draft ·
 Configs in scope: [key/type list from search_listConfigs] · Passes run: rendered + code /
 code only / rendered only (no website-uuid)]
 
+## Per-viewport verdicts
+| Viewport | Verdict | Reason / notes |
+[one row each for 1440 / 1024 / 820 / 375: PASS / FAIL / NOTE / NOT TESTED + reason — any
+viewport not (fully) tested makes the overall verdict "partial", never PASS]
+
 ## Known template issues (NOTE)
 [the standing entries from ../qa-checklists/references/known-template-issues.md with per-site
 status: verified (reproduces) / not reproduced / N/A / SKIPPED — template-level, routed to the
 base-template owners, outside this onboarding's defect counts]
+
+## Known limitations
+[one line each, not bugs, outside the defect counts — platform limits, late HR-script load
+(customer side, once aware), waived / shelved items with who and when
+(../qa-checklists/SKILL.md Step 4)]
 
 ## Product Tile Comparison
 [table or bulleted list of each item with ✅ / ⚠️ / ❌ and a one-line observation; every ❌ /
@@ -943,6 +1002,10 @@ KNOWN — pending [owner/ETA] finding (Step 1.5), separate from the numbered def
 "Corrections — do not action these" block listing every code-pass or prior-report finding this
 run overturned, each with the evidence that retired it]
 
+## Customer-side notes
+[one-liners for the CSM to pass on — shop-side items and cart behaviour after an HR
+add-to-cart that differs from native (NOTEs, not defects)]
+
 ## Manual checks for the operator
 [unchecked - [ ] list: every OPERATOR item plus MCP items skipped for missing coordinates,
 each with where to check it (dashboard page / Supervisor / ClickUp). State explicitly these
@@ -959,6 +1022,13 @@ FAIL from Issues Found:
 - Verify: the checklist item + page URL to re-check after the fix
 End with: "To execute: open Claude Code in this folder and say — read this report and apply
 the Handoff fix plan."]
+
+## Appendix — ruled out
+[candidate findings investigated and dismissed this run, one line each with the evidence —
+never in the findings list]
+
+## Session notes
+[the run's own tooling / setup problems — never findings, never counted]
 ```
 
 **Multi-domain runs:** one file per domain, each in the format above and fully self-contained
