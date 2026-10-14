@@ -14,7 +14,8 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
 > off (widget Show switch) reveals a blank page / empty container, there is no native design
 > to compare against — record the parity-vs-customer items as
 > `N/A — Pages replaces the native page` and verify functionality only (see pages-qa
-> SKILL.md → Step 3). Pricing is then verified against the PDP instead of a native tile.
+> SKILL.md → Step 3). Pricing is then verified against the feed data (`productData_get`), not
+> against the PDP.
 
 ## Placement / general
 
@@ -71,6 +72,11 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
 
 ## Filters — layout & behaviour
 
+- [ ] **Filter-panel visual pass** — screenshots at every viewport (1440, 1024, 820, 375):
+  every filter has an arrow that flips when opened, options aren't cramped, long names are cut
+  with "…", nothing overlaps with 5+ filters applied, count badges are visible against their
+  background, buttons show a hand cursor and return to their normal colour after a click.
+  A panel that closes only via its arrow is not reported unless the shop's own category-page filters close on an outside click.
 - [ ] Notification (color contrast, or not a circle)
 - [ ] Notification: not shown properly (gets cut off)
 - [ ] Labels pop up in filter dropdowns
@@ -84,15 +90,21 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
 - [ ] **Filter removal** (known-template-issues T9): apply the price filter plus two other
   filters, then remove each applied filter one at a time. Only that filter must go — the
   other two stay applied and the price filter must not stay behind while a different filter
-  is removed. "Clear all" working is not a PASS for this item.
+  is removed. Remove the chips in a different order too and flag any chip that needs two
+  clicks. Mandatory, never skipped — desktop and tablet/mobile. "Clear all" working is not a
+  PASS for this item.
 - [ ] Open a filter or the sorting dropdown, then click outside it (product grid, page
-  background) → it closes. The base design JS only closes a dropdown when another heading is
-  clicked; a dropdown that stays open until then is a FAIL (fix: the outside-click listener in
-  `pages-developer` step 5b). Clicking inside an open dropdown must keep it open.
+  background) → it closes. **Report only when the shop's own category-page filters close on
+  an outside click** — check native first; if native dropdowns stay open too, this is not a
+  finding. The base design JS only closes a dropdown when another heading is clicked (fix: the
+  outside-click listener in `pages-developer` step 5b). Clicking inside an open dropdown must
+  keep it open.
 
 ## Filters — setup
 
-- [ ] Missing (not showing the same filters as the customer does on their own category pages)
+- [ ] Missing (not showing the same filters as the customer does on their own category pages) —
+  the filter list matches the card and the native filter set (e.g. a price filter exists
+  natively → it exists in Pages), and option counts are shown
 - [ ] Tablet: filter section is too small for the screen
 - [ ] Tablet/mobile: filter button doesn't work
 - [ ] Can't open the dropdown
@@ -104,7 +116,9 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
 - [ ] Shows filters without options (empty filters)
 - [ ] Filter names: strange names…
 - [ ] Reset button: not working
-- [ ] Show options in alphabetical/numerical order
+- [ ] Show options in alphabetical/numerical order — only where the card or the operator's
+  answer at the start says so (`../SKILL.md` Step 1.5); the order of the filter groups
+  themselves is never graded
 - [ ] Data in the filter list doesn't match the products
 - [ ] Filter search engine: matches a letter anywhere in a word… not as the first letter
 - [ ] Close button: doesn't work
@@ -118,9 +132,10 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
 - [ ] Price filter: highest price is shown in the middle instead of at the right end of the screen
 - [ ] Price filter at tablet (820px): the min and max value labels sit aligned with the slider
   and don't stick out past its edge or sit lower than the rest of the slider
-- [ ] Price filter typed boxes: type min, Tab, type max, Tab — and again max first, then min.
-  Both values stay set; the dropdown doesn't close or apply after the first field
-  (known-template-issues T1)
+- [ ] Price filter typed boxes: type min, Tab, type max, Tab — and again max first, then min,
+  then both orders with Enter instead of Tab, at every viewport. Both values stay set, the
+  dropdown doesn't close or apply after the first field, and the boxes aren't cut off
+  (known-template-issues T1). Closing after a slider drag is expected — not reported
 - [ ] Price slider: strange price range shown
 - [ ] BUG — price filter: when adding a range, it adds an x-button
 - [ ] Mobile: price slider gets cut off
@@ -134,8 +149,9 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
 
 ### Category filter
 
-- [ ] Don't show the category you are currently on (or higher levels) as a filter option —
-  you should never be able to filter on main categories from within that same category
+- **Not a defect — the current category shown in its own category filter.** Pages shows the
+  category you are on (and its higher levels) as a filter option by default. Do not report it;
+  list it once under the report's Known limitations.
 - [ ] Last category level (no sub-categories left) → don't show the category filter at all
 - [ ] Can we remove 'all products' / 'brands' and add them as separate filters?
 - [ ] Remove the white space in front of the category options
@@ -172,7 +188,9 @@ HR-rendered category pages. For tile-level items use `product-tile.md`.
 
 ## Products
 
-- [ ] Total amount of products differs from the customer's own pages
+- [ ] Total amount of products differs from the customer's own pages — let the page settle and
+  re-read the count before reporting it (`../SKILL.md` Step 3, verdict-discipline rule 7); a
+  count that flashes wrong for a moment and then corrects itself is Low at most
 - [ ] Not shown on some category pages (finds 0 products…)
 - [ ] Make sure the tiles have the same height — measure a row that contains the tallest variant
   (sale price pair, badge, long title): every card in the row reaches the same bottom edge at
