@@ -98,6 +98,7 @@ be explicit.
 | `cart-tracking-api` | The Cart tracking REST API (`/serve/collect/cart`): why the platform-agnostic SDK does *not* handle this, and the cart-specific quirk in how the opted-out sentinel behaves. |
 | `conversion-tracking-api` | The Conversion tracking REST API (`/serve/collect/conversion`): the same SDK relationship as Cart tracking, plus per-line-item `quantity`, which Cart tracking does not have. |
 | `tracking-user-id` | Minting and caching a `trackingUserId` when no Hello Retail SDK is on the page: the `hello_retail_id` cookie convention, the async-mint race, the `file://` trap, the SDK identity-split race, and the 24-zero opt-out sentinel. Every other skill links here rather than repeating it. |
+| `customer-id` | Connecting a `trackingUserId` to the shop's own customer id (`/serve/collect/customerId`) so a logged-in shopper's devices share one personalization profile — the REST counterpart of the SDK's `setCustomerId`, and the `id`-not-`customerId` field name that otherwise returns an HTTP 500. |
 | `troubleshooting-with-hello-retail-mcp` | Diagnosing an integration through Hello Retail's API log and audit log MCP tools instead of re-reading your own request code. Needs the MCP server connected — see Requirements. |
 
 ## What you need
@@ -144,6 +145,10 @@ skills/
       endpoints.md                         # full request/response field reference
   tracking-user-id/
     SKILL.md                              # minting/caching a trackingUserId when no Hello Retail SDK is on the page
+  customer-id/
+    SKILL.md                              # connecting a trackingUserId to the shop's own customer id
+    reference/
+      endpoints.md                         # full request/response field reference
   troubleshooting-with-hello-retail-mcp/
     SKILL.md                              # diagnosing issues via Hello Retail's API log / audit log MCP tools
 CHANGELOG.md                             # release notes — written by the Release workflow, never by hand
