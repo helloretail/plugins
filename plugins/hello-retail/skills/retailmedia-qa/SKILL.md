@@ -7,8 +7,8 @@ description: >
   storefront URL, website-uuid or ClickUp card and asks to check Retail Media. Two passes, one
   report: a CODE pass on every banner-hosting design (isBanner branch, hr-b-image class, size
   name vs configured sizes, leftover BANNER_SIZE_NAME_PLACEHOLDER, placement) and a RENDERED pass
-  on desktop, tablet and mobile (placement incl. 404 and sidecart, one box per page by load
-  order, image size, URL, stretch, text cut off, whole-tile cover). Maps every line of the card's
+  on desktop, tablet and mobile (placement incl. 404 and sidecart, once per page by relevance or
+  load order, image size, URL, stretch, text cut off, whole-tile cover). Maps every line of the card's
   banner checklists. Trigger even on just a URL. Does NOT QA the Search / Recom / Pages tiles
   themselves (search-qa / recom-qa / pages-qa) and never creates, edits or publishes campaigns
   or designs.
@@ -83,13 +83,24 @@ With the uuid, call (all read-only):
   Note the newest timestamp; you check it again before saving (Step 5).
 - `retailMedia_getSettings` — **the banner sizes** (name + dimensions; artwork is supplied at 2×,
   so the natural image size should be exactly twice the listed size) and the **positions** per
-  feature (e.g. Search `[0,2,6]`, Recs `[0,4]`). No sizes configured → the website cannot take
+  feature (e.g. Search `[0,2,6]`, Recs `[0,4]`). Positions come in two lists —
+  `featureSettings` (desktop) and `featureSettingsMobile` (mobile/tablet); judge each viewport
+  against its own list. No sizes configured → the website cannot take
   banner campaigns yet; report it and skip the rendered pass. Sizes/positions for a feature that
   isn't sold (e.g. Pages, Email) are INFO, not a gap.
 - `retailMedia_listCampaigns` (type BANNER; also `archived: true` for context) and
   `retailMedia_getCampaign` for each campaign you will test: **status**, schedule, the
-  **destination URL of each banner**, `sizesReady` / `missingSizes`, placement overrides,
-  generation errors.
+  **destination URL of each banner**, `sizesReady` / `missingSizes`, generation errors, and the
+  campaign's own `featureSettings` / `featureSettingsMobile` (when not empty they override the
+  website positions above).
+- **Banner relevance — where each banner should show.** `getCampaign` carries it per banner,
+  and it is the context for every placement verdict, so write it down before the rendered pass:
+  - `relevanceType: ALWAYS` — a **global** banner: it may show anywhere.
+  - `PRODUCTS` — only next to products similar to `contextProductIds` (look them up with
+    `productData_get` so you know which PDPs/categories they belong to).
+  - `FIELDS` — only where a product's field matches `fieldConditions` (one condition, on
+    `hierarchies` or `brand`) — e.g. the category or brand pages of that value and PDPs of
+    products that carry it.
 - `recoms_list` + `recoms_listDesigns` + `recoms_getDesign`, `search_listConfigs` +
   `search_getDesign`, and — when Pages is sold — `pages_listDesigns` + `pages_getDesign`.
   Design payloads are large and spill to a file; never read them whole. Without `jq`/Python
@@ -107,8 +118,10 @@ With the uuid, call (all read-only):
   silently).
 - Per recom box, its **load order** (`priority`) and `retailMediaInjectionMode` —
   `recoms_list` does not carry them; call `recoms_getGeneralSettings` once per box. Group the
-  boxes by page type and write down, per page, which box should carry the banner (see the
-  one-per-page rule in Step 4) — that is the B1/B8 expectation.
+  boxes by page type and write down, per page and per banner, which box should carry it (the
+  once-per-page rule in Step 4): a targeted banner (`PRODUCTS` / `FIELDS`) → the box where its
+  relevance matches, and no box at all on pages where nothing matches; a global banner
+  (`ALWAYS`) → the recom box with the lowest load order. That is the B1/B8 expectation.
 
 Record each design's key and `lastModified`.
 
@@ -204,7 +217,8 @@ list it measures the **current** page without navigating — use that for the op
 the open sidecart and the cart page. `trace-cart-box.js` handles the sidecart paths (one run per
 path) and `sample-flash.js` the B10 pre-init flash. Per banner it returns: box, `href`, size
 name in the image URL, natural vs rendered size, `cropW`/`cropH` (px lost after
-`object-fit: cover`), slide size and border, radius on image/link/slide, position index, centre
+`object-fit: cover`), slide size and border, radius and `frame` (border / outline / shadow) on
+image/link/slide, position index, centre
 hit-test, **overlaps** (arrows/labels painted over the banner), `alt`, image KB (`null` when the
 image CDN hides timing — then fetch each size once with `page.request.get(src)` for the real
 weight; the network log is too noisy). Keep logic in the script files and return values compact
@@ -215,7 +229,7 @@ weight; the network log is too noisy). Keep logic in the script files and return
 | # | Item | How to decide |
 |---|---|---|
 | B0 | Image loads | `loaded: true`, no failed image request |
-| B1 | Placement: shown where it should be | per page, exactly one recom box carries the banner — the expected one from Step 0 (one-per-page rule, Step 4); each search config and the sidecart show it; `index` ∈ configured positions; 404 included |
+| B1 | Placement: shown where it should be | per page, the banner shows **at most once** and in the box Step 0 expects from its relevance (once-per-page rule, Step 4); each search config and the sidecart show it where relevant; `index` ∈ the configured positions for that viewport; 404 included |
 | B2 | Correct image (size) | `srcSize` = the size configured for this slot; natural = 2× configured |
 | B3 | URL redirects to the correct page | `href` = campaign destination; click once (Back afterwards) and confirm the landing URL + a `POST /serve/collect/click` (filter network requests by `collect/click`) |
 | B4 | Image gets stretched | `rN` vs `rC` with `fit`: `cover` crops and never distorts; distortion only if ratios differ and fit is `fill`/unset |
@@ -223,7 +237,7 @@ weight; the network log is too noisy). Keep logic in the script files and return
 | B6 | Text within banner cut off | crop px **and** the element screenshot: does text/CTA/logo actually lose pixels? |
 | B7 | Covers the whole tile, tile border hidden | banner rect = slide rect (±1px), no slide border, `overlaps` empty |
 | B8 | Not shown in some recoms (e.g. 404) | per page type, the expected box has it and the others don't (that is correct); the sidecart has it on every add-to-cart path |
-| B9 | Styling parity (NOTE) | radius/border/shadow of banner (image, link **and** slide) vs the product tile on the shop's own category page (the reference, as in the other QA skills: read the computed `border-radius`, border and `box-shadow` of the tile card and its image once per viewport); a difference is a NOTE, not a finding |
+| B9 | Styling: tile radius yes, tile border no | read the computed `border-radius` of the product tile on the shop's own category page (card and image) once per viewport; the banner's visible corners (`radius` on image, link **and** slide) must equal it, and its `frame` must show no border, outline or shadow (Step 4) |
 | B10 | Load behaviour | image weight; a flash of the banner at the wrong size before the slider initialises (`sample-flash.js`, on the cart page and one other page type, all four viewports) |
 
 Add every card checklist line as its own manifest item and answer it in the card-reconciliation
@@ -234,26 +248,35 @@ table.
 - **The card's decisions come first.** Before grading a FAIL, check the brief: a symptom the PO/CSM
   already accepted or assigned ("customer will keep text off the edges — PO, 28/09") is
   `KNOWN — <owner / decision, date>`, not a fresh defect. Still give the measurements.
-- **One recom box per page carries the banner — by design.** Hello Retail injects the banner into
-  only one of the recom boxes on a page: the box where it is relevant, or — when several qualify —
-  the box with the **lowest load order** (`priority` 1 loads first). So the expectation per page is
-  *exactly one* recom box with the banner, normally the lowest-`priority` box that has Retail Media
-  injection on. Grade it like this:
-  - banner in the lowest-load-order box, the other boxes without it → **PASS** (the other boxes are
-    `N/A — one-per-page rule`, never FAIL or WARN);
-  - banner in a different box → WARN with the load orders listed (relevance can legitimately
-    override load order — ask the operator only if it looks wrong);
-  - no box on the page shows it, or two boxes on the same page do → FAIL;
+- **A banner shows at most once per page, in its most relevant box — by design.** Hello Retail
+  never renders the same banner twice on a page. Where it goes follows the banner's relevance
+  from Step 0: a targeted banner (`PRODUCTS` / `FIELDS`) goes in the box where its context
+  products or field match; a global banner (`ALWAYS`) goes in the recom box with the **lowest
+  load order** (`priority` 1 loads first) that has Retail Media injection on. Grade it like this:
+  - banner in the expected box, no other box on the page showing it → **PASS** (the other boxes
+    are `N/A — shown once, in <box>`, never FAIL or WARN);
+  - the **same banner twice on one page** (two boxes, or two positions in one box) → FAIL Medium;
+  - a global banner in a box other than the lowest-load-order one, or a targeted banner in a box
+    where its relevance doesn't match → FAIL Low, with the load orders and the relevance listed;
+  - a targeted banner absent on a page where nothing matches its relevance → **PASS**
+    (`N/A — not relevant here`), never FAIL; absent on a page where it is relevant, or a global
+    banner absent from every box on a page that has an injection-enabled box → FAIL;
+  - relevance you can't resolve (e.g. `contextProductIds` not in the feed, a `fieldConditions`
+    value no page shows) → WARN plus an operator question, never a guess;
   - **tie** (two boxes share the lowest load order) → PASS when exactly one of the tied boxes has
     it; record which one (and whether it is the same box on every viewport) and add an operator
     item suggesting distinct load orders;
   - a box loaded by a later request — the sidecart/upsell after an add-to-cart, the search
-    overlay — is judged on its own. With only one banner in the campaign, all of this is still
-    decidable.
-- **Styling parity (B9) is a NOTE.** Rounded banner corners next to square tiles (or the reverse),
-  a different border or shadow: it can be deliberate, so record it as `VERDICT: INFO` with the
-  measured banner and category-page tile values, list it under "Notes" in the report and add one operator
-  question. Never FAIL or WARN, never count it as a finding.
+    overlay — is judged on its own, against the same relevance.
+- **Banner styling (B9): the tile's radius, never its border.** The banner takes the **exact
+  computed `border-radius`** of the product tile on the shop's category page — square tiles mean
+  a square banner — but **not** the tile's border, outline or shadow (the banner covers the whole
+  tile, B7). Grade per viewport:
+  - visible corners equal to the tile radius (±1px) and no border/outline/shadow in `frame` → PASS;
+  - a different radius → FAIL Low; the fix plan names the tile's measured value
+    (e.g. `border-radius: 8px; overflow: hidden` on `.hr-b-container`, and the same radius on
+    `.hr-b-image`), never a generic one;
+  - the tile's border, outline or shadow drawn around the banner (image, link or slide) → FAIL Low.
 - **Don't call a crop a stretch.** B4 FAILs only on real distortion; lost content is B6.
 - **Cut-off needs a visible loss.** Crop px on text-free artwork are a WARN with the safe-zone
   advice for the campaign owner; text/CTA visibly clipped is FAIL Medium.
@@ -286,7 +309,7 @@ Follow qa-checklists Step 4 with these specifics. Use `references/report-templat
   `QA/` for the domain and for `Retail Media QA`. Every finding of a prior Retail Media report gets
   a disposition (prior-report table in the template).
 - **Manifest layout — fixed, so totals compare across runs.** One line per: Campaign item
-  (C1–C4); Setup item per design (S1–S5 × each banner-hosting design); rendered item per surface
+  (C1–C5); Setup item per design (S1–S5 × each banner-hosting design); rendered item per surface
   (B0–B10 × each surface: every recom box, each search config, the sidecart — one line per surface
   covering all four viewports, with the per-viewport results inside the line); each card checklist
   line; each card NOTE/BUG; each prior-report finding; each applicable known-template-issue entry.
@@ -305,7 +328,8 @@ Follow qa-checklists Step 4 with these specifics. Use `references/report-templat
   code / isolated by trace / "unconfirmed — hypothesis"), severity.
 - **Card reconciliation table**: every line of the card's banner checklists → `Placed ✅/❌/⚠️ ·
   Responsive ✅/❌/⚠️/KNOWN` + evidence. A box that correctly has no banner under the
-  one-per-page rule is `Placed: N/A — banner is in <box> (load order n)`, not ❌. The operator
+  once-per-page rule is `Placed: N/A — shown once, in <box> (relevance / load order n)`, and a
+  page where a targeted banner isn't relevant is `Placed: N/A — not relevant here`, not ❌. The operator
   ticks the card from this table.
 - **Handoff fix plan** per FAIL (design key, the exact rule/line, proposed fix marked hypothesis
   until verified, which developer skill or customer action applies it, how to verify). Then run
@@ -315,7 +339,7 @@ Follow qa-checklists Step 4 with these specifics. Use `references/report-templat
 
 ## Reference files
 
-- `references/checklist.md` — the full Retail Media checklist (Setup S1–S5, Campaign C1–C4, Banner
+- `references/checklist.md` — the full Retail Media checklist (Setup S1–S5, Campaign C1–C5, Banner
   rendering B0–B10, operator items) with how to check, PASS and FAIL for each. Read before the walk.
 - `references/report-template.md` — the report skeleton. Read before writing the report.
 - `scripts/probe-banners.js` — banner measurement across a page list at one viewport (Step 3).
