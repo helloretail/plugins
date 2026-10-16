@@ -394,6 +394,11 @@ one, and is the only non-minted value you should ever send.
   specifics - everything in this skill (minting/caching, the async-race
   gotcha, the opted-out sentinel, the SDK-coexistence gotcha) applies to
   Pages exactly as it does to Search and Recommendations.
+- **Connect customerId** - `trackingUserId` request field, linking this
+  browser's identity to the shop's own customer id once the shopper logs in,
+  so their devices share one personalization profile. Never send the
+  opted-out sentinel here - skip the call instead. See
+  [customer-id](../customer-id/SKILL.md).
 - Any other Hello Retail endpoint that accepts `trackingUserId` (other
   `collect_*` endpoints, etc.) - same convention, same caveat: check the
   relevant skill for that API area first, and verify against
