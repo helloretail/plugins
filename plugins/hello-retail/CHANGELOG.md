@@ -8,6 +8,14 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.44.1 — 2026-10-16
+
+### Added
+
+- Starweb wiki (`storefront-data.md`): wishlist (favourite) button for HR tiles — the native
+  toggle markup, a script that marks saved favourites from `/storefrontapi/v1/favorite-products`,
+  and CSS for list-style tiles.
+
 ## 1.44.0 — 2026-10-14
 
 ### Added
