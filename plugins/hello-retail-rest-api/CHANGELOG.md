@@ -8,6 +8,13 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.1.0 — 2026-10-16
+
+### Added
+
+- `customer-id` connects a shopper's `trackingUserId` to the shop's own customer id through the REST API, so a logged-in shopper's phone and laptop share one personalization profile without the Hello Retail SDK.
+  It covers when to send the call, consent, and the `id` field name, which otherwise fails with an HTTP 500.
+
 ## 1.0.3 — 2026-10-07
 
 ### Fixed
