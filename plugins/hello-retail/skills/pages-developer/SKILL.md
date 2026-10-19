@@ -100,8 +100,9 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    run Pages through the API only), or the on-site widget label **"Pages (API)"**. Not
    settled → ask with `AskUserQuestion`, header *Pages mode*, the three modes from the wiki
    page as the options — *Client-side JS render* / *API, HTML response* / *API, JSON response*,
-   each described in one line; on an SEO-sensitive store *API, HTML response* goes first as
-   "(Recommended)", otherwise none is; never assume.
+   each described in one line; never assume. On an SEO-sensitive store list the two API
+   modes first and say in the client-side option's description that it is not recommended
+   for SEO (the wiki page's *D&TS notes*); mark none "(Recommended)" — either API mode works.
    - **Client-side** or **API-HTML** → Steps 1–8 below. Hello Retail renders the markup
      in both, so the template, tile and grid work applies.
    - **API-JSON** → the customer's frontend renders the products; follow *API (JSON)
@@ -728,9 +729,10 @@ The caller (the customer's backend or frontend) requests `/serve/pages/{key}` wi
 Pages ships in three modes — client-side JS render, API-HTML, API-JSON
 (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/features/pages/pages.md`). In client-side and API-HTML
 mode design work targets the rendered output; in API-JSON mode nothing of the design is
-rendered (*API (JSON) workflow*). On SEO-sensitive stores the API-HTML mode is the default recommendation —
-note the store's mode in your report. REST request shapes and tracking events (page-view,
-click, `hello_retail_id` bootstrap) are in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/pages/general.md`.
+rendered (*API (JSON) workflow*). On SEO-sensitive stores D&TS recommends an API mode, HTML
+or JSON, over client-side Pages injected by the Hello Retail script — note the store's mode in
+your report. REST request shapes and tracking events (page-view, click, `hello_retail_id`
+bootstrap) are in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/pages/general.md`.
 
 ## Hard rules recap
 
