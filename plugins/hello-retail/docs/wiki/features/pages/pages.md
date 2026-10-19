@@ -66,6 +66,9 @@ Filters and boosts are each replaced in full when written, so read the current s
 
 ## D&TS notes
 
+- For SEO-sensitive customers, recommend an **API integration** — HTML or JSON response, either
+  works — not client-side Pages injected by the Hello Retail script. With the API the shop can
+  render the products server-side, so crawlers don't depend on Google's later JavaScript pass.
 - For Shopify, follow the dedicated Pages-for-Shopify guide; the integration uses Shopify-specific routing patterns.
 
 ## Key support articles
