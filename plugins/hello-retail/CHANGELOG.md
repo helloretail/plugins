@@ -8,6 +8,13 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.45.0 — 2026-10-19
+
+### Changed
+
+- `retailmedia-qa` reads each banner's relevance from the campaign (global, product-based or field-based) and judges placement against it: a banner shows at most once per page, in its relevant box, or in the lowest-load-order recom box when it is global. A banner shown twice on one page is now a FAIL.
+- `retailmedia-qa` expects a banner to take the product tile's exact corner radius but never its border, outline or shadow; a mismatch is now a Low finding with the tile's radius as the fix, instead of a note.
+
 ## 1.44.1 — 2026-10-16
 
 ### Added
