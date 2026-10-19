@@ -117,20 +117,24 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
 7. `trackingUserId` follows the exact same rules as everywhere else in this
    plugin - mint/cache it, always send it (real id or the opted-out
    sentinel), never omit it. See [tracking-user-id](../tracking-user-id/SKILL.md).
-8. **Decide `firstLoad` per request, not once per page.** `true` is for the
-   page's actual initial render (the shopper landing on/navigating to this
-   URL); `false` is for everything after that on the same page view - a
-   filter change, a sort change, or pagination that re-fetches without a
-   full navigation. Get this right before writing any code that fires more
-   than one request per page view - see the gotcha below for what actually
-   depends on it (it's more than just view-tracking, despite what Hello
-   Retail's own docs page says).
+8. **Set `firstLoad` by whether the request can change the product scope -
+   not by whether it is the page's first request.** `true` whenever the
+   request has the potential to return a different scope of products: the
+   page's initial render, and every request where the shopper applies or
+   removes a filter (`products.filters`), since that narrows or widens which
+   products are available. `false` when the scope stays the same and only
+   the presentation changes: a sort change (`products.sorting`) only
+   rearranges the same products, and going to the next page (`products.start`)
+   only moves through them. A request that changes a filter and the sorting
+   together is `true` - the filter change decides it. Get this right before
+   writing any code that fires more than one request per page view - see the
+   gotcha below for what depends on it.
 
 ## Core request shape
 
 ```json
 {
-  "url": "https://www.example.com/category/snowboards",
+  "url": "/category/snowboards",
   "format": "json",
   "firstLoad": true,
   "trackingUserId": "<hello_retail_id cookie value>",
@@ -149,6 +153,15 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
   }
 }
 ```
+
+**`url` can be absolute or relative - send the relative path.** Both
+`https://www.example.com/category/snowboards` and `/category/snowboards` are
+accepted, but the relative path is the preferred and most robust form: it
+is exactly what Hello Retail requires. With an absolute URL, Hello Retail
+has to work out the relative path itself, and anything before it - scheme,
+host, port - can cause interpretation issues. Build it from
+the page's path (`window.location.pathname` in the browser, the request path
+on the server) rather than the full `href`.
 
 ## Gotchas worth knowing before you build
 
@@ -174,32 +187,16 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
   separate `returnFilters`-style flag for Pages the way Search has one - a
   request with `returnFilters: true` alongside `firstLoad: false` was
   verified to still come back with empty `filters`, so `returnFilters` isn't
-  a recognized field here. Practical effect: a page's first
-  render should request `firstLoad: true` to get both the initial product
-  list and the filter panel's options in one call; a subsequent
-  pagination/sort-only refinement request can safely (and should, for the
-  same performance-cost reasoning Search documents) send
-  `firstLoad: false` - but a *filter-changing* refinement request still
-  needs `firstLoad: true` if the filter panel's facet counts should refresh
-  to reflect the new result set, the same "facets need to refresh when the
-  query/filters actually change" logic Search's `returnFilters` gotcha
-  documents. This is unverified against Hello Retail's own docs page, which
-  only documents `firstLoad` as controlling view tracking - treat the facet
-  behavior as an observed side effect, not a documented contract, and
-  re-verify if it matters for a specific integration.
-  **When this creates a real tension - sending `firstLoad: true` on every
-  filter change keeps facets accurate but means Hello Retail counts this
-  one page view more than once - resolve it in favor of `firstLoad: true`
-  on filter changes, not against it.** It's tempting to treat "don't
-  inflate view-count analytics" as the safer default and instead cache the
-  filter panel from the page's one real initial load, never requesting
-  fresh facets again for the rest of that view - but that trades a real,
-  visible problem (the shopper sees a filter panel, i.e. bounds or counts,
-  that no longer accurately describes the products actually on screen) for
-  a mostly-invisible one (a page view double-counted in an analytics
-  dashboard). Correctness of what's presented to the shopper takes priority
-  over view-count precision - don't make the opposite call by default just
-  because it avoids touching the analytics side effect.
+  a recognized field here. This fits the scope rule in item 8 under "Before
+  writing any code": a request that can change the product scope (initial
+  render, a filter applied or removed) sends `firstLoad: true` and gets fresh
+  facets describing the new scope; a sort change or next-page request
+  doesn't change the scope, sends `firstLoad: false`, and keeps the facets it
+  already has. Don't read Hello Retail's own docs wording ("the first render
+  of the page") as "only the first request on a page view" - a shopper
+  applying a filter is also grounds for `true`. Their example collection
+  sends `true` on every example, sort- and pagination-only ones included;
+  don't copy that verbatim either.
 - **A field used in `params.filters` must be indexed for search filtering
   and sorting in Hello Retail's Data Fields, or it isn't usable there.**
   Check with `dataFields_getProductFields` - see item 3 under "Before
