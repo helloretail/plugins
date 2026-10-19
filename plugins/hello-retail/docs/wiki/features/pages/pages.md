@@ -66,8 +66,6 @@ Filters and boosts are each replaced in full when written, so read the current s
 
 ## D&TS notes
 
-- For SEO-sensitive customers, **default to API integration (HTML response)** so crawlers see real markup, not JS-rendered placeholders.
-- Always run **Pages Analytics** during the EBR — it surfaces under-performing categories that the customer's merchandising team should boost.
 - For Shopify, follow the dedicated Pages-for-Shopify guide; the integration uses Shopify-specific routing patterns.
 
 ## Key support articles
