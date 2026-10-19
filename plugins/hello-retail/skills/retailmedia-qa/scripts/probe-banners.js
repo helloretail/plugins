@@ -85,6 +85,10 @@ async (page) => {
         const rt = src && performance.getEntriesByType('resource').find(e => e.name === src);
         // radius/border can sit on the image, the link or the slide — report all three
         const cs = x => getComputedStyle(x);
+        // B9: the banner takes the tile's radius but never its border, outline or shadow
+        const frame = x => { const s = cs(x); return [s.borderTopWidth + ' ' + s.borderTopStyle,
+          s.outlineStyle === 'none' ? 'no-outline' : s.outlineWidth + ' ' + s.outlineStyle,
+          s.boxShadow === 'none' ? 'no-shadow' : 'shadow'].join(' / '); };
         out.banners.push({
           box: box ? (box.id ? box.id.replace('hello-retail-', '') : String(box.className).slice(0, 30)) : null,
           href: c.getAttribute('href'),
@@ -96,6 +100,7 @@ async (page) => {
           ...crop,
           radius: { img: cs(img).borderRadius, link: cs(c).borderRadius, slide: cs(slide).borderRadius },
           slideBorder: cs(slide).borderTopWidth + ' ' + cs(slide).borderTopStyle,
+          frame: { img: frame(img), link: frame(c), slide: frame(slide) },
           index: sib.indexOf(slide), siblings: sib.length,
           hit: el ? el.tagName + '.' + String(el.className).slice(0, 25) : null,
           overlaps,

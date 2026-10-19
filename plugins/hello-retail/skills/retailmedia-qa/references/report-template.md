@@ -51,9 +51,10 @@ banner sizes + positions from `retailMedia_getSettings`, campaign id/status/dest
 [only when the audit log / lastModified moved mid-run: who, when, what changed (field diff),
 before → after measurements with screenshots; or "None — no design changed during the run"]
 
-## One banner per page (load-order rule)
-| Page | Boxes (load order) | Expected box | Box with banner | Verdict |
-[one row per page type; ties noted; sidecart and search judged separately]
+## Once per page (relevance / load-order rule)
+| Page | Banner (relevance) | Boxes (load order) | Expected box | Box(es) with banner | Verdict |
+[one row per page type × banner; relevance ALWAYS / PRODUCTS / FIELDS from the campaign; ties
+noted; "not relevant here" where a targeted banner doesn't match; sidecart and search judged separately]
 
 ## Card reconciliation
 | Card line | Banner placed (✅/❌/⚠️) | Responsive (✅/❌/⚠️/KNOWN) | Evidence |
@@ -68,9 +69,10 @@ before → after measurements with screenshots; or "None — no design changed d
 ## Passes with measurements
 [Crop matrix page × viewport (cropW/cropH), whole-tile equality, URL/tracking, 404, positions.]
 
-## Notes — styling (not findings)
-| Viewport | Banner radius (img/link/slide) | Category-page tile radius | Border / shadow | Operator question |
-[B9, measured against the shop's own category page: only rows where they differ; "None — banner matches the category-page tiles" otherwise]
+## Banner styling vs category-page tile (B9)
+| Viewport | Banner radius (img/link/slide) | Category-page tile radius | Banner border / outline / shadow | Verdict |
+[every viewport; the banner takes the tile's radius, never its border/outline/shadow — a mismatch
+is a Low finding above, with the tile's exact radius in the fix plan]
 
 ## NOTE — known template issues
 [standing entries, per-site status — mostly N/A for banners]
