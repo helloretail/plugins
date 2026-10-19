@@ -68,9 +68,9 @@ the async-race gotcha, and the opted-out sentinel
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `url` | string | **Yes.** Verified 2026-09-15: omitting it returns HTTP 500. | The page's URL. Used for analytics, and - per Hello Retail's own docs collection - to let a Pages config's dynamic rules key off which URL the page is being shown on. |
+| `url` | string | **Yes.** Verified 2026-09-15: omitting it returns HTTP 500. | The page's URL, **absolute or relative - prefer the relative path** (`/category-path`, not `https://www.test.dk/category-path`): the relative path is exactly what Hello Retail requires, whereas anything before it in an absolute URL can cause interpretation issues. See the SKILL.md note under "Core request shape". Used for analytics, and - per Hello Retail's own docs collection - to let a Pages config's dynamic rules key off which URL the page is being shown on. |
 | `format` | `"json"` \| `"html"` | No | **Defaults to `"html"`** - verified 2026-09-15. The opposite default from Search/Recommendations; a custom frontend must always send `"json"` explicitly. |
-| `firstLoad` | boolean | Documented as required; verified 2026-09-15 to default to `false` when omitted, not to error. Always set it deliberately regardless - see the SKILL.md gotcha. | Per Hello Retail's docs, "Indicates if this is the first render of the page... Views of the page will only be tracked if firstLoad is true." Verified 2026-09-15 to also gate whether `products.filters` facet data is returned at all (empty when `false`) - see the SKILL.md gotcha for what this means practically. |
+| `firstLoad` | boolean | Documented as required; verified 2026-09-15 to default to `false` when omitted, not to error. Always set it deliberately regardless - see the SKILL.md gotcha. | **`true` whenever the request can return a different scope of products** - the initial render and any change to `products.filters`; **`false` when only the order or page changes** - `products.sorting` or `products.start`. Hello Retail's docs describe it as "Indicates if this is the first render of the page... Views of the page will only be tracked if firstLoad is true" - read "first render" as "first render of this product scope", not "first request on the page view". Verified 2026-09-15 to also gate whether `products.filters` facet data is returned at all (empty when `false`) - see the SKILL.md gotcha for what this means practically. |
 | `id` | number | No | Draft version ID |
 | `trackingUserId` | string | No | See Personalization above |
 | `deviceType` | `"DESKTOP"` \| `"MOBILE"` | No | Same convention as Search/Recommendations |
@@ -285,7 +285,7 @@ page's initial render):
 
 ```json
 {
-  "url": "https://www.test.dk/category-path",
+  "url": "/category-path",
   "format": "json",
   "firstLoad": true,
   "trackingUserId": "6426929526c7b13a8a1566f9",
@@ -306,15 +306,16 @@ page's initial render):
 ```
 
 **Same page, after the shopper picked a brand filter and a sort order**
-(a refinement request - `firstLoad` stays `true` here because the filters
-changed, so the facet counts must refresh; a request that only paginates or
-re-sorts would send `false`. Hello Retail's own example collection leaves it
-`true` on every example, which is why this plugin's SKILL.md calls out
-deciding it per-request rather than copying the examples verbatim):
+(a refinement request - `firstLoad` is `true` because the brand filter
+changes the scope of products; the sort order alone would not. A request that
+only re-sorts or goes to the next page leaves the scope unchanged and sends
+`false`. Hello Retail's own example collection leaves it `true` on every
+example, which is why this plugin's SKILL.md calls out deciding it
+per-request rather than copying the examples verbatim):
 
 ```json
 {
-  "url": "https://www.test.dk/category-path",
+  "url": "/category-path",
   "format": "json",
   "firstLoad": true,
   "trackingUserId": "6426929526c7b13a8a1566f9",
@@ -339,7 +340,7 @@ deciding it per-request rather than copying the examples verbatim):
 
 ```json
 {
-  "url": "https://www.test.dk/category-path",
+  "url": "/category-path",
   "format": "json",
   "firstLoad": true,
   "trackingUserId": "6426929526c7b13a8a1566f9",
@@ -363,7 +364,7 @@ deciding it per-request rather than copying the examples verbatim):
 
 ```json
 {
-  "url": "https://www.test.dk/category-path",
+  "url": "/category-path",
   "format": "json",
   "firstLoad": true,
   "trackingUserId": "6426929526c7b13a8a1566f9",
@@ -388,7 +389,7 @@ deciding it per-request rather than copying the examples verbatim):
 
 ```json
 {
-  "url": "https://www.test.dk/category-path",
+  "url": "/category-path",
   "format": "json",
   "firstLoad": true,
   "trackingUserId": "6426929526c7b13a8a1566f9",
