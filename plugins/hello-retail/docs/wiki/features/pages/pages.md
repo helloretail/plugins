@@ -17,7 +17,7 @@ Category pages are normally sorted once, by hand, and never again. Pages sorts e
 
 - Per-visitor personalization driven by Product Intelligence + behavior.
 - Boostings (push categories of products up).
-- Product Overrides — per path/URL: pin products to the top in a chosen order, or switch a page to "Only Manual Products".
+- URL overrides (formerly "Product Overrides") — per URL: pin products to the top in a chosen order, or switch that page to "Only Manual Products".
 - Pages Analytics — see what categories/brands perform vs. need a boost.
 - Retail Media slots inside category pages (see [Retail Media](../retail-media/retail-media.md); sponsored items disappear when the visitor changes the sorting).
 

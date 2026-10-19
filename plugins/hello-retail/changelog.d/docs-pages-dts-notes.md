@@ -5,3 +5,8 @@
   source.
 - `pages-developer` no longer marks *API, HTML response* as the recommended Pages mode on
   SEO-sensitive stores. It asks for the mode with no option preselected.
+
+### Changed
+
+- `hello-retail-knowledge` uses the current name, URL overrides, for what the dashboard used to
+  call Product Overrides on Pages.
