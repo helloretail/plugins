@@ -17,7 +17,7 @@ Category pages are normally sorted once, by hand, and never again. Pages sorts e
 
 - Per-visitor personalization driven by Product Intelligence + behavior.
 - Boostings (push categories of products up).
-- Product Overrides — per path/URL: pin products to the top in a chosen order, or switch a page to "Only Manual Products".
+- URL overrides (formerly "Product Overrides") — per URL: pin products to the top in a chosen order, or switch that page to "Only Manual Products".
 - Pages Analytics — see what categories/brands perform vs. need a boost.
 - Retail Media slots inside category pages (see [Retail Media](../retail-media/retail-media.md); sponsored items disappear when the visitor changes the sorting).
 
@@ -66,8 +66,9 @@ Filters and boosts are each replaced in full when written, so read the current s
 
 ## D&TS notes
 
-- For SEO-sensitive customers, **default to API integration (HTML response)** so crawlers see real markup, not JS-rendered placeholders.
-- Always run **Pages Analytics** during the EBR — it surfaces under-performing categories that the customer's merchandising team should boost.
+- For SEO-sensitive customers, recommend an **API integration** — HTML or JSON response, either
+  works — not client-side Pages injected by the Hello Retail script. With the API the shop can
+  render the products server-side, so crawlers don't depend on Google's later JavaScript pass.
 - For Shopify, follow the dedicated Pages-for-Shopify guide; the integration uses Shopify-specific routing patterns.
 
 ## Key support articles
