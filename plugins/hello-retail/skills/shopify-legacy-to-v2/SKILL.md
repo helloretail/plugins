@@ -41,6 +41,11 @@ The only agreed exception to 1:1: **oldPrice = price when the product has no com
 
 1. `website_getInfo` → domain, currency, language, companyId.
 2. `feeds_list` and `internal_feeds_listV1Configs` → the feed on `/shopify/products.py` or `/shopify/RC/products.py`.
+   Read every **other** active feed too (V1 and V2): a field another feed fills (e.g. an update-only feed with
+   `createProducts` false that sets only `inStock`) is not the old feed's, so the new transform leaves it out even
+   though `dataFields_getProductFields` lists it. When that field is `inStock`, say in the report that a V2 run in
+   which no item carries `inStock` counts every product as in stock, so the first run must be watched for stock
+   flipping to in-stock until the other feed runs again.
 3. Read the old logic: `feeds_get` (transformationCode) or `internal_feeds_getV1Config` (crawlStrings; read
    `docs://crawl-strings/syntax` and `docs://feeds/v1-crawl-strings` first).
 4. `dataFields_getProductFields` → every field the website stores. Each extraData / extraDataList key the old code
@@ -189,6 +194,8 @@ per entry (`variants > variants`), and `x[l='1']` selects every entry of list `x
 |---|---|
 | `$("root > handle").text()` | direct child of the product |
 | `$("a, b, c")` | results in **selector order**, not document order |
+| `$("variants > variants").find("a, b")` | selector order **per matched element**: every variant's `a` then its `b`, variant by variant (`[a1, b1, a2, b2, …]`), not all `a` then all `b` → `variants.flatMap((v) => [a(v), b(v)])` |
+| `$("name")` for a key the legacy item doesn't have (e.g. `keywords`) | matches nothing: `.text()` gives "", so `.matches(…)` is always "false". Port the field as that constant |
 | `.text()` on several matches | concatenated |
 | `.fns("text")` | a list, one text per match; `.join(" ")` joins it |
 | `$("x:first")` | first match in document order. Legacy key order: id, title, body_html, vendor, product_type, handle, published_at, published_scope, tags, variants, options, images, main_image, hierarchies, collection_ids, main_variant, variants_sellable, is_master. Variant: id, product_id, title, price, position, inventory_policy, compare_at_price, …, sku, …, inventory_quantity, old_inventory_quantity, presentment_prices |
@@ -199,12 +206,17 @@ per entry (`variants > variants`), and `x[l='1']` selects every entry of list `x
 | `.split(",")` | no trim: `" Plastic"` keeps its space |
 | `.asTags().fns("removeMatching", /re/)` | one path per string; drop the strings `re` matches. Port the regex without the `g` flag (a `g` regex in `.test()` keeps state between calls) |
 | `.matches(/re/)` | `re` found anywhere in the text, like JS `re.test(text)` (verified: `join("\|\|").matches(/\|\|/)` stores "true" for 2+ entries) → "true"/"false" |
+| `[sel, sel].removeMatching("")` | drops only the empty strings → `.filter((s) => s !== "")` |
 | `previousPrice` | `oldPrice` |
 | `(datefmt:"yyyy-MM-dd")created` | legacy: midnight UTC of the shop-local date. New: `product.published_at ? Date.parse(product.published_at) : undefined` (see Dates) |
 | JSON `null` | an empty element: `.text()` gives "" |
 
 Port each line to the V2 expression with the field map. Check two or three live products to confirm (keyword
 strings show the selector order directly).
+
+Side note on collection order: on one shop the legacy collection titles in stored keyword strings were in plain
+alphabetical order on every sampled product, not smart-collections-first. If the samples show that,
+`.map((c) => c.title).sort()` reproduces it; otherwise keep the `collections` pattern. Seen on one shop only.
 
 ## Known differences (always state the ones that apply)
 
