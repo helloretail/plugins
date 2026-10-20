@@ -30,13 +30,15 @@ tagged `#conversion-tracking` for skill consumption).
 ## SDK vs custom integration
 
 Same relationship as [cart-tracking-api](../../cart-tracking-api/reference/endpoints.md):
-the platform-agnostic SDK's `trackConversion()` method calls this same REST
-endpoint internally, but nothing invokes it automatically on a generic site.
-Shopify, Magento 2, and Shopware plugin integrations (at time of writing) wire
-this up automatically via their own native order-completion events. Outside
-those, firing this on order completion is the integration's responsibility
-regardless of whether the plain SDK is present - see
-[SKILL.md](../SKILL.md)'s Overview.
+this endpoint works on any platform. On Shopify, Magento 2 and Shopware (at
+time of writing), the Hello Retail SDK handles conversion tracking
+automatically, which requires the SDK to be present on the frontend; a
+customer on one of those platforms who has chosen not to install the SDK
+there handles conversion tracking through this endpoint instead. On any other
+platform, the SDK's `trackConversion()` method calls this same REST endpoint
+internally, but nothing invokes it automatically, so firing this on order
+completion is the integration's responsibility regardless of whether the SDK
+is present - see [SKILL.md](../SKILL.md)'s Overview.
 
 ## Request body
 
