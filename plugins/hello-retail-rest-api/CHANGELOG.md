@@ -8,6 +8,14 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.1.2 — 2026-10-20
+
+### Changed
+
+- `search-api` now specifies that changing the search query clears every applied filter and the
+  selected sort, both in the next request and in the UI, so filters chosen for one query never
+  silently narrow the next one.
+
 ## 1.1.1 — 2026-10-19
 
 ### Changed
