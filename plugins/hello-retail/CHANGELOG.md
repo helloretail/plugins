@@ -8,6 +8,15 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.47.1 — 2026-10-20
+
+### Fixed
+
+- `shopify-legacy-to-v2`: checks the website's other feeds, so a field another feed fills (such as `inStock`) is
+  not added to the new transform, and warns that the first V2 run can count every product as in stock.
+- `shopify-legacy-to-v2`: three more verified V1 crawl-string rules (`.find("a, b")` order per element, selectors
+  on keys the legacy item lacks, `removeMatching("")`) and a note on alphabetical legacy collection order.
+
 ## 1.47.0 — 2026-10-20
 
 ### Added
