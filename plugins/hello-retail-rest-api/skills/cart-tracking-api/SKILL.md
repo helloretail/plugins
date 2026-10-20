@@ -1,6 +1,6 @@
 ---
 name: cart-tracking-api
-description: Use when a shopper's cart changes (item added, removed, quantity changed, or cart cleared) - covers the Cart tracking REST API (core.helloretail.com/serve/collect/cart), why the platform-agnostic Hello Retail SDK does NOT handle this automatically (unlike some platform-specific plugins), and known gotchas including a cart-specific quirk in how the opted-out sentinel behaves.
+description: Use when a shopper's cart changes (item added, removed, quantity changed, or cart cleared) - covers the Cart tracking REST API (core.helloretail.com/serve/collect/cart), which works on any platform, when the Hello Retail SDK already handles cart tracking for you (automatically on Shopify, Magento 2 and Shopware, which requires the SDK on the frontend) and when the integration must call the endpoint itself, and known gotchas including a cart-specific quirk in how the opted-out sentinel behaves.
 ---
 
 # Hello Retail Cart Tracking API
@@ -17,36 +17,40 @@ Content-Type: application/json (or text/plain)
 ```
 
 **This is different from both Click tracking and View tracking in how it
-relates to the SDK.** The platform-agnostic Hello Retail SDK does **not**
-automatically track cart changes by default, full stop - there's no
-`trackPageView: false`-style setting to flip, because there's no automatic
-behavior to disable in the first place. The SDK exposes a `setCart()` method
-that internally calls this same REST endpoint, but nothing calls that method
-for you - the plain SDK has no way to see into an arbitrary site's cart
-implementation on its own.
+relates to the SDK.** This REST endpoint always works, on any platform: a
+custom, own-built integration and a store on Shopify, Magento 2 or Shopware
+can all send cart tracking through it. What differs per platform is only
+whether the Hello Retail SDK already sends it for you.
 
-Some of Hello Retail's **platform-specific plugin integrations** - Shopify,
-Magento 2, and Shopware are the ones known at time of writing - *do* wire this
-up automatically, because those plugins have direct access to that platform's
-own native cart events and call `setCart()` (or this endpoint) on the
-customer's behalf. That's a property of those specific plugins, not of the
-platform-agnostic SDK itself.
+**On Shopify, Magento 2 and Shopware, the Hello Retail SDK handles cart
+tracking automatically** - those are the platforms known at time of writing.
+That is a feature of the SDK, so it requires the SDK to be present on the
+frontend. A REST API integration on one of those platforms that keeps the
+SDK on its frontend can rely on it, and has no cart tracking to build. A
+customer on one of those platforms who has chosen not to install the SDK on
+their frontend takes on cart tracking themselves, through this endpoint.
 
-**Practical consequence**: unlike View tracking, installing the plain SDK does
-not remove this responsibility. Whether the integration is built against the
-SDK's `setCart()` method or this REST endpoint directly, *something* still has
-to detect every cart state change and fire on it - unless the site is running
-one of the specific platform plugins named above.
+**On any other platform, the SDK does not track cart changes by itself**,
+full stop - there's no `trackPageView: false`-style setting to flip, because
+there's no automatic behavior to disable in the first place. The SDK exposes
+a `setCart()` method that internally calls this same REST endpoint, but
+nothing calls that method for you - on its own, the SDK has no way to see
+into an arbitrary site's cart implementation. So, unlike View tracking,
+installing the SDK there does not remove this responsibility: *something* in
+the integration has to detect every cart state change and fire on it, either
+through `setCart()` or this REST endpoint directly.
 
 ## Before writing any code
 
-1. **Confirm whether the site is on one of Hello Retail's platform-specific
-   plugins (Shopify, Magento 2, Shopware) before building anything.** If it
-   is, cart tracking is very likely already handled for you - verify rather
-   than assuming, the same way you'd verify SDK presence for any other
-   tracking skill. If the site is on the platform-agnostic SDK, has no SDK at
-   all, or is on a platform not covered by one of those specific plugins,
-   this is the integration's responsibility to build.
+1. **Confirm whether cart tracking is already handled before building
+   anything.** It is only when the site is on Shopify, Magento 2 or Shopware
+   *and* the Hello Retail SDK is present on its frontend - verify that rather
+   than assuming. The platform alone doesn't answer it, because a customer on
+   one of those platforms may have chosen not to install the SDK on the
+   frontend; ask whether it is installed, the same question
+   [view-tracking-api](../view-tracking-api/SKILL.md) asks. In every other
+   case - another platform, or one of those three without the SDK - cart
+   tracking is the integration's responsibility to build.
 2. **Fire on every cart state change, not just "add to cart."** Removing an
    item, changing a quantity, and clearing the cart entirely are all state
    changes Hello Retail needs to hear about. An emptied cart is represented by
@@ -109,15 +113,17 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
   "Add to cart" gotcha - fire both requests from the button's click handler,
   each with the tile's own product identifiers (`trackingCode` for Click
   tracking, `productNumber`/cart contents for this endpoint).
-- **The platform-agnostic SDK does not auto-handle this - re-read the
+- **The SDK does not auto-handle this on a generic site - re-read the
   Overview above before assuming installing the SDK is enough.** This is the
   single most important gotcha for this endpoint specifically, and it cuts
   the opposite direction from View tracking's equivalent gotcha: for View
   tracking, assuming "no SDK" when the SDK is actually present risks
   duplicate tracking; for Cart tracking, assuming "the SDK handles this" just
   because it's present risks *no* cart tracking happening at all, silently,
-  unless the site happens to be on one of the specific supported platform
-  plugins.
+  unless the site is on Shopify, Magento 2 or Shopware with the SDK present
+  on its frontend. The mirror-image mistake is just as silent on those three
+  platforms: assuming cart tracking is handled because of the platform, when
+  the customer has chosen not to install the SDK on the frontend.
 - **The opted-out sentinel produces a genuinely different, weaker outcome
   here than for Search, Click, or View tracking.** Verified 2026-09-11
   against the live endpoint: sending `trackingUserId:
@@ -195,10 +201,11 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
   `apiKey`) and nothing was actually stored, even though the HTTP call
   succeeded. See the sentinel gotcha above before assuming this is a bug.
 - Cart tracking isn't firing at all and nothing in this project's own code
-  calls this endpoint → confirm whether the site is on a platform-specific
-  plugin (Shopify, Magento 2, Shopware) that's expected to be handling it
-  automatically, per the Overview above, before building a duplicate manual
-  integration.
+  calls this endpoint → check whether the site is on Shopify, Magento 2 or
+  Shopware *and* has the Hello Retail SDK present on its frontend. If both,
+  the SDK is expected to be handling it, per the Overview above - look there
+  before building a duplicate manual integration. If the SDK isn't on the
+  frontend, cart tracking is the integration's job, through this endpoint.
 - Requests seem to vanish, time out, or return unexpected status codes → use
   `apiLog_getEntries` / `apiLog_getStats` - see
   [troubleshooting-with-hello-retail-mcp](../troubleshooting-with-hello-retail-mcp/SKILL.md)

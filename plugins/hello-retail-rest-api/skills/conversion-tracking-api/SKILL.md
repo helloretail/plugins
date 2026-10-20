@@ -1,6 +1,6 @@
 ---
 name: conversion-tracking-api
-description: Use when a shopper completes a purchase - covers the Conversion tracking REST API (core.helloretail.com/serve/collect/conversion), why the platform-agnostic Hello Retail SDK does NOT handle this automatically (same relationship as Cart tracking), and known gotchas including per-line-item quantity, which Cart tracking does not have.
+description: Use when a shopper completes a purchase - covers the Conversion tracking REST API (core.helloretail.com/serve/collect/conversion), which works on any platform, when the Hello Retail SDK already handles conversion tracking for you (automatically on Shopify, Magento 2 and Shopware, which requires the SDK on the frontend - same relationship as Cart tracking) and when the integration must call the endpoint itself, and known gotchas including per-line-item quantity, which Cart tracking does not have.
 ---
 
 # Hello Retail Conversion Tracking API
@@ -20,14 +20,24 @@ Content-Type: application/json (or text/plain)
 **This endpoint has the same SDK relationship as
 [cart-tracking-api](../cart-tracking-api/SKILL.md), not View tracking's.** The
 JavaScript SDK exposes a `trackConversion()` method that internally calls this
-same REST endpoint, but nothing invokes that method automatically on the
-platform-agnostic SDK - it has no way to know a purchase just completed on an
-arbitrary site. The same platform-specific plugins that can auto-handle Cart
-tracking (Shopify, Magento 2, Shopware, at time of writing) can also auto-fire
-conversion tracking, because those plugins have direct access to the
-platform's own native order-completion events. Outside of those specific
-plugins, firing this is the integration's responsibility regardless of
-whether the plain SDK is present.
+same REST endpoint, but on a generic site nothing invokes that method
+automatically - the SDK has no way to know a purchase just completed on an
+arbitrary site.
+
+This REST endpoint always works, on any platform: a custom, own-built
+integration and a store on Shopify, Magento 2 or Shopware can all send
+conversion tracking through it. **On Shopify, Magento 2 and Shopware (at time
+of writing), the Hello Retail SDK handles conversion tracking
+automatically**, exactly as for Cart tracking. That is a feature of the SDK,
+so it requires the SDK to be present on the frontend, including the order
+confirmation page. A REST API integration on one of those platforms that
+keeps the SDK on its frontend can rely on it, and has no conversion tracking
+to build. A customer on one of those platforms who has chosen not to install
+the SDK on their frontend takes on conversion tracking themselves, through
+this endpoint.
+
+On any other platform, firing this is the integration's responsibility
+whether or not the SDK is present.
 
 **The one substantive difference from Cart tracking**: Conversion tracking's
 `products[]` array carries a real `quantity` (and `lineTotal`) per line item.
@@ -38,10 +48,13 @@ A purchase of 2 units of the same product is represented as
 
 ## Before writing any code
 
-1. **Confirm whether the site is on one of Hello Retail's platform-specific
-   plugins (Shopify, Magento 2, Shopware) before building anything** - same
-   check as Cart tracking. If it is, conversion tracking is very likely
-   already handled. Otherwise, this is the integration's responsibility.
+1. **Confirm whether conversion tracking is already handled before building
+   anything** - same check as Cart tracking. It very likely is when the site
+   is on Shopify, Magento 2 or Shopware *and* the Hello Retail SDK is present
+   on its frontend; the platform alone doesn't answer it, because a customer
+   on one of those platforms may have chosen not to install the SDK. In every
+   other case - another platform, or one of those three without the SDK -
+   this is the integration's responsibility.
 2. **Fire exactly once per completed order**, not continuously the way Cart
    tracking fires on every state change. The natural trigger is the order
    confirmation / "thank you" page rendering, or the equivalent point in an
@@ -92,11 +105,14 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
 
 ## Gotchas worth knowing before you build
 
-- **The platform-agnostic SDK does not auto-handle this - re-read the
+- **The SDK does not auto-handle this on a generic site - re-read the
   Overview above.** Same failure mode as Cart tracking: assuming "the SDK
   handles this" because it's present risks *no* conversion tracking
-  happening at all, silently, unless the site is on one of the specific
-  supported platform plugins.
+  happening at all, silently, unless the site is on Shopify, Magento 2 or
+  Shopware with the SDK present on its frontend. On those three platforms the
+  mirror-image mistake is assuming conversion tracking is handled because of
+  the platform, when the customer has chosen not to install the SDK on the
+  frontend.
 - **The opted-out sentinel produces the same weaker outcome here as it does
   for Cart tracking - not the Search/Click/View behavior.** Verified
   2026-09-11 against the live endpoint: sending `trackingUserId:
@@ -166,10 +182,12 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
   the join key was right, since `orderNumber` isn't validated against
   anything at request time.
 - Conversion tracking isn't firing at all and nothing in this project's own
-  code calls this endpoint → confirm whether the site is on a
-  platform-specific plugin (Shopify, Magento 2, Shopware) expected to be
-  handling it automatically, per the Overview above, before building a
-  duplicate manual integration.
+  code calls this endpoint → check whether the site is on Shopify, Magento 2
+  or Shopware *and* has the Hello Retail SDK present on its frontend. If
+  both, the SDK is expected to be handling it, per the Overview above - look
+  there before building a duplicate manual integration. If the SDK isn't on
+  the frontend, conversion tracking is the integration's job, through this
+  endpoint.
 - Requests seem to vanish, time out, or return unexpected status codes → use
   `apiLog_getEntries` / `apiLog_getStats` - see
   [troubleshooting-with-hello-retail-mcp](../troubleshooting-with-hello-retail-mcp/SKILL.md)
