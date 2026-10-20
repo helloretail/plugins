@@ -80,18 +80,25 @@ the async-race gotcha, and the opted-out sentinel
 
 ### params.filters
 
-An object keyed by product field name, used both to scope the base/"gross"
-product pool for the page (e.g. "this is the snowboards category page") and
-to supply values for any **INPUT**-type filter the page config expects (see
-[SKILL.md](../SKILL.md) item 5 under "Before writing any code" for the
-LITERAL vs INPUT distinction, which comes from Hello Retail's own
-`pages_getConfigProductFilters` MCP tool description).
+An object keyed by product field name, used to scope the base/"gross"
+product pool for the page with dynamic rules that change per request (e.g.
+"show products from whatever category id is forwarded in the request" -
+"this is the snowboards category page").
 
-**Any field used here must be indexed for search filtering and sorting in
-Hello Retail's Data Fields** - a site-wide setting, checked via
-`dataFields_getProductFields` (see [SKILL.md](../SKILL.md) item 3), not
-something configured per Pages config. This is the same indexing
-requirement Search's own `filters` rely on.
+**The only requirement on a field used here is that it is indexed for
+search filtering and sorting in Hello Retail's Data Fields** - a site-wide
+setting, checked via `dataFields_getProductFields` (see
+[SKILL.md](../SKILL.md) item 3). This is the same indexing requirement
+Search's own `filters` rely on.
+
+`params.filters` does not interact with the Pages config's **product
+conditions** in My Hello Retail (read via `pages_getConfigProductFilters`).
+Those hold static rules applied to every request, such as "show only
+products that are on sale"; a field used here doesn't have to be defined
+there, and they don't read anything from here. A static rule can be sent
+in `params.filters` too, but ideally belongs in the product conditions - see
+[SKILL.md](../SKILL.md) item 5 under "Before writing any code". Every live
+test in this file ran against a config with no product conditions.
 
 Observed field/value shapes (from Hello Retail's own example collection and
 live verification):
@@ -453,10 +460,6 @@ parse or rely on the prefix.
 
 - Whether `products.sorting` accepts more than one entry per request (Search
   restricts this to one) was not independently tested here.
-- Whether an actually-missing INPUT filter (per `pages_getConfigProductFilters`)
-  produces a distinguishable error from the generic 500 described above was
-  not tested here - the config used for live verification had no configured
-  INPUT filters (`pages_getConfigProductFilters` returned an empty list).
 - The `errors` array's purpose (always empty in every response observed
   here) is unconfirmed.
 - `BOOLEAN`-type filter object shape is unconfirmed (not observed live).
