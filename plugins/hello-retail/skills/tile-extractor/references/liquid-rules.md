@@ -240,17 +240,19 @@ outlet / permanently reduced products — use it **only** when the native tile h
 {% endif %}
 ```
 
-**When the feed never sets `isOnSale`** (`productData_getFieldValues(field: "isOnSale")` lists
-only `false` — the survey's feed probe, `survey-snippets.md`), gate on the shop's own rendered
-markup instead, if the feed carries it: `{% if product.extraData.priceHtml contains "<del" %}`,
-and print that HTML with `rawHtml` rather than rebuilding the pair. **Never `oldPrice != price`
-on its own:** on many feeds the two differ on products that are not on sale (tier prices, stale
-old prices, inverted fields), and a badge gated on that pair lands on every one of them (field
-case 2026-10, WooCommerce: 9 badges in 252 results, 2 genuine). It serves only as the input to
-the percentage, taken from the larger and the smaller of the two so an inverted feed still
-gives the right number. Whatever the condition, evaluate it on **two non-sale products** from
-the feed as well as the sale fixture before the branch ships — one passing fixture proves
-nothing about the condition.
+**When the feed sets `isOnSale` wrongly, flag it — never substitute a condition.** The survey's
+feed probe (`survey-snippets.md`) can show the flag disagreeing with the shop: `false` on a
+product whose category tile carries a struck-through price, or `true` on products without one.
+That is a feed defect. The sale branch still keys on `product.isOnSale`, and the build raises a
+**MISSING DATA** line for the feed owner naming the product and the two values seen
+(`missing-data.md` → *`isOnSale` wrong*); the branch starts rendering the moment the feed is
+corrected. What the build must **not** do is invent a replacement: not `oldPrice != price`
+(on many feeds the two differ on products that are not on sale — tier prices, stale old prices,
+inverted fields — and a badge gated on that pair lands on every one of them: field case
+2026-10, WooCommerce, 9 badges in 252 results, 2 genuine), and not a markup test on
+`priceHtml` either — a condition the feed does not define is a condition QA cannot verify.
+An inverted price pair (`oldPrice` below `price`) goes on the same MISSING DATA line — the
+template keeps the standard discount formula above and is not reworked around the defect.
 
 **Build the sale branch even when no sale product is live.** A survey that finds no sale tile
 today only says there was none at that hour (SKILL.md step 4). On a platform whose sale markup
@@ -259,12 +261,8 @@ unverified live*. WooCommerce (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/woocom
 → *Sale tile markup*):
 
 ```liquid
-{% assign sale_hi = product.price %}{% assign sale_lo = product.oldPrice %}
-{% if product.oldPrice > product.price %}{% assign sale_hi = product.oldPrice %}{% assign sale_lo = product.price %}{% endif %}
-{% assign is_sale = false %}
-{% if product.extraData.priceHtml contains "<del" and sale_lo > 0 and sale_hi > sale_lo %}{% assign is_sale = true %}{% endif %}
-<li class="product … {% if is_sale %} sale{% endif %} …">
-  <a …>{% if is_sale %}<span class="onsale">-{{ sale_hi | minus: sale_lo | times: 100.0 | divided_by: sale_hi | round }}%</span>{% endif %}<img …>
+<li class="product … {% if product.isOnSale %} sale{% endif %} …">
+  <a …>{% if product.isOnSale and product.oldPrice > 0 %}<span class="onsale">-{{ product.oldPrice | minus: product.price | times: 100.0 | divided_by: product.oldPrice | round }}%</span>{% endif %}<img …>
 ```
 
 The shell restates the theme's `.price del`, `.price ins` and `.onsale` rules under the overlay

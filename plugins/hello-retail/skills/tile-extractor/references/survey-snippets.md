@@ -258,8 +258,10 @@ at <time>; feed probe: isOnSale=false only, 0 rows with oldPrice≠price or <del
 decides what the report says, not whether a sale branch exists — see SKILL.md step 4.
 
 Field case (WooCommerce, 2026-10): `isOnSale` was `false` for every product, the one sale
-product had `price` and `oldPrice` inverted, and the only reliable signal was `<del` inside
-`priceHtml`. A probe on the flag alone would have agreed with the empty page sweep.
+product had `price` and `oldPrice` inverted, and only the `<del` inside `priceHtml` showed the
+state existed. A probe on the flag alone would have agreed with the empty page sweep. The `<del`
+hit is how the probe *detects* the state and the flag defect — it is reported as MISSING DATA
+(`isOnSale` wrong), never used as the template's sale condition (`liquid-rules.md`).
 
 ### Swatch / variant strip probe — class names cannot find it
 

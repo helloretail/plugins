@@ -50,11 +50,12 @@ appeared the same afternoon).
   `.onsale`, `.price del` and `.price ins` into the design's `resultStyles`, scoped under the
   overlay container — the base theme rules are keyed on `ul.products li.product` and never reach
   the Hello Retail container.
-- **Sale signal in the feed.** The WooCommerce feed sets `isOnSale` inconsistently — on one shop
-  it was `false` for every product and the single sale product had `price` and `oldPrice`
-  inverted. When the feed carries the rendered price (`extraData.priceHtml`), gate the branch on
-  `priceHtml contains "<del"`; otherwise on `isOnSale`. Never on `oldPrice != price` alone — tier
-  and range prices make those two differ on products that are not on sale.
+- **Sale signal in the feed.** The branch keys on `isOnSale`, and the WooCommerce feed sets it
+  inconsistently — on one shop it was `false` for every product and the single sale product had
+  `price` and `oldPrice` inverted. That is a feed defect: keep `isOnSale` in the template and
+  raise it as MISSING DATA for the feed owner with the product as the example. Never replace the
+  flag with `oldPrice != price` (tier and range prices make those two differ on products that
+  are not on sale) or with a test on the rendered price HTML.
 - **Range sales.** A variable product whose sale is on one variant shows `.onsale` without a
   `<del>` in the loop (the range "4,05–5,40 kr" is already the sale range). The feed carries no
   signal for this case; record it as a feed gap, do not invent one.

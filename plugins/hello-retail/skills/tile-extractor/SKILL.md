@@ -277,7 +277,7 @@ while you work. In that mode:
 | Stock check          | `product.inStock == false`                                                                                                | `product.inStock != true`                     |
 | JSON parse           | `\| jsonParse`                                                                                                            | `\| parse_json`                               |
 | extraData boolean    | `== "true"`                                                                                                               | `== true`                                     |
-| Sale check           | `{% if product.isOnSale %}` (outlet label only: `priceLowered`); feed never sets the flag → the shop's own `<del` in `priceHtml` | `{% if product.oldPrice > product.price %}`; `priceLowered` as a sale condition |
+| Sale check           | `{% if product.isOnSale %}` (outlet label only: `priceLowered`); flag wrong in the feed → MISSING DATA, never a substitute condition | `{% if product.oldPrice > product.price %}`; `priceLowered` as a sale condition |
 | Price suffix         | static `,-` or a translated "from" word around the filter; suffix on both prices of a sale pair                          | hardcoded currency; `\| remove: '.'`; suffix once after `<del>…<ins>` |
 | Unique IDs (general) | `{{ product.productNumber }}`                                                                                             | hardcoded IDs                                 |
 | Unique IDs (Magento) | `{{ product.extraData.itemNumber }}`                                                                                      | hardcoded entity number                       |
