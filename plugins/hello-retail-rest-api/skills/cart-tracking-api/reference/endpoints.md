@@ -28,15 +28,18 @@ for skill consumption).
 
 ## SDK vs custom integration
 
-The platform-agnostic Hello Retail SDK does not automatically detect or fire
-cart tracking - per Hello Retail's own docs, its `setCart()` JS method calls
-this same REST endpoint internally, but nothing invokes that method
-automatically on a generic site. Some platform-specific plugin integrations
-(Shopify, Magento 2, and Shopware, at time of writing) wire this up
-automatically because those plugins have direct access to the platform's own
-native cart events. Outside of those specific plugins, firing this on every
-cart state change is the integration's responsibility regardless of whether
-the plain SDK is present - see [SKILL.md](../SKILL.md)'s Overview.
+This endpoint works on any platform - a custom integration and a store on
+Shopify, Magento 2 or Shopware can all send cart tracking through it. On
+Shopify, Magento 2 and Shopware (at time of writing), the Hello Retail SDK
+handles cart tracking automatically, which requires the SDK to be present on
+the frontend; a customer on one of those platforms who has chosen not to
+install the SDK there handles cart tracking through this endpoint instead.
+On any other platform the SDK does not detect or fire cart tracking by
+itself: per Hello Retail's own docs, its `setCart()` JS method calls this
+same REST endpoint internally, but nothing invokes that method automatically.
+There, firing this on every cart state change is the integration's
+responsibility regardless of whether the SDK is present. See
+[SKILL.md](../SKILL.md)'s Overview.
 
 ## Request body
 
