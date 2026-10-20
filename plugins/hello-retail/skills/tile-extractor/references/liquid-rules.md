@@ -125,6 +125,9 @@ should add. Never invent the value.
 {% endif %}
 ```
 
+The condition that gates this block, and what to do when no sale product is live on the survey
+day, are in *`isOnSale` drives the sale badge* below.
+
 ### Stock
 
 ```liquid
@@ -236,6 +239,34 @@ outlet / permanently reduced products — use it **only** when the native tile h
   <span class="outlet-badge">Outlet</span>
 {% endif %}
 ```
+
+**When the feed sets `isOnSale` wrongly, flag it — never substitute a condition.** The survey's
+feed probe (`survey-snippets.md`) can show the flag disagreeing with the shop: `false` on a
+product whose category tile carries a struck-through price, or `true` on products without one.
+That is a feed defect. The sale branch still keys on `product.isOnSale`, and the build raises a
+**MISSING DATA** line for the feed owner naming the product and the two values seen
+(`missing-data.md` → *`isOnSale` wrong*); the branch starts rendering the moment the feed is
+corrected. What the build must **not** do is invent a replacement: not `oldPrice != price`
+(on many feeds the two differ on products that are not on sale — tier prices, stale old prices,
+inverted fields — and a badge gated on that pair lands on every one of them: field case
+2026-10, WooCommerce, 9 badges in 252 results, 2 genuine), and not a markup test on
+`priceHtml` either — a condition the feed does not define is a condition QA cannot verify.
+An inverted price pair (`oldPrice` below `price`) goes on the same MISSING DATA line — the
+template keeps the standard discount formula above and is not reworked around the defect.
+
+**Build the sale branch even when no sale product is live.** A survey that finds no sale tile
+today only says there was none at that hour (SKILL.md step 4). On a platform whose sale markup
+is documented, copy that markup into the branch and report it as *built from platform markup,
+unverified live*. WooCommerce (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/woocommerce/README.md`
+→ *Sale tile markup*):
+
+```liquid
+<li class="product … {% if product.isOnSale %} sale{% endif %} …">
+  <a …>{% if product.isOnSale and product.oldPrice > 0 %}<span class="onsale">-{{ product.oldPrice | minus: product.price | times: 100.0 | divided_by: product.oldPrice | round }}%</span>{% endif %}<img …>
+```
+
+The shell restates the theme's `.price del`, `.price ins` and `.onsale` rules under the overlay
+container (search-developer step 7) — the badge markup without those three rules renders unstyled.
 
 ### Image-based color swatches — `extraDataList.swatchIMG`
 
