@@ -18,6 +18,47 @@ WooCommerce is the WordPress ecommerce plugin — very common in EU SMB. Hello R
 
 ---
 
+## Sale tile markup
+
+WooCommerce's product loop renders a sale tile with the same three pieces on every theme that
+keeps the standard loop (Storefront, Astra, Elementor's products grid, GeneratePress). A tile
+template built for a WooCommerce shop carries this branch **even when no product is on sale on
+the day of the survey** — scheduled sales start and end on their own, and a tile without the
+branch renders the first sale product wrong (seen 2026-10: two surveys found no sale tile, one
+appeared the same afternoon).
+
+```html
+<li class="product type-product … sale …">
+  <a href="…" class="woocommerce-LoopProduct-link woocommerce-loop-product__link">
+    <span class="onsale">-15%</span>              <!-- percentage or the theme's word, e.g. "Tilbud!" -->
+    <img …>
+    <h2 class="woocommerce-loop-product__title">…</h2>
+    <span class="price">
+      <del aria-hidden="true"><span class="woocommerce-Price-amount amount"><bdi>565,00&nbsp;<span class="woocommerce-Price-currencySymbol">kr.</span></bdi></span></del>
+      <span class="screen-reader-text">Den oprindelige pris var: 565,00&nbsp;kr..</span>
+      <ins aria-hidden="true"><span class="woocommerce-Price-amount amount"><bdi>480,25&nbsp;<span class="woocommerce-Price-currencySymbol">kr.</span></bdi></span></ins>
+      <span class="screen-reader-text">Den aktuelle pris er: 480,25&nbsp;kr..</span>
+    </span>
+  </a>
+  …
+</li>
+```
+
+- The card gets the `sale` class; the badge is `span.onsale` as the first child of the product
+  link; the old price sits in `<del>`, the new one in `<ins>`. Themes restyle these three
+  selectors (circle vs ribbon, text vs percentage), so copy the shop's computed values for
+  `.onsale`, `.price del` and `.price ins` into the design's `resultStyles`, scoped under the
+  overlay container — the base theme rules are keyed on `ul.products li.product` and never reach
+  the Hello Retail container.
+- **Sale signal in the feed.** The WooCommerce feed sets `isOnSale` inconsistently — on one shop
+  it was `false` for every product and the single sale product had `price` and `oldPrice`
+  inverted. When the feed carries the rendered price (`extraData.priceHtml`), gate the branch on
+  `priceHtml contains "<del"`; otherwise on `isOnSale`. Never on `oldPrice != price` alone — tier
+  and range prices make those two differ on products that are not on sale.
+- **Range sales.** A variable product whose sale is on one variant shows `.onsale` without a
+  `<del>` in the loop (the range "4,05–5,40 kr" is already the sale range). The feed carries no
+  signal for this case; record it as a feed gap, do not invent one.
+
 ## Endpoints the plugin exposes
 
 | Endpoint | Auth | What it's for |
@@ -93,3 +134,4 @@ See [plugin info endpoints](../plugin-info-endpoints.md) for when to check these
 ## Timeline
 - 2026-05-21: Page seeded.
 - 2026-10-02: Added the endpoint table, the info endpoint's shape and `extraAttributes` behaviour, checked against a live shop on plugin 1.2.43.
+- 2026-10-20: Added the sale tile markup (`sale` class, `span.onsale`, `del`/`ins`), the feed sale-signal rule and the range-sale gap, from an Elementor + WooCommerce onboarding where the survey found no sale tile and one appeared the same day.

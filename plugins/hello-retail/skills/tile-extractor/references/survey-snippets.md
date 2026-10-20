@@ -235,6 +235,32 @@ Array.from(tiles)
   }));
 ```
 
+### Feed probe before recording a state absent
+
+The page sweep sees the shop at one moment; the feed sees every product. A state goes into the
+report as *absent* only when **both** come back empty, and the line records when and what was
+checked. With a `website-uuid`, run these through the `hello-retail` MCP:
+
+1. `productData_getFieldValues(field: "isOnSale")` — if `true` is among the values, a sale
+   state exists; `productData_search` with a sale term or the category name finds a carrier.
+   If only `false` comes back the flag is unused on this website — do **not** stop here.
+2. `productData_search(query: "*", limit: 100)` and page through a few hundred rows: any row
+   with `oldPrice ≠ price`, or whose `extraData.priceHtml` (when the feed carries the shop's
+   rendered price) contains `<del`, is a sale candidate — open its category page and capture the
+   tile. `inStock: false` rows are the sold-out fixtures; `hasVariants == "true"` rows the variant
+   fixtures.
+3. When a Search config already serves the website, open the overlay once, search a broad
+   term and sort by price descending — a struck-through price on the first rows is a sale tile
+   the category sweep missed.
+
+Only when all three are empty does VARIATIONS read `absent on this shop (checked on <pages>
+at <time>; feed probe: isOnSale=false only, 0 rows with oldPrice≠price or <del>)`. The probe
+decides what the report says, not whether a sale branch exists — see SKILL.md step 4.
+
+Field case (WooCommerce, 2026-10): `isOnSale` was `false` for every product, the one sale
+product had `price` and `oldPrice` inverted, and the only reliable signal was `<del` inside
+`priceHtml`. A probe on the flag alone would have agreed with the empty page sweep.
+
 ### Swatch / variant strip probe — class names cannot find it
 
 The survey above only looks for class names inside the tile **root**. On a CSS-in-JS shop the classes

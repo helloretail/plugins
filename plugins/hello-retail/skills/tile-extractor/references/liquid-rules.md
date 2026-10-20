@@ -125,6 +125,9 @@ should add. Never invent the value.
 {% endif %}
 ```
 
+The condition that gates this block, and what to do when no sale product is live on the survey
+day, are in *`isOnSale` drives the sale badge* below.
+
 ### Stock
 
 ```liquid
@@ -236,6 +239,36 @@ outlet / permanently reduced products — use it **only** when the native tile h
   <span class="outlet-badge">Outlet</span>
 {% endif %}
 ```
+
+**When the feed never sets `isOnSale`** (`productData_getFieldValues(field: "isOnSale")` lists
+only `false` — the survey's feed probe, `survey-snippets.md`), gate on the shop's own rendered
+markup instead, if the feed carries it: `{% if product.extraData.priceHtml contains "<del" %}`,
+and print that HTML with `rawHtml` rather than rebuilding the pair. **Never `oldPrice != price`
+on its own:** on many feeds the two differ on products that are not on sale (tier prices, stale
+old prices, inverted fields), and a badge gated on that pair lands on every one of them (field
+case 2026-10, WooCommerce: 9 badges in 252 results, 2 genuine). It serves only as the input to
+the percentage, taken from the larger and the smaller of the two so an inverted feed still
+gives the right number. Whatever the condition, evaluate it on **two non-sale products** from
+the feed as well as the sale fixture before the branch ships — one passing fixture proves
+nothing about the condition.
+
+**Build the sale branch even when no sale product is live.** A survey that finds no sale tile
+today only says there was none at that hour (SKILL.md step 4). On a platform whose sale markup
+is documented, copy that markup into the branch and report it as *built from platform markup,
+unverified live*. WooCommerce (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/woocommerce/README.md`
+→ *Sale tile markup*):
+
+```liquid
+{% assign sale_hi = product.price %}{% assign sale_lo = product.oldPrice %}
+{% if product.oldPrice > product.price %}{% assign sale_hi = product.oldPrice %}{% assign sale_lo = product.price %}{% endif %}
+{% assign is_sale = false %}
+{% if product.extraData.priceHtml contains "<del" and sale_lo > 0 and sale_hi > sale_lo %}{% assign is_sale = true %}{% endif %}
+<li class="product … {% if is_sale %} sale{% endif %} …">
+  <a …>{% if is_sale %}<span class="onsale">-{{ sale_hi | minus: sale_lo | times: 100.0 | divided_by: sale_hi | round }}%</span>{% endif %}<img …>
+```
+
+The shell restates the theme's `.price del`, `.price ins` and `.onsale` rules under the overlay
+container (search-developer step 7) — the badge markup without those three rules renders unstyled.
 
 ### Image-based color swatches — `extraDataList.swatchIMG`
 
