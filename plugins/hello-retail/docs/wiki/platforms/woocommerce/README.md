@@ -21,23 +21,21 @@ WooCommerce is the WordPress ecommerce plugin — very common in EU SMB. Hello R
 ## Sale tile markup
 
 WooCommerce's product loop renders a sale tile with the same three pieces on every theme that
-keeps the standard loop (Storefront, Astra, Elementor's products grid, GeneratePress). A tile
-template built for a WooCommerce shop carries this branch **even when no product is on sale on
-the day of the survey** — scheduled sales start and end on their own, and a tile without the
-branch renders the first sale product wrong (seen 2026-10: two surveys found no sale tile, one
-appeared the same afternoon).
+keeps the standard loop (Storefront, Astra, Elementor's products grid, GeneratePress). This is
+the markup the tile skill builds the sale branch from when no sale product is live on the survey
+day (`tile-extractor` step 4 — scheduled sales start and end on their own).
 
 ```html
 <li class="product type-product … sale …">
   <a href="…" class="woocommerce-LoopProduct-link woocommerce-loop-product__link">
-    <span class="onsale">-15%</span>              <!-- percentage or the theme's word, e.g. "Tilbud!" -->
+    <span class="onsale">-15%</span>              <!-- percentage or the theme's word, e.g. "Sale!" -->
     <img …>
     <h2 class="woocommerce-loop-product__title">…</h2>
     <span class="price">
-      <del aria-hidden="true"><span class="woocommerce-Price-amount amount"><bdi>565,00&nbsp;<span class="woocommerce-Price-currencySymbol">kr.</span></bdi></span></del>
-      <span class="screen-reader-text">Den oprindelige pris var: 565,00&nbsp;kr..</span>
-      <ins aria-hidden="true"><span class="woocommerce-Price-amount amount"><bdi>480,25&nbsp;<span class="woocommerce-Price-currencySymbol">kr.</span></bdi></span></ins>
-      <span class="screen-reader-text">Den aktuelle pris er: 480,25&nbsp;kr..</span>
+      <del aria-hidden="true"><span class="woocommerce-Price-amount amount"><bdi>100,00&nbsp;<span class="woocommerce-Price-currencySymbol">kr.</span></bdi></span></del>
+      <span class="screen-reader-text">Original price was: 100,00&nbsp;kr.</span>
+      <ins aria-hidden="true"><span class="woocommerce-Price-amount amount"><bdi>85,00&nbsp;<span class="woocommerce-Price-currencySymbol">kr.</span></bdi></span></ins>
+      <span class="screen-reader-text">Current price is: 85,00&nbsp;kr.</span>
     </span>
   </a>
   …
@@ -50,15 +48,15 @@ appeared the same afternoon).
   `.onsale`, `.price del` and `.price ins` into the design's `resultStyles`, scoped under the
   overlay container — the base theme rules are keyed on `ul.products li.product` and never reach
   the Hello Retail container.
-- **Sale signal in the feed.** The branch keys on `isOnSale`, and the WooCommerce feed sets it
-  inconsistently — on one shop it was `false` for every product and the single sale product had
-  `price` and `oldPrice` inverted. That is a feed defect: keep `isOnSale` in the template and
-  raise it as MISSING DATA for the feed owner with the product as the example. Never replace the
-  flag with `oldPrice != price` (tier and range prices make those two differ on products that
-  are not on sale) or with a test on the rendered price HTML.
+- **Sale signal in the feed.** The WooCommerce feed sets `isOnSale` inconsistently — on one
+  shop it was `false` for every product, and the sale product's `price`/`oldPrice` came
+  inverted. The template keeps the standard `isOnSale` branch and the build flags the feed
+  (`tile-extractor` → `liquid-rules.md` → *`isOnSale` drives the sale badge*); tier and range
+  prices make `oldPrice != price` true on products that are not on sale, so it is never a
+  substitute.
 - **Range sales.** A variable product whose sale is on one variant shows `.onsale` without a
-  `<del>` in the loop (the range "4,05–5,40 kr" is already the sale range). The feed carries no
-  signal for this case; record it as a feed gap, do not invent one.
+  `<del>` in the loop (the range is already the sale range). The feed carries no signal for this
+  case; record it as a feed gap, do not invent one.
 
 ## Endpoints the plugin exposes
 
