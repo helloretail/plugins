@@ -174,6 +174,19 @@ extra query the backend has to run.
   to show everything (e.g. a "shop all brands" panel) - that's an explicit choice by
   whoever's building that widget, not something to fall back to by default just
   because the query happens to be blank.
+- **A new query resets every filter and sort.** When the shopper changes the
+  search query, drop all applied filters and the selected sort option. The request
+  for the new query is sent with no `filters` and no `sorting`, and the UI shows
+  every facet unselected and the sort control back on its default. For example, a
+  shopper searches "shoe", ticks the brand filter "Nike" and sorts by price, then
+  edits the query to "sandal": the "sandal" request carries no `brand:Nike` and no
+  `price asc`, and both controls show as cleared. Filters chosen for one result
+  set describe that result set only. Carried over, they silently narrow the new
+  query, often down to zero results, and the shopper can't see why. Reset `start`
+  to 0 at the same point, since a new query starts back on page one. "Changes the
+  query" means the debounced (or submitted) trimmed query differs from the one the
+  current results came from. Re-sending the same query, paging, or changing a
+  filter or the sort is not a query change, and keeps the filter and sort state.
 - **Filters are strings, not objects**: `"brand:Nike"` for list filters,
   `"price:10,50"` for inclusive range filters. The field must be indexed in My
   Hello Retail or the filter silently matches nothing - but indexing alone
