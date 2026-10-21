@@ -8,6 +8,14 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.1.4 — 2026-10-21
+
+### Fixed
+
+- `pages-api` no longer ties `params.filters` to the Pages config's product conditions. Any
+  field indexed in Data Fields can be used for per-request rules such as the forwarded category
+  id; static rules such as "sale products only" ideally go in the product conditions instead.
+
 ## 1.1.3 — 2026-10-20
 
 ### Changed
