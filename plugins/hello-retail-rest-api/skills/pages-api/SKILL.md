@@ -96,20 +96,28 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
    bypasses the customer's own governance over what shoppers can filter by
    on this specific page, and won't be reflected in Hello Retail's own
    view of what this Design offers. See the gotcha below.
-5. **`params.filters` supplies values for the page config's *INPUT*-type
-   filters - it is not something you invent from scratch per page type.** A
-   Pages config has an ordered list of product filters configured in My
-   Hello Retail, each either **LITERAL** (a fixed condition baked into the
-   config - e.g. "always exclude discontinued products" - that needs
-   nothing from the request) or **INPUT** (a condition whose *value* the
-   request supplies at render time - e.g. "whichever hierarchy this page is
-   currently showing"). Use `pages_getConfigProductFilters` to see which
-   filters this specific config actually expects and their type before
-   guessing what `params.filters` should contain for a given page - this is
-   a separate, config-specific check on top of item 3's site-wide indexing
-   check, not a replacement for it. Per Hello Retail's own docs, a request
-   is rejected if a configured INPUT filter's value is missing from
-   `params` - see the gotcha below on what that error actually looks like.
+5. **`params.filters` holds the page's dynamic rules; the Pages config's
+   product conditions hold its static ones - and the two don't interact.**
+   - **Product conditions** are a section of the Pages config in My Hello
+     Retail where the customer defines static rules that apply to every
+     request to that config - e.g. "show only products that are on sale".
+     They need nothing from the request. Read them with
+     `pages_getConfigProductFilters`.
+   - **`params.filters`** in the request body is where the integration
+     defines dynamic rules that change per request - e.g. "show products
+     from whatever category id is forwarded as part of the request body".
+     Its only requirement is item 3's Data Fields indexing. A field used here
+     does not have to be defined in the product conditions, and the product
+     conditions neither expect nor read anything from it. Don't ask the
+     customer to add a product condition before a `params.filters` key will
+     work. Verified: every `params.filters` example in this skill was tested
+     live against a config with no product conditions at all.
+   - **A static rule can also be sent in `params.filters`** and works, but
+     ideally it belongs in the product conditions, where the customer sets
+     it once in the dashboard instead of the frontend sending it on every
+     request. When a design or customer asks for a fixed rule such as "sale
+     products only", point them to the product conditions rather than
+     hard-coding it into the request.
 6. **Always include `trackingCode` in `products.fields`** - same rule as
    Search and Recommendations, and for the same reason: it's required to
    track clicks on the resulting tile. See
@@ -373,11 +381,13 @@ on the server) rather than the full `href`.
   and that the `key` in the URL path is correct and resolves (use
   `pages_listConfigs` to confirm the key exists and is `LIVE`) - see the
   error-shape gotcha above before assuming a server-side outage.
-- A configured filter looks like it's being ignored → confirm with
-  `pages_getConfigProductFilters` whether it's LITERAL (fixed in the
-  dashboard, nothing to send) or INPUT (needs a value from `params.filters`)
-  before assuming the request is malformed - see item 5 in "Before writing
-  any code" above.
+- A static rule (e.g. "sale products only") isn't being applied → check
+  whether it's actually defined in the Pages config's product conditions
+  with `pages_getConfigProductFilters`, and that the config is `LIVE`.
+  Product conditions apply by themselves and don't depend on anything in
+  `params.filters` - see item 5 in "Before writing any code" above. If the
+  rule is sent in `params.filters` instead, check that every request
+  carries it.
 - No results at all, or results that don't match what's configured in My
   Hello Retail → check the config is `LIVE` (`pages_listConfigs`, or
   `auditLog_getEntries` with `resourceType: PAGES_CONFIG` to confirm it was
