@@ -8,6 +8,12 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.48.0 — 2026-10-21
+
+### Added
+
+- `coach`: practise a work call against a customer built from real Pipedrive and Front data, shaped by the role and focus your lead set in customer (SDR cold call, AE pitch, CSM review / retention / upsell, support problem and explain calls), or answer 2–3 minutes of product questions on a platform, ESP or Hello Retail topic you have not passed yet; the call is saved and scored like a real meeting, and a pitch can be practised on one of your next booked Pitch/Demo meetings. Needs the Pipedrive MCP connector, and Front for sales and CSM calls.
+
 ## 1.47.1 — 2026-10-20
 
 ### Fixed
