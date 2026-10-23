@@ -8,6 +8,12 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.47.2 — 2026-10-23
+
+### Changed
+
+- `search-developer` names the embedded placement container by its own identity (`main`, `#MainContent`) instead of its position after the header, and proves the selector against both the server HTML and the settled page before pushing. A theme that inserts a sticky-header spacer with JavaScript no longer opens the panel behind the header when the shop's scripts run before Hello Retail's.
+
 ## 1.47.1 — 2026-10-20
 
 ### Fixed
