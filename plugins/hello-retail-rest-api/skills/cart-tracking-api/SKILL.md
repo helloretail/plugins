@@ -207,7 +207,8 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
   before building a duplicate manual integration. If the SDK isn't on the
   frontend, cart tracking is the integration's job, through this endpoint.
 - Requests seem to vanish, time out, or return unexpected status codes → use
-  `apiLog_getEntries` / `apiLog_getStats` - see
+  `apiLog_getEntries` / `apiLog_getStats` filtered to
+  `apiEndpoints: ["collect_cart"]` - see
   [troubleshooting-with-hello-retail-mcp](../troubleshooting-with-hello-retail-mcp/SKILL.md)
   for the gotchas (logging must be turned on first, PII considerations -
   especially relevant here given the `email` field, etc).

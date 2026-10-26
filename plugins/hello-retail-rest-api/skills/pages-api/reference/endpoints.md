@@ -481,6 +481,5 @@ parse or rely on the prefix.
   further here; possibly native/core fields use a different matching path
   than the custom fields this index is meant to gate. Don't design around
   this exception - it wasn't tested against any other unindexed field.
-- No documented rate limits.
 
 If you discover the real behavior for any of these, update this file.

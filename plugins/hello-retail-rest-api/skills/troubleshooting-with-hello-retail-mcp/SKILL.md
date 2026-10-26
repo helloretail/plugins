@@ -35,7 +35,9 @@ writing any code" section should have you get this anyway).
 ## "Are my requests even arriving? What status/timing are they getting?"
 
 Use `apiLog_getEntries` / `apiLog_getStats`, filtered by `apiEndpoints` (e.g.
-`["search"]`, `["recoms"]`, `["pages"]`, `["collect_click"]`) and/or
+`["search"]`, `["recoms"]`, `["pages"]`, `["collect_click"]`,
+`["collect_pageview"]`, `["collect_cart"]`, `["collect_conversion"]`,
+`["collect_customerid"]`) and/or
 `httpStatusSeries` (e.g. `["CLIENT_ERROR", "SERVER_ERROR"]`).
 
 Gotchas:

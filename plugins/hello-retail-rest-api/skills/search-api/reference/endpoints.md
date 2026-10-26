@@ -35,6 +35,11 @@ There is exactly one endpoint. Every content type (products, categories, brands,
 blog posts, site pages, redirects) is requested by including the matching object in
 one request body - there's no `/products/search` vs `/categories/search` split.
 
+There is no rate limiting to consider on this endpoint. Still avoid excessive
+requests - most commonly, an as-you-type search box with no debounce sends one
+request per keystroke. See the debounce and rate-limiting gotchas in
+[SKILL.md](../SKILL.md).
+
 ## Authentication
 
 | Param | Location | Required | Purpose |
@@ -409,6 +414,5 @@ just a separate paginated lookup in the same call):
 ## Known documentation gaps (as of this writing)
 
 - No documented HTTP error status codes or error-body schema beyond `success`.
-- No documented rate limits.
 
-If you discover the real behavior for either of these, update this file.
+If you discover the real behavior for this, update this file.
