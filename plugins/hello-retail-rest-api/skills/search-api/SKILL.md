@@ -226,9 +226,17 @@ extra query the backend has to run.
 - **AI synonym expansion**: check `suggestedProductStatus`
   (`NO_SUGGESTED` / `MIXED` / `ONLY_SUGGESTED`) and the per-product `suggestedResult`
   flag if you want to visually mark "did you mean" style expanded results.
-- **No documented rate limits or error-response schema** as of this writing - treat
-  any non-`success: true` or non-2xx response defensively and don't assume a
-  specific error body shape.
+- **No rate limiting, but don't send requests you don't need.** Hello Retail's
+  endpoints currently have no rate limiting to consider - no throttling to build,
+  no rate-limit response to handle. That also means nothing pushes back when an
+  integration over-requests, so the mistake goes unnoticed. The typical example is
+  forgetting to debounce the search input (see the debounce gotcha above): every
+  keystroke then sends its own Search request, most of them for queries the
+  shopper is still typing past. Send a request only when the shopper needs new
+  results.
+- **No documented error-response schema** as of this writing - treat any
+  non-`success: true` or non-2xx response defensively and don't assume a specific
+  error body shape.
 
 ## When something doesn't work
 
