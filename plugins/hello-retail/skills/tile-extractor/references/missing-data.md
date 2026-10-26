@@ -10,6 +10,11 @@ one), verify it against at least 2-3 live products with different values — not
 happened to match your first guess — before binding it. A field can coincidentally match on one
 product and be wrong, stale, or unrelated on the next.
 
+**A partial map is a defect, not missing data.** When a feed field selects a picture, icon or label
+on the native tile (country flag, brand logo, badge icon), list every value the shop uses and
+check each against a feed row (`../SKILL.md` step 7). Write a value under `MISSING DATA` only when
+the feed truly cannot express it (a badge with no feed field at all), with that reason.
+
 | Field                                            | Note                                                                                                                                       |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `extraData.altImage`                             | Hover image — often missing. Check what it actually CONTAINS before using: on multi-color feeds it may be a *different color's* packshot, and swapping to it on hover misleads. If no faithful hover image exists, prefer omitting the hover element with operator approval (Output Rule #6 exception) over a `product.imgUrl` fallback that causes a contain→cover crop-jump |
