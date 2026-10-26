@@ -248,8 +248,10 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
   a request for later retrieval via `apiLog_getEntries`'s `onlyTagged`
   filter - see
   [troubleshooting-with-hello-retail-mcp](../troubleshooting-with-hello-retail-mcp/SKILL.md).
-- **No documented rate limits or exhaustive error catalog** beyond what's
-  verified above - treat any non-`success: true` response defensively.
+- **No rate limiting.** Hello Retail's endpoints currently have no rate limits
+  to consider.
+- **No exhaustive error catalog** beyond what's verified above - treat any
+  non-`success: true` response defensively.
 
 ## When something doesn't work
 

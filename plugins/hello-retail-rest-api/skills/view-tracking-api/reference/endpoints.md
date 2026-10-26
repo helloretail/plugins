@@ -56,8 +56,9 @@ pageview events.
 - HTTP 400 with `{"success": false, "message": "..."}` on validation failure -
   verified 2026-09-11 for both a missing/invalid `websiteUuid` and an invalid
   `trackingUserId` - same error-body shape as Click tracking.
-- No documented rate limits, and no exhaustive error catalog beyond what's
-  verified above.
+- No exhaustive error catalog beyond what's verified above.
+- No rate limiting to consider. Still send exactly one request per
+  product-page view - not again on a re-render of the same page.
 
 ## Opted-out shoppers: the 24-zero sentinel
 
@@ -138,6 +139,5 @@ what was and wasn't independently confirmed):
   example collection only, not independently re-tested against a live
   endpoint here (no `apiKey` available for the test website used elsewhere in
   this plugin's verification).
-- No documented rate limits.
 
 If you discover the real behavior for either of these, update this file.

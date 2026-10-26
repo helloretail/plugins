@@ -70,7 +70,8 @@ responsibility regardless of whether the SDK is present. See
   24-character hex string"}` - malformed `trackingUserId` when present.
   Verified 2026-09-11.
 - HTTP 500 - server error; Hello Retail's docs say to contact support.
-- No documented rate limits beyond what's verified above.
+- No rate limiting to consider. Still send one request per actual cart state
+  change - not on every page load or cart-drawer open when nothing changed.
 
 ## Opted-out and anonymous shoppers
 
@@ -162,6 +163,5 @@ accepted as "the cart is now empty," not as an error):
 - Whether sending both `urls` and `productNumbers` together (as Hello
   Retail's own worked example does) has any different effect than sending
   just one is unverified - only that it doesn't produce an error.
-- No documented rate limits.
 
 If you discover the real behavior for any of these, update this file.
