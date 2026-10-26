@@ -24,6 +24,7 @@ verified: 2026-09-15
 - [cheat-sheets/recoms/shopify.md](../../cheat-sheets/recoms/shopify.md) — `.money` cart-total free shipping, dynamic currency via product `.json`
 - [cheat-sheets/pages/shopify.md](../../cheat-sheets/pages/shopify.md) — where to insert the Pages div, auto-sort newest
 - [add-to-cart.md](./add-to-cart.md) — `/cart/add.js` Ajax binding, Quick View web-component re-init
+- [feeds.md](./feeds.md) — Unlisted products leaking through the legacy feed helper; fix is the V2 helper
 
 Related: [runbooks/customer-onboarding.md](../../onboarding/customer-onboarding-flow.md)
 
