@@ -44,6 +44,8 @@ Retail's own examples - they aren't shown combined.
 - `success: true` on success.
 - No documented error status codes or error-body schema beyond `success` as of
   this writing - same gap as the Search API.
+- No rate limiting to consider. Still send exactly one request per click on a
+  tile, not on hover, render or scroll.
 
 ## Where `trackingCode` comes from
 
@@ -139,10 +141,6 @@ this is not a format to construct by hand, just forward whatever value was on
 the clicked product.
 
 ## Known documentation gaps (as of this writing)
-
-- No documented rate limits.
-
-If you discover the real behavior for this, update this file.
 
 Error-body schema is now partially known - see the `trackingUserId` row above:
 on validation failure the response is HTTP 400 with body

@@ -457,6 +457,5 @@ undocumented but real - see the gotcha above):**
   independently tested beyond confirming the shared `apiKey` requirement -
   no real `apiKey` was available for the test website used elsewhere in
   this plugin's verification.
-- No documented rate limits.
 
 If you discover the real behavior for any of these, update this file.

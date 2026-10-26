@@ -109,6 +109,21 @@ be explicit.
 | The `hello-retail` MCP, connected separately and authorized via `/mcp` | `troubleshooting-with-hello-retail-mcp`, and the config lookups the other skills suggest (`search_getFilters`, `pages_getDesignFilters`, `dataFields_getProductFields`, …) |
 | A local HTTP server while developing | Anything reading `hello_retail_id` — cookies do not persist under `file://`, see `tracking-user-id` |
 
+## Rate limiting
+
+Hello Retail's REST endpoints currently have no rate limiting to consider: an
+integration does not need to throttle itself, back off, or handle a rate-limit
+response. That is not licence to send more requests than the integration needs.
+Every request is real work for Hello Retail and real latency for the shopper, and
+nothing on the server side pushes back when an integration over-requests, so the
+mistake goes unnoticed. Send a request only when the shopper needs new data, or
+when an event Hello Retail has to hear about has actually happened.
+
+The typical example of excessive requests is a Search REST API integration that
+forgets to debounce the search input and so sends one request per keystroke —
+see `search-api`. The skills name the equivalent for their own endpoint where one
+exists.
+
 ## What's here
 
 ```

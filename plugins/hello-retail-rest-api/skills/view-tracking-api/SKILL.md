@@ -190,6 +190,7 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
   not omitted or hand-constructed - see the gotcha above and
   [tracking-user-id](../tracking-user-id/SKILL.md).
 - Requests seem to vanish, time out, or return unexpected status codes → use
-  `apiLog_getEntries` / `apiLog_getStats` - see
+  `apiLog_getEntries` / `apiLog_getStats` filtered to
+  `apiEndpoints: ["collect_pageview"]` - see
   [troubleshooting-with-hello-retail-mcp](../troubleshooting-with-hello-retail-mcp/SKILL.md)
   for the gotchas (logging must be turned on first, PII considerations, etc).

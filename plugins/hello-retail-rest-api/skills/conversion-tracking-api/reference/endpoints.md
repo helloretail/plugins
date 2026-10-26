@@ -80,7 +80,8 @@ Each entry in `products[]`:
   2026-09-11 - **note the exact wording differs from the equivalent error on
   Search/Click/View/Cart tracking**, which all end in "...hex string" rather
   than just "...hex".
-- No documented rate limits beyond what's verified above.
+- No rate limiting to consider. Still send exactly one request per completed
+  order.
 
 ## Opted-out and anonymous shoppers
 
@@ -165,6 +166,5 @@ field at all.
 - Whether `orderNumber` uniqueness or format is validated in any way beyond
   "not enforced as present" is unverified - only that a request without it
   still succeeds.
-- No documented rate limits.
 
 If you discover the real behavior for any of these, update this file.

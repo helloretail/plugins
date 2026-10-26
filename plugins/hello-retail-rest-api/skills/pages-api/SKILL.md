@@ -344,8 +344,10 @@ on the server) rather than the full `href`.
   actually works for this - see
   [reference/endpoints.md](reference/endpoints.md#paramsfilters) for the
   verified intersection/union results.
-- **No documented rate limits or exhaustive error catalog** beyond what's
-  verified above - treat any non-`success: true` response defensively.
+- **No rate limiting.** Hello Retail's endpoints currently have no rate limits
+  to consider.
+- **No exhaustive error catalog** beyond what's verified above - treat any
+  non-`success: true` response defensively.
 
 ## When something doesn't work
 

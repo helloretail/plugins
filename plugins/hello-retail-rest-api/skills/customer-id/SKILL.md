@@ -166,6 +166,7 @@ https://github.com/helloretail/api-usage-examples
   reconnects that `trackingUserId` and disconnects it from them - see "the
   latest connection wins" above.
 - Requests seem to vanish, time out, or return unexpected status codes → use
-  `apiLog_getEntries` / `apiLog_getStats` - see
+  `apiLog_getEntries` / `apiLog_getStats` filtered to
+  `apiEndpoints: ["collect_customerid"]` - see
   [troubleshooting-with-hello-retail-mcp](../troubleshooting-with-hello-retail-mcp/SKILL.md)
   for the gotchas (logging must be turned on first, PII considerations, etc).
