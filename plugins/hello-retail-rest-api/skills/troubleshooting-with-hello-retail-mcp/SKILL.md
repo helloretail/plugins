@@ -1,6 +1,6 @@
 ---
 name: troubleshooting-with-hello-retail-mcp
-description: Use when a Hello Retail REST API integration isn't behaving as expected (missing/wrong results, errors, timeouts) - Hello Retail's own MCP tools (API log, audit log) show what actually happened server-side, so check them before assuming the bug is in your own request code.
+description: Use when a Hello Retail REST API integration isn't behaving as expected (missing/wrong results, errors, timeouts) - Hello Retail's own MCP tools (API log, audit log) show what actually happened server-side, so check them before assuming the bug is in your own request code. Also covers the apiLogTag query-string parameter, accepted by every endpoint, for tagging requests so they are easy to find in the API log.
 ---
 
 # Troubleshooting Hello Retail Integrations via MCP
@@ -69,6 +69,22 @@ Gotchas:
   `Origin` (and `User-Agent`) across entries is often faster than guessing
   from the request bodies alone when several people/environments have been
   hitting the same endpoint.
+
+## "Which of these log entries are mine?"
+
+Add the `apiLogTag` query-string parameter to the requests you want to find
+again - `?apiLogTag=checkout-test`. It works the same on every endpoint
+(`search`, `recoms`, `pages`, every `collect_*` endpoint). It is only a log
+marker: it changes nothing about how the request is handled or what comes
+back.
+
+- `apiLog_getEntries` / `apiLog_getStats` with `onlyTagged: true` return only
+  requests that carried an `apiLogTag`, which separates your test calls from
+  the website's live traffic.
+- To tell one tag from another, pass the tag value as `searchText` to
+  `apiLog_getEntries` - it matches against the request parameters.
+- Logging still has to be switched on (see above); a tag on a request made
+  while recording is off is not stored anywhere.
 
 ## "Did someone change a config? Is it actually published to LIVE?"
 
