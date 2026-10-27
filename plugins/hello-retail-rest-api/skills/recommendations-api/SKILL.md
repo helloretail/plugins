@@ -243,11 +243,6 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
   Managed (verified 2026-09-11 against a real Managed box) - versus `ps-` for
   Search. Don't assume any of these prefixes mean anything or try to parse
   them, same as Search's `trackingCode`.
-- **`apiLogTag`** can be passed as a query-string parameter
-  (`?apiLogTag=something`, per Hello Retail's own example collection) to tag
-  a request for later retrieval via `apiLog_getEntries`'s `onlyTagged`
-  filter - see
-  [troubleshooting-with-hello-retail-mcp](../troubleshooting-with-hello-retail-mcp/SKILL.md).
 - **No rate limiting.** Hello Retail's endpoints currently have no rate limits
   to consider.
 - **No exhaustive error catalog** beyond what's verified above - treat any
