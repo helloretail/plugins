@@ -131,7 +131,7 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
   "products": {
     "start": 0,
     "count": 24,
-    "fields": ["title", "price", "image", "trackingCode"],
+    "fields": ["title", "price", "imgUrl", "trackingCode"],
     "filters": ["brand:Nike"],
     "sorting": ["price asc"],
     "returnFilters": true

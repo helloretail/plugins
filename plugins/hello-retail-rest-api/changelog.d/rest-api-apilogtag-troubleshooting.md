@@ -1,3 +1,9 @@
+### Added
+
+- `search-api`, `recommendations-api` and `pages-api` explain how to find every native product
+  property and its exact name: send one request without a `fields` array and read them off the
+  response.
+
 ### Changed
 
 - `troubleshooting-with-hello-retail-mcp` now explains `apiLogTag`, the query-string parameter
@@ -19,3 +25,5 @@
 - `recommendations-api` and `pages-api` now say, as `search-api` already did, that a property only
   has to be mapped in the ETL for `fields` to return it; Data fields indexing is needed only for
   filtering and sorting.
+- `search-api`'s example request now asks for the product image as `imgUrl`; it previously used
+  `image`, which is not a product property.
