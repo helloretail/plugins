@@ -31,11 +31,14 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
 
 ## Before writing any code
 
-1. **The request that produced the tile must have asked for `trackingCode` in
-   its `fields` array.** It is not returned unless requested, on any of
-   Search/Recommendations/Pages. If you're building a tile you intend to track
-   clicks on, add `trackingCode` to that request's `fields` alongside whatever
-   fields you need for display - see
+1. **The request that produced the tile must return `trackingCode`.** On
+   every endpoint (Search, Recommendations, Pages), leaving the `fields` array
+   out entirely returns every available property, `trackingCode` included -
+   but a real frontend normally lists `fields` to keep the payload small, and
+   then only the listed properties come back (an empty `fields: []` returns
+   an empty object per result, so no `trackingCode` either). If you're building a tile you
+   intend to track clicks on and the request lists `fields`, add
+   `trackingCode` to it alongside whatever you need for display - see
    [search-api](../search-api/SKILL.md)'s and
    [recommendations-api](../recommendations-api/SKILL.md)'s own notes on
    this.
@@ -67,8 +70,8 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
 
 ## Gotchas worth knowing before you build
 
-- **No `trackingCode`, no click tracking.** If the originating request didn't
-  include `trackingCode` in `fields`, there's nothing valid to send as
+- **No `trackingCode`, no click tracking.** If the originating request listed
+  `fields` without `trackingCode`, there's nothing valid to send as
   `source` - go fix the originating request rather than inventing a substitute
   value (e.g. the product's URL or ID). Those aren't accepted as `source` and
   won't attribute correctly.
@@ -127,8 +130,8 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
 ## When something doesn't work
 
 - Clicks not showing up in analytics → first confirm the tile's originating
-  Search/Recommendations/Pages request actually asked for `trackingCode` in
-  `fields` before assuming the click endpoint itself is broken.
+  Search/Recommendations/Pages request returned `trackingCode` (it lists
+  `fields` and left `trackingCode` out) before assuming the click endpoint itself is broken.
 - Hello Retail isn't hearing about it when a shopper adds a product to their
   cart straight from a tile (no click-through to the product page first) →
   check whether the tile's "Add to cart" button actually has its own
