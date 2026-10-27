@@ -86,7 +86,9 @@ not just that entry.
    errors, not a clean "wrong shape" message.
 3. **Always include `trackingCode` in `fields`**, same requirement as Search
    - it's what click tracking needs to attribute a later click on a
-   recommended tile. See [click-tracking-api](../click-tracking-api/SKILL.md).
+   recommended tile. Leaving `fields` out entirely returns every available
+   property, `trackingCode` included, but once you list `fields` only those
+   come back. See [click-tracking-api](../click-tracking-api/SKILL.md).
 4. `trackingUserId` follows the exact same rules as everywhere else in this
    plugin - mint/cache it, always send it (real id or the opted-out
    sentinel), never omit it. See
@@ -243,11 +245,6 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
   Managed (verified 2026-09-11 against a real Managed box) - versus `ps-` for
   Search. Don't assume any of these prefixes mean anything or try to parse
   them, same as Search's `trackingCode`.
-- **`apiLogTag`** can be passed as a query-string parameter
-  (`?apiLogTag=something`, per Hello Retail's own example collection) to tag
-  a request for later retrieval via `apiLog_getEntries`'s `onlyTagged`
-  filter - see
-  [troubleshooting-with-hello-retail-mcp](../troubleshooting-with-hello-retail-mcp/SKILL.md).
 - **No rate limiting.** Hello Retail's endpoints currently have no rate limits
   to consider.
 - **No exhaustive error catalog** beyond what's verified above - treat any
@@ -269,7 +266,7 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
 - Clicks on rendered recommendation tiles aren't attributed/tracked → that's
   not a Recommendations API problem, see
   [click-tracking-api](../click-tracking-api/SKILL.md) - most commonly the
-  originating request forgot `trackingCode` in `fields`.
+  originating request listed `fields` without `trackingCode`.
 - Requests seem to vanish, time out, or return unexpected status codes → use
   `apiLog_getEntries` / `apiLog_getStats` (filtered to `apiEndpoints:
   ["recoms"]`) - see

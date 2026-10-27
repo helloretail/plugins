@@ -71,6 +71,8 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
    single config would work technically.
 7. **Always include `trackingCode` in every content-type object's `fields`**
    (`products`, `categories`, `brands`, etc.) - even if you don't render it.
+   Leaving `fields` out entirely returns every available property,
+   `trackingCode` included, but once you list `fields` only those come back.
    It's an opaque per-result code that must be sent back verbatim as `source`
    on the Click tracking REST API when the shopper clicks the resulting tile;
    omitting it now means clicks on that tile can never be attributed later.
@@ -129,7 +131,7 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
   "products": {
     "start": 0,
     "count": 24,
-    "fields": ["title", "price", "image", "trackingCode"],
+    "fields": ["title", "price", "imgUrl", "trackingCode"],
     "filters": ["brand:Nike"],
     "sorting": ["price asc"],
     "returnFilters": true
@@ -218,10 +220,11 @@ extra query the backend has to run.
 - **Zero-result queries return `zeroResultContent`, not `initialContent`.** Live
   responses put it on the `products` result object as
   `zeroResultContent: [{ title, count, products: [...] }]` - render that on the
-  empty-results screen. Its `products[]` entries are full, unfiltered product
-  objects (not limited to the `fields` you requested) and use the canonical field
-  names rather than your requested aliases - e.g. `onSale` instead of `isOnSale`.
-  Verified 2026-09-10 against a live `/serve/search` response; the field is not
+  empty-results screen. Its `products[]` entries are **not subject to
+  `products.fields`**: they always carry every available property, exactly as
+  if `fields` had been left out, whatever the request lists. Read the
+  properties your tile needs from them rather than assuming they match the
+  shape of `products.results[]`. Verified 2026-09-10 against a live `/serve/search` response; the field is not
   called `initialContent` in practice despite that name appearing elsewhere.
 - **AI synonym expansion**: check `suggestedProductStatus`
   (`NO_SUGGESTED` / `MIXED` / `ONLY_SUGGESTED`) and the per-product `suggestedResult`
@@ -265,4 +268,4 @@ extra query the backend has to run.
   for the gotchas (logging must be turned on first, PII considerations, etc).
 - Clicks on rendered tiles aren't attributed/tracked → that's not a Search API
   problem, see [click-tracking-api](../click-tracking-api/SKILL.md) - most
-  commonly the originating request forgot `trackingCode` in `fields`.
+  commonly the originating request listed `fields` without `trackingCode`.

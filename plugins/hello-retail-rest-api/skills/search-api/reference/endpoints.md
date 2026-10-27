@@ -113,7 +113,7 @@ these shoppers, not just the field.
 |---|---|---|---|
 | `start` | number | No | Offset, default 0 |
 | `count` | number | Yes | Page size |
-| `fields` | string[] | No | Restrict which product fields come back. Must be mapped through the Hello Retail ETL - does **not** need to be indexed in *Data fields*. Always include `trackingCode` here - it's required to track clicks on the resulting tile, see [click-tracking-api](../../click-tracking-api/SKILL.md) |
+| `fields` | string[] | No | Restrict which product fields come back. Omitting it entirely returns every available property; an empty array returns an empty object for every result. To learn which native properties exist and exactly what they are called (e.g. `imgUrl`, not `image`), send one request without `fields` and read them off the response. A property only has to be mapped through the Hello Retail ETL to be returned - it does **not** need to be indexed in *Data fields* (that requirement belongs to `filters` and `sorting`, not `fields`). Always include `trackingCode` here - it's required to track clicks on the resulting tile, see [click-tracking-api](../../click-tracking-api/SKILL.md) |
 | `filters` | string[] | No | e.g. `"brand:Nike"`, `"price:10,50"`, `"extraDataList.category:Home page"`. Must be indexed for filtering in *Data fields*, not just ETL-mapped |
 | `sorting` | string[] | No | Only a single entry is accepted per request, e.g. `["price desc"]`. Must be indexed for sorting in *Data fields*. **Sorting only exists on `products`** - none of the other content-type objects accept it |
 | `returnFilters` | boolean | No | Include facet/filter options in response - has a perf cost |
@@ -126,7 +126,7 @@ these shoppers, not just the field.
 |---|---|---|---|
 | `start` | number | No | |
 | `count` | number | Yes | |
-| `fields` | string[] | No | |
+| `fields` | string[] | No | Omitting it entirely returns every available property; an empty array returns an empty object for every result |
 | `filters` | string[] | No | e.g. `"extraDataList.category:Home page"` (real example, from the `brands` object) - same indexing rules as `products.filters` |
 
 (No `sorting`/`returnFilters`/`excludeSiblingFilters` for these content types -
@@ -243,13 +243,12 @@ merchandising configured, the `products` result object includes
 
 - This is **not** `initialContent`, despite that name showing up in some
   documentation/UI copy - the live field is `zeroResultContent`.
-- Each entry in `products[]` is a **full, unfiltered** product object - it is not
-  limited to the `fields` you requested on the outer `products` object, and it
-  uses canonical field names rather than the request-time aliases. Notably it has
-  `onSale` (not `isOnSale`), plus extras like `originalUrl` (untracked URL),
-  `url` (URL with tracking params appended), `trackingCode`, `productNumber`,
-  `extraData`/`extraDataList`/`extraDataNumber`, and `description`. Don't assume
-  the same field names you used in `products.fields` apply here.
+- Each entry in `products[]` is **not subject to `products.fields`**: it always
+  carries every available property, exactly as if `fields` had been left out,
+  whatever the request lists - e.g. `originalUrl` (untracked URL), `url` (URL
+  with tracking params appended), `trackingCode`, `productNumber`,
+  `extraData`/`extraDataList`/`extraDataNumber` and `description`. Don't assume
+  it has the same shape as the `fields`-restricted `products.results[]`.
 
 ## Pagination
 
