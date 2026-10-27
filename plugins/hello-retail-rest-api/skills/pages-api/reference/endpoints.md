@@ -107,7 +107,7 @@ live verification):
 |---|---|---|
 | `hierarchies` | `["snowboard"]` | Plain array of segment names - **no** trailing `$` here (contrast with `products.filters`, below). Verified 2026-09-15. |
 | `brand` | `"HR API TEST"` | Plain string |
-| `isOnSale` | `"true"` | **String**, not a boolean, even though the corresponding product field (`isOnSale`) returns a real boolean. Verified 2026-09-15. |
+| `isOnSale` | `"true"` | **String**, not a boolean. Verified 2026-09-15. |
 | `extraData.<field>` | `"true"` | Simple/scalar custom metadata |
 | `extraDataList.<field>` | `"123456789"` | Array-valued custom metadata, single value |
 
@@ -167,9 +167,9 @@ for "either one"):
 |---|---|---|---|
 | `start` | number | Yes per Hello Retail's docs (Search only requires `count`, defaulting `start` to 0 - not independently re-verified whether Pages actually enforces this) | Offset |
 | `count` | number | Yes | Page size |
-| `fields` | string[] | No | Restrict which product fields come back. **Omitting it entirely returns every product field** (verified 2026-09-15) - once you do specify `fields`, the usual rule applies: list `trackingCode` explicitly or it won't be there, see [click-tracking-api](../../click-tracking-api/SKILL.md) |
-| `filters` | string[] | No | User-selected filters, same string syntax as Search: `"field:value"`. **A `hierarchies` value needs a trailing `$`** here (e.g. `"hierarchies:snowboard$"`) even though `params.filters.hierarchies` doesn't - verified 2026-09-15, see the shape note below and the SKILL.md gotcha |
-| `sorting` | string[] | No | `"field asc\|desc"`, same syntax as Search. Not independently verified here whether more than one entry is accepted (Search restricts this to one) |
+| `fields` | string[] | No | Restrict which product fields come back. **Omitting it entirely returns every product field** (verified 2026-09-15; the same on every endpoint), while an empty array returns an empty object for every result. A property only has to be mapped through the Hello Retail ETL to be returned - it does **not** need to be indexed in *Data fields*; that requirement belongs to filtering (`params.filters` and `products.filters`) and `products.sorting`, not `fields` - once you do specify `fields`, the usual rule applies: list `trackingCode` explicitly or it won't be there, see [click-tracking-api](../../click-tracking-api/SKILL.md) |
+| `filters` | string[] | No | User-selected filters, same string syntax as Search: `"field:value"`. Must be indexed for filtering in *Data fields*, not just ETL-mapped - see [SKILL.md](../SKILL.md) item 3. **A `hierarchies` value needs a trailing `$`** here (e.g. `"hierarchies:snowboard$"`) even though `params.filters.hierarchies` doesn't - verified 2026-09-15, see the shape note below and the SKILL.md gotcha |
+| `sorting` | string[] | No | `"field asc\|desc"`, same syntax as Search. Must be indexed for sorting in *Data fields*, not just ETL-mapped. Not independently verified here whether more than one entry is accepted (Search restricts this to one) |
 
 ## Response body
 

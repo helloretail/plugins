@@ -61,7 +61,7 @@ customerId, or trackingUserId can be provided"}`.
 |---|---|---|---|
 | `key` | string | Yes | The recommendation box's key from My Hello Retail. |
 | `format` | `"json"` \| `"html"` | No | Default is effectively JSON for custom use; `"html"` is for the managed widget only - see the gotcha in [SKILL.md](../SKILL.md). |
-| `fields` | string[] | No | Product fields to return. Always include `trackingCode` - see [click-tracking-api](../../click-tracking-api/SKILL.md). |
+| `fields` | string[] | No | Product fields to return. Omitting it entirely returns every available property; an empty array returns an empty object for every result. A property only has to be mapped through the Hello Retail ETL to be returned - it does **not** need to be indexed in *Data fields* (that requirement belongs to filtering and sorting, not `fields`). Always include `trackingCode` - see [click-tracking-api](../../click-tracking-api/SKILL.md). |
 | `deviceType` | `"DESKTOP"` \| `"MOBILE"` | No | Same convention as Search. |
 | `context` | object | No | See [Context object](#context-object) below - what to supply depends entirely on what page type this box is configured for. |
 

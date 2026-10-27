@@ -276,23 +276,15 @@ on the server) rather than the full `href`.
   options a `firstLoad: true` response already returned, and send their
   `query` values back verbatim (the same pattern Search's own filter gotcha
   recommends), rather than re-deriving the `$`-terminated string yourself.
-- **`isOnSale` takes a string, not a boolean, in `params.filters`, but comes
-  back as a real boolean in `products.fields`.** Verified 2026-09-15:
-  `params.filters: { "isOnSale": "true" }` (string) correctly scopes to
-  on-sale products; the product field to request back is `isOnSale` (not
-  `onSale`), and it's returned as a genuine boolean (`true`/`false`), not a
-  string. Don't assume the request-side and response-side representations
-  match just because they share a name.
 - **Filter object shapes returned in `products.filters` match Search's
   (name/settings/values, not field/type)** - see
   [reference/endpoints.md](reference/endpoints.md#filter-object-shapes) for
   the exact shape, which also carries a couple of Pages-only fields
   (`filteringText`/`negatedFilteringText`) that were empty strings on every
   filter observed live and are not otherwise documented.
-- **Omitting `products.fields` entirely returns every product field**,
-  verified live - unlike leaving it as an empty array, which (by analogy
-  with Search, not independently verified here) would very likely return
-  nothing usable. If you omit `fields` you do get `trackingCode` for free as
+- **Omitting `products.fields` entirely returns every product field**, the
+  same as on every other endpoint. An empty array is not the same as leaving
+  it out: `"fields": []` returns an empty object for every result. If you omit `fields` you do get `trackingCode` for free as
   part of "everything," but the moment you specify `fields` at all - to
   avoid over-fetching a large payload, which is the normal case for a real
   frontend - you're back to the general rule: explicitly list
