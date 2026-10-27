@@ -51,7 +51,8 @@ Retail's own examples - they aren't shown combined.
 
 `trackingCode` is a per-result field on products (and categories/brands/blog
 posts/site pages/redirects) returned by Search, Recommendations, and Pages -
-it is only present on a result if the originating request asked for it in
+it is present on a result when the originating request either left `fields`
+out entirely (every available property comes back) or listed `trackingCode` in
 `fields`. It encodes which specific result/slot was shown (query, config,
 position) so Hello Retail can attribute a later click back to it. See the
 Search API skill's [reference/endpoints.md](../../search-api/reference/endpoints.md)
@@ -90,7 +91,7 @@ Two mistakes to avoid here, both easy to make from a literal reading of the
   attribution gap.
 - **Don't confuse this with the "no `trackingCode`, no click tracking" gotcha**
   above - that one is about a genuinely missing, unusable `source` value (fix:
-  go add `trackingCode` to the originating request's `fields`). The sentinel
+  add `trackingCode` to the `fields` the originating request lists). The sentinel
   case has a perfectly valid `source`; only `trackingUserId` differs.
 
 ## Worked examples
