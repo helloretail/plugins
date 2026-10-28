@@ -42,7 +42,7 @@ this endpoint with the `trackingUserId` the integration manages itself (see
 |---|---|---|---|
 | `websiteUuid` | string | **Yes - enforced.** | Verified 2026-10-16: missing returns HTTP 400 `{"success":false,"message":"websiteUuid is required"}`; unknown returns HTTP 400 `{"success":false,"message":"website with websiteUuid not found"}`. Checked before any other field. |
 | `trackingUserId` | string | **Yes - enforced.** | The current browser's `hello_retail_id`. Verified 2026-10-16: missing returns HTTP 400 `{"success":false,"message":"Either email, customerId, or trackingUserId must be provided"}`; not a 24-character hex string returns HTTP 400 `{"success":false,"message":"Invalid trackingUserId: must be 24-character hex string"}`. Never send the opted-out sentinel `000000000000000000000000` here - skip the call for that shopper instead. |
-| `id` | string | **Yes - but not validated cleanly.** | The shop's own internal customer id. Verified 2026-10-16: missing, `""`, or sent under the name `customerId` instead returns HTTP 500 `{"message":"Unexpected error, please contact Hello Retail support. ","code":"UNEXPECTED ERROR","success":false}` rather than a 400. A JSON number is also accepted, but send a string - it must be the same value the shop sends as `customerId` on every other endpoint, where it is a string. |
+| `id` | string | **Yes - but not validated cleanly.** | The shop's own internal customer id. Verified 2026-10-16: missing, `""`, or sent under the name `customerId` instead returns HTTP 500 with the generic `UNEXPECTED ERROR` body (`{"success": false, "code": "UNEXPECTED ERROR", "message": "..."}`, a message that only says to contact Hello Retail support) rather than a 400. A JSON number is also accepted, but send a string - it must be the same value the shop sends as `customerId` on every other endpoint, where it is a string. |
 
 ## Response body
 
@@ -52,8 +52,9 @@ this endpoint with the `trackingUserId` the integration manages itself (see
   `id` - in that last case the previous connection is dropped and the new one
   replaces it.
 - Error responses: as listed per field above. Validation 400s carry
-  `{"success": false, "message": "..."}`; the missing-`id` 500 additionally
-  carries `"code": "UNEXPECTED ERROR"`.
+  `{"success": false, "message": "..."}`; every HTTP 500, the missing-`id`
+  one included, carries the generic body that adds
+  `"code": "UNEXPECTED ERROR"`.
 
 ## Worked example
 

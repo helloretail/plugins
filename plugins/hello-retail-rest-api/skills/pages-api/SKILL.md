@@ -169,7 +169,16 @@ is exactly what Hello Retail requires. With an absolute URL, Hello Retail
 has to work out the relative path itself, and anything before it - scheme,
 host, port - can cause interpretation issues. Build it from
 the page's path (`window.location.pathname` in the browser, the request path
-on the server) rather than the full `href`.
+on the server) rather than the full `href`. **A relative `url` must start
+with `/`**: `category/snowboards` without the leading slash returns an HTTP
+500, not a fallback. `window.location.pathname` always includes the slash;
+a path assembled by hand or taken from a router may not.
+
+**Paginate with `products.count` and `products.start`.** `count` is the
+maximum number of products one response can return; `start` is the offset
+of the first one, and defaults to `0` when omitted. The first 20 available products are `"start": 0,
+"count": 20`, the next 20 are `"start": 20, "count": 20`, and so on. See
+[reference/endpoints.md](reference/endpoints.md#pagination).
 
 ## Gotchas worth knowing before you build
 
@@ -289,15 +298,27 @@ on the server) rather than the full `href`.
   avoid over-fetching a large payload, which is the normal case for a real
   frontend - you're back to the general rule: explicitly list
   `trackingCode` or it won't be there.
-- **A missing/invalid `key` (URL path) or a missing `url` (body) don't get a
-  clean validation error - both return a generic HTTP 500** verified
-  2026-09-15: `{"success":false,"code":"UNEXPECTED ERROR","message":"Unexpected
-  error, please contact Hello Retail support"}`, indistinguishable from an
-  actual server-side fault. `firstLoad` and `params`/`products.fields`, by
-  contrast, are lenient and simply fall back to a default (`firstLoad` to
-  `false`, `fields` to "all") rather than erroring when omitted - only `url`
-  and a resolvable `key` are actually load-bearing. Double-check those two
-  first before assuming a 500 means something is broken server-side.
+- **Invalid input doesn't get a clean validation error - it returns a
+  generic HTTP 500**, indistinguishable from an actual server-side fault.
+  Every HTTP 500 carries the same generic body, whatever caused it:
+  `{"success": false, "code": "UNEXPECTED ERROR", "message": "..."}`,
+  where the message only says to contact Hello Retail support. The body
+  never tells you which input was wrong. Each of these returns it:
+  - a missing or unresolvable `key` in the URL path;
+  - a missing `url`, or a relative `url` without its leading slash
+    (`category/snowboards` instead of `/category/snowboards`);
+  - a misspelled `format` or `deviceType` value - anything other than the
+    exact strings `"json"`/`"html"` and `"DESKTOP"`/`"MOBILE"`. Leaving
+    `format` out is not an error (it defaults to `"html"`, see the `format`
+    gotcha above); misspelling it is;
+  - a malformed `trackingUserId` - anything other than a minted
+    24-character hex id or the opted-out sentinel, see
+    [tracking-user-id](../tracking-user-id/SKILL.md#format).
+
+  `firstLoad` and `params`/`products.fields` are lenient by contrast: when
+  omitted they fall back to a default (`firstLoad` to `false`, `fields` to
+  "all") rather than erroring. Check every item in the list above before
+  assuming a 500 means something is broken server-side.
 - **`params.filters` supports `$and`/`$or` combinators**, each an array of
   single-field filter objects, for combining multiple values on the same
   array-valued field (typically `extraDataList.*`) - root-level keys outside
@@ -344,9 +365,10 @@ on the server) rather than the full `href`.
 ## When something doesn't work
 
 - Every request returns an HTML blob instead of product data → `format` was
-  omitted or misspelled - it must be the literal string `"json"`, and
-  unlike Search/Recommendations there's no safe default here. See the
-  `format` gotcha above.
+  omitted - it must be sent as the literal string `"json"`, and unlike
+  Search/Recommendations there's no safe default here. See the `format`
+  gotcha above. (A *misspelled* `format` doesn't return HTML; it returns an
+  HTTP 500.)
 - A filter exists in the frontend that the customer says they never
   configured, or that doesn't match what they see for this page's Design
   in My Hello Retail → it was very likely built against an
@@ -370,11 +392,12 @@ on the server) rather than the full `href`.
   `products.filters` hierarchy value - see that gotcha above. Confirm by
   comparing against the exact `query` string the same hierarchy shows up as
   in a `firstLoad: true` response's facet options.
-- Every request to this page config fails with a generic "contact Hello
-  Retail support" error → check `url` is actually present on the request,
-  and that the `key` in the URL path is correct and resolves (use
-  `pages_listConfigs` to confirm the key exists and is `LIVE`) - see the
-  error-shape gotcha above before assuming a server-side outage.
+- A request fails with an HTTP 500 and a generic "contact Hello Retail
+  support" error → work through the list in the error-shape gotcha above
+  before assuming a server-side outage: `url` present and, if relative,
+  starting with `/`; `format` and `deviceType` spelled exactly; a
+  well-formed `trackingUserId`; and a `key` in the URL path that resolves
+  (use `pages_listConfigs` to confirm the key exists and is `LIVE`).
 - A static rule (e.g. "sale products only") isn't being applied → check
   whether it's actually defined in the Pages config's product conditions
   with `pages_getConfigProductFilters`, and that the config is `LIVE`.

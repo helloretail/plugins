@@ -72,7 +72,7 @@ customerId, or trackingUserId can be provided"}`.
 | `trackingKey` | string | Yes | A name you choose (max 100 chars per Hello Retail's docs) - this is what analytics for this recommendation get stored under in the dashboard, since there's no pre-existing box to attribute it to. |
 | `fields` | string[] | No | Same as Managed - always include `trackingCode`. |
 | `hideAdditionalVariants` | boolean | No | Default `true` per Hello Retail's docs - controls whether more than one product from the same variant-grouping key can be returned. |
-| `count` | number | No | Total products this recommendation may return across all of its `sources[]` entries combined. |
+| `count` | number | Yes | Total products this recommendation may return across all of its `sources[]` entries combined. Required for Unmanaged (a Managed request takes its count from the box instead). |
 | `deviceType` | `"DESKTOP"` \| `"MOBILE"` | No | Same convention as Search/Managed. |
 | `context` | object | No | See [Context object](#context-object) below. |
 | `sources` | object[] | Yes | The algorithm steps for this recommendation - see [ProductSource object](#productsource-object) below. |
@@ -181,8 +181,8 @@ string `$hierarchies`."
     "websiteUuid is required when loading any unmanaged recoms"`
   - Non-existent Managed `key`: `code: "NOT FOUND"`, `message: "Recom with
     key <key> not found"`
-  - Invalid/misspelled `sources[].type`: `code: "UNEXPECTED ERROR"`,
-    `message: "Unexpected error, please contact Hello Retail support. "`
+  - Invalid/misspelled `sources[].type`: `code: "UNEXPECTED ERROR"`, the
+    generic body, whose message only says to contact Hello Retail support
   - More than one of `trackingUserId`/`email`/`customerId`: `code: "INVALID
     REQUEST"`, `message: "Only one of email, customerId, or trackingUserId
     can be provided"`
