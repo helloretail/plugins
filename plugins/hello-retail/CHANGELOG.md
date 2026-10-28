@@ -8,6 +8,12 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.48.1 — 2026-10-28
+
+### Removed
+
+- `search-qa` no longer tests, or reports as a standing template issue, mobile search dropping the first characters typed right after tapping the search field. The close-and-reopen check stays, now as variant (c).
+
 ## 1.48.0 — 2026-10-28
 
 ### Changed
