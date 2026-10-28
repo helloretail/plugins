@@ -198,18 +198,18 @@ for "either one"):
 
 ### Error response
 
-Every HTTP 500 returns this same body, whatever caused it (first verified
-2026-09-15 for a missing `url` and an unresolvable `key`):
+Every HTTP 500 returns this same generic body, whatever caused it (first
+verified 2026-09-15 for a missing `url` and an unresolvable `key`):
 
 ```json
 {
   "success": false,
   "code": "UNEXPECTED ERROR",
-  "message": "Unexpected error, please contact Hello Retail support"
+  "message": "..."
 }
 ```
 
-It is a generic, opaque error that doesn't distinguish "you forgot a
+The `message` only says to contact Hello Retail support. It is an opaque error that doesn't distinguish "you forgot a
 required field" from an actual server-side fault. The same body comes back
 for a relative `url` without its leading slash, a misspelled `format` or
 `deviceType`, and a malformed `trackingUserId`. See the SKILL.md gotcha on
