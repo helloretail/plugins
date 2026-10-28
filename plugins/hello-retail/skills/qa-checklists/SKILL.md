@@ -475,7 +475,7 @@ pins *what* to check; for many items it doesn't pin *which input* to check it wi
 unpinned input is chosen fresh every run. That single gap — not the code, not the browser
 backend — is what makes two runs of this skill reach opposite verdicts on unchanged code.
 (Real case, store-NO-1 2026-08-04: three runs, same LIVE designs, both operators on
-Playwright. Every item whose input the skill pins — the ≤992px keystroke drop, missing
+Playwright. Every item whose input the skill pins — missing
 `trackClick`, the 0-results state, the hardcoded `aria-label`, PDP load order — produced the
 **same** verdict in every run. Every item it left open — price format, the sold-out badge,
 breakpoints, category placement — produced **contradictory** verdicts. Two of those runs were
