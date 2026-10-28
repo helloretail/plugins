@@ -89,8 +89,26 @@ back.
 ## "Did someone change a config? Is it actually published to LIVE?"
 
 Use `auditLog_getEntries`, filtered by `resourceType` (e.g. `SEARCH_CONFIG`,
-`RECOM_CONFIG`, `PAGES_CONFIG`) and optionally `sourceId` for one specific
-resource's full history.
+`RECOM_CONFIG`, `PAGES_CONFIG`) and optionally `sequenceKey` for one specific
+config's full history.
+
+**Filter one config's history by `sequenceKey`, not `sourceId`.** Verified
+2026-10-28 against a live website:
+
+- `sourceId` is the id of one stored *version* of a config. Recommendation
+  boxes and Pages configs get a new `sourceId` on most saves, so filtering a
+  box or page by `sourceId` returns a single entry - typically just its
+  CREATE, or one edit - not its history.
+- `sequenceKey` stays the same across every version of one config, so it
+  returns the whole series: the CREATE, every edit, and the keypoint entries
+  where it went live. A recommendation box's `sequenceKey` is `k` followed by
+  the `sourceId` of its CREATE entry (e.g. `k<create-sourceId>`).
+- Search configs kept the same `sourceId` across all their changes in the
+  same test, so for Search the two filters returned the same entries. Use
+  `sequenceKey` anyway - it works the same way for every config type.
+
+To find a config's `sequenceKey`, list the entries for its `resourceType`
+first and read it off any entry for that config.
 
 This is the reliable way to answer "is this config really Live?" or "who turned
 this off?" - look for the keypoint entry (typically the config going live)

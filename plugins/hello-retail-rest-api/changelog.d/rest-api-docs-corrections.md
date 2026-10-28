@@ -6,6 +6,10 @@
   that returns an HTTP 500: a misspelled `format` or `deviceType`, a malformed `trackingUserId`,
   and a relative `url` without its leading slash.
 
+- `troubleshooting-with-hello-retail-mcp` now filters a config's audit-log history by
+  `sequenceKey`. It said `sourceId`, which returns only one version of a recommendation box or
+  Pages config, not its full history.
+
 ### Changed
 
 - `pages-api` now explains how to paginate: `products.count` caps how many products a response
