@@ -181,8 +181,8 @@ string `$hierarchies`."
     "websiteUuid is required when loading any unmanaged recoms"`
   - Non-existent Managed `key`: `code: "NOT FOUND"`, `message: "Recom with
     key <key> not found"`
-  - Invalid/misspelled `sources[].type`: `code: "UNEXPECTED ERROR"`,
-    `message: "Unexpected error, please contact Hello Retail support. "`
+  - Invalid/misspelled `sources[].type`: `code: "UNEXPECTED ERROR"`, the
+    generic body, whose message only says to contact Hello Retail support
   - More than one of `trackingUserId`/`email`/`customerId`: `code: "INVALID
     REQUEST"`, `message: "Only one of email, customerId, or trackingUserId
     can be provided"`

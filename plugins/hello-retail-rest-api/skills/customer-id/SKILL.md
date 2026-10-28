@@ -92,7 +92,9 @@ https://github.com/helloretail/api-usage-examples
 - **A missing or empty `id` returns HTTP 500, not 400.** Verified 2026-10-16:
   with a well-formed `trackingUserId` and `websiteUuid`, leaving `id` out,
   sending `"id": ""`, or sending it as `customerId` all return HTTP 500
-  `{"message":"Unexpected error, please contact Hello Retail support. ","code":"UNEXPECTED ERROR","success":false}`.
+  with the generic body `{"success": false, "code": "UNEXPECTED ERROR",
+  "message": "..."}`, where the message only says to contact Hello Retail
+  support.
   It looks like an outage and isn't one. Validate on your side that `id` is a
   non-empty string before calling, and when you see this 500, check the body
   before contacting support.

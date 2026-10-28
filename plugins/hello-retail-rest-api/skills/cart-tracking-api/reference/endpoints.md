@@ -69,7 +69,11 @@ responsibility regardless of whether the SDK is present. See
 - HTTP 400 `{"success": false, "message": "Invalid trackingUserId: must be
   24-character hex string"}` - malformed `trackingUserId` when present.
   Verified 2026-09-11.
-- HTTP 500 - server error; Hello Retail's docs say to contact support.
+- HTTP 500 with the generic body `{"success": false, "code": "UNEXPECTED
+  ERROR", "message": "..."}`, where the message only says to contact Hello
+  Retail support. Hello Retail's docs describe it as a server error, but on
+  other endpoints the same body also comes back for bad input, so check the
+  request before contacting support.
 - No rate limiting to consider. Still send one request per actual cart state
   change - not on every page load or cart-drawer open when nothing changed.
 

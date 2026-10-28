@@ -214,10 +214,10 @@ Full field-by-field reference: [reference/endpoints.md](reference/endpoints.md).
   If you see all the boxes on a page fail together, suspect one specific
   entry, not a systemic outage.
 - **An invalid `sources[].type` doesn't get a clean validation error.**
-  Verified 2026-09-11: a misspelled/unrecognized `type` value returns a
-  generic HTTP 500 `{"success":false,"code":"UNEXPECTED
-  ERROR","message":"Unexpected error, please contact Hello Retail
-  support."}` - indistinguishable from an actual server-side fault. Double
+  Verified 2026-09-11: a misspelled/unrecognized `type` value returns an
+  HTTP 500 with the generic body `{"success": false, "code": "UNEXPECTED
+  ERROR", "message": "..."}`, where the message only says to contact Hello
+  Retail support - indistinguishable from an actual server-side fault. Double
   check the `type` spelling/casing against the documented list before
   assuming something deeper is broken.
 - **`RELATED` is a real, working source type that Hello Retail's own

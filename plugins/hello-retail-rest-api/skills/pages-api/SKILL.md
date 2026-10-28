@@ -294,10 +294,10 @@ a path assembled by hand or taken from a router may not.
   `trackingCode` or it won't be there.
 - **Invalid input doesn't get a clean validation error - it returns a
   generic HTTP 500**, indistinguishable from an actual server-side fault.
-  Every HTTP 500 carries the same body, whatever caused it:
-  `{"success":false,"code":"UNEXPECTED ERROR","message":"Unexpected
-  error, please contact Hello Retail support"}`, so the body never tells
-  you which input was wrong. Each of these returns it:
+  Every HTTP 500 carries the same generic body, whatever caused it:
+  `{"success": false, "code": "UNEXPECTED ERROR", "message": "..."}`,
+  where the message only says to contact Hello Retail support. The body
+  never tells you which input was wrong. Each of these returns it:
   - a missing or unresolvable `key` in the URL path;
   - a missing `url`, or a relative `url` without its leading slash
     (`category/snowboards` instead of `/category/snowboards`);
