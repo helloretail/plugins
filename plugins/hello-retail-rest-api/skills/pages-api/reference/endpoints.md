@@ -17,6 +17,7 @@ folder in `Insomnia_endpoint_examples_official_documentation.yaml`, tagged
 - [Request body](#request-body)
 - [params.filters](#paramsfilters)
 - [products object](#products-object)
+- [Pagination](#pagination)
 - [Response body](#response-body)
 - [Filter object shapes](#filter-object-shapes)
 - [Sorting object shape](#sorting-object-shape)
@@ -165,11 +166,27 @@ for "either one"):
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `start` | number | Yes per Hello Retail's docs (Search only requires `count`, defaulting `start` to 0 - not independently re-verified whether Pages actually enforces this) | Offset |
-| `count` | number | Yes | Page size |
+| `start` | number | No - defaults to `0` when omitted, the same as Search | Zero-based offset of the first product to return. Combine it with `count` to paginate - see [Pagination](#pagination) below. |
+| `count` | number | Yes | Page size: the maximum number of products the response can return in `products.result`. Combine it with `start` to paginate - see [Pagination](#pagination) below. |
 | `fields` | string[] | No | Restrict which product fields come back. **Omitting it entirely returns every product field** (verified 2026-09-15; the same on every endpoint), while an empty array returns an empty object for every result. To learn which native properties exist and exactly what they are called (e.g. `imgUrl`, not `image`), send one request without `fields` and read them off the response. A property only has to be mapped through the Hello Retail ETL to be returned - it does **not** need to be indexed in *Data fields*; that requirement belongs to filtering (`params.filters` and `products.filters`) and `products.sorting`, not `fields` - once you do specify `fields`, the usual rule applies: list `trackingCode` explicitly or it won't be there, see [click-tracking-api](../../click-tracking-api/SKILL.md) |
 | `filters` | string[] | No | User-selected filters, same string syntax as Search: `"field:value"`. Must be indexed for filtering in *Data fields*, not just ETL-mapped - see [SKILL.md](../SKILL.md) item 3. **A `hierarchies` value needs a trailing `$`** here (e.g. `"hierarchies:snowboard$"`) even though `params.filters.hierarchies` doesn't - verified 2026-09-15, see the shape note below and the SKILL.md gotcha |
 | `sorting` | string[] | No | `"field asc\|desc"`, same syntax as Search. Must be indexed for sorting in *Data fields*, not just ETL-mapped. Not independently verified here whether more than one entry is accepted (Search restricts this to one) |
+
+### Pagination
+
+`products.count` sets the maximum number of products one response can
+return, and `products.start` is the zero-based offset of the first one.
+Omitting `start` is the same as sending `0`. Keep `count` fixed and step
+`start` by `count` to move through the pages:
+
+| Page | `products.start` | `products.count` | Returns |
+|---|---|---|---|
+| 1 | `0` | `20` | The first 20 available products |
+| 2 | `20` | `20` | The next 20 |
+| 3 | `40` | `20` | The 20 after that |
+
+A next-page request doesn't change the product scope, so it sends
+`firstLoad: false` - see the `firstLoad` row above.
 
 ## Response body
 
