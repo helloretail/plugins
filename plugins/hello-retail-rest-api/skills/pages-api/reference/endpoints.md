@@ -68,12 +68,12 @@ the async-race gotcha, and the opted-out sentinel
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `url` | string | **Yes.** Verified 2026-09-15: omitting it returns HTTP 500. | The page's URL, **absolute or relative - prefer the relative path** (`/category-path`, not `https://www.test.dk/category-path`): the relative path is exactly what Hello Retail requires, whereas anything before it in an absolute URL can cause interpretation issues. See the SKILL.md note under "Core request shape". Used for analytics, and - per Hello Retail's own docs collection - to let a Pages config's dynamic rules key off which URL the page is being shown on. |
-| `format` | `"json"` \| `"html"` | No | **Defaults to `"html"`** - verified 2026-09-15. The opposite default from Search/Recommendations; a custom frontend must always send `"json"` explicitly. |
+| `url` | string | **Yes.** Verified 2026-09-15: omitting it returns HTTP 500. | The page's URL, **absolute or relative - prefer the relative path** (`/category-path`, not `https://www.test.dk/category-path`): the relative path is exactly what Hello Retail requires, whereas anything before it in an absolute URL can cause interpretation issues. **A relative path must start with `/`** - `category-path` without the leading slash returns HTTP 500. See the SKILL.md note under "Core request shape". Used for analytics, and - per Hello Retail's own docs collection - to let a Pages config's dynamic rules key off which URL the page is being shown on. |
+| `format` | `"json"` \| `"html"` | No | **Defaults to `"html"`** - verified 2026-09-15. The opposite default from Search/Recommendations; a custom frontend must always send `"json"` explicitly. Omitting it is safe; a misspelled value (anything but exactly `"json"` or `"html"`) returns HTTP 500. |
 | `firstLoad` | boolean | Documented as required; verified 2026-09-15 to default to `false` when omitted, not to error. Always set it deliberately regardless - see the SKILL.md gotcha. | **`true` whenever the request can return a different scope of products** - the initial render and any change to `products.filters`; **`false` when only the order or page changes** - `products.sorting` or `products.start`. Hello Retail's docs describe it as "Indicates if this is the first render of the page... Views of the page will only be tracked if firstLoad is true" - read "first render" as "first render of this product scope", not "first request on the page view". Verified 2026-09-15 to also gate whether `products.filters` facet data is returned at all (empty when `false`) - see the SKILL.md gotcha for what this means practically. |
 | `id` | number | No | Draft version ID |
-| `trackingUserId` | string | No | See Personalization above |
-| `deviceType` | `"DESKTOP"` \| `"MOBILE"` | No | Same convention as Search/Recommendations |
+| `trackingUserId` | string | No | See Personalization above. A malformed value (not a 24-character hex id or the opted-out sentinel) returns HTTP 500. |
+| `deviceType` | `"DESKTOP"` \| `"MOBILE"` | No | Same convention as Search/Recommendations. A misspelled value (anything but exactly `"DESKTOP"` or `"MOBILE"`) returns HTTP 500. |
 | `includeRetailMediaInReview` | boolean | No | Include retail-media campaigns still in review state - same field as Search/Recommendations |
 | `params` | object | Yes | Base/gross filters - see [params.filters](#paramsfilters) below |
 | `products` | object | Yes | Pagination, fields, user-selected filters/sorting - see [products object](#products-object) below |
@@ -198,7 +198,8 @@ for "either one"):
 
 ### Error response
 
-Verified 2026-09-15, for both a missing `url` and an unresolvable `key`:
+Every HTTP 500 returns this same body, whatever caused it (first verified
+2026-09-15 for a missing `url` and an unresolvable `key`):
 
 ```json
 {
@@ -208,9 +209,11 @@ Verified 2026-09-15, for both a missing `url` and an unresolvable `key`:
 }
 ```
 
-HTTP 500 in both cases - a generic, opaque error that doesn't distinguish
-"you forgot a required field" from an actual server-side fault. See the
-SKILL.md gotcha on this.
+It is a generic, opaque error that doesn't distinguish "you forgot a
+required field" from an actual server-side fault. The same body comes back
+for a relative `url` without its leading slash, a misspelled `format` or
+`deviceType`, and a malformed `trackingUserId`. See the SKILL.md gotcha on
+this.
 
 ## Filter object shapes
 
