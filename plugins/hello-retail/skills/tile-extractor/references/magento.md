@@ -18,7 +18,7 @@ Three frontends share the Magento markup conventions below but differ in JS plum
 | --- | --- | --- |
 | **Luma** (default) | `mage/` scripts, `requirejs-config.js`, `window.require` and `window.jQuery` defined, `body.catalog-category-view` | `data-mage-init` / `x-magento-init` work; ATC via `mage('catalogAddToCart')` |
 | **Breeze** (Swissup) | `Swissup_Breeze` in script `src`, `body.breeze`; no `mage/` paths | Knockout present (`typeof ko`), lighter RequireJS shim — verify `mage` exists before relying on it |
-| **Hyvä** | `window.require` and `window.jQuery` **undefined**, `[x-data]` (Alpine) on the DOM | No jQuery, no `x-magento-init`; `form_key` sits as a direct child of `<body>`; Alpine attributes in the tile markup are inert inside Hello Retail (see *Native template syntax* above) |
+| **Hyvä** | `window.require` and `window.jQuery` **undefined**, `[x-data]` (Alpine) on the DOM | No jQuery, no `x-magento-init`; `form_key` sits as a direct child of `<body>`; Alpine attributes in the tile markup may be live inside Hello Retail when the theme's Alpine observes inserted DOM (verified on one shop: components initialised, handlers ran, a missing helper function logged an error per tile) — run the function scan of step 3b and see *Native template syntax* in `liquid-rules.md` |
 
 The detection snippet in PLATFORM DETECTION returns `magento`, `magento-breeze` and `magento-hyva`
 as separate hits. Record the frontend under `PLATFORM` — the shell's ATC binding depends on it.
