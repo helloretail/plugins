@@ -17,6 +17,7 @@ folder in `Insomnia_endpoint_examples_official_documentation.yaml`, tagged
 - [Request body](#request-body)
 - [params.filters](#paramsfilters)
 - [products object](#products-object)
+- [Pagination](#pagination)
 - [Response body](#response-body)
 - [Filter object shapes](#filter-object-shapes)
 - [Sorting object shape](#sorting-object-shape)
@@ -68,12 +69,12 @@ the async-race gotcha, and the opted-out sentinel
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `url` | string | **Yes.** Verified 2026-09-15: omitting it returns HTTP 500. | The page's URL, **absolute or relative - prefer the relative path** (`/category-path`, not `https://www.test.dk/category-path`): the relative path is exactly what Hello Retail requires, whereas anything before it in an absolute URL can cause interpretation issues. See the SKILL.md note under "Core request shape". Used for analytics, and - per Hello Retail's own docs collection - to let a Pages config's dynamic rules key off which URL the page is being shown on. |
-| `format` | `"json"` \| `"html"` | No | **Defaults to `"html"`** - verified 2026-09-15. The opposite default from Search/Recommendations; a custom frontend must always send `"json"` explicitly. |
+| `url` | string | **Yes.** Verified 2026-09-15: omitting it returns HTTP 500. | The page's URL, **absolute or relative - prefer the relative path** (`/category-path`, not `https://www.test.dk/category-path`): the relative path is exactly what Hello Retail requires, whereas anything before it in an absolute URL can cause interpretation issues. **A relative path must start with `/`** - `category-path` without the leading slash returns HTTP 500. See the SKILL.md note under "Core request shape". Used for analytics, and - per Hello Retail's own docs collection - to let a Pages config's dynamic rules key off which URL the page is being shown on. |
+| `format` | `"json"` \| `"html"` | No | **Defaults to `"html"`** - verified 2026-09-15. The opposite default from Search/Recommendations; a custom frontend must always send `"json"` explicitly. Omitting it is safe; a misspelled value (anything but exactly `"json"` or `"html"`) returns HTTP 500. |
 | `firstLoad` | boolean | Documented as required; verified 2026-09-15 to default to `false` when omitted, not to error. Always set it deliberately regardless - see the SKILL.md gotcha. | **`true` whenever the request can return a different scope of products** - the initial render and any change to `products.filters`; **`false` when only the order or page changes** - `products.sorting` or `products.start`. Hello Retail's docs describe it as "Indicates if this is the first render of the page... Views of the page will only be tracked if firstLoad is true" - read "first render" as "first render of this product scope", not "first request on the page view". Verified 2026-09-15 to also gate whether `products.filters` facet data is returned at all (empty when `false`) - see the SKILL.md gotcha for what this means practically. |
 | `id` | number | No | Draft version ID |
-| `trackingUserId` | string | No | See Personalization above |
-| `deviceType` | `"DESKTOP"` \| `"MOBILE"` | No | Same convention as Search/Recommendations |
+| `trackingUserId` | string | No | See Personalization above. A malformed value (not a 24-character hex id or the opted-out sentinel) returns HTTP 500. |
+| `deviceType` | `"DESKTOP"` \| `"MOBILE"` | No | Same convention as Search/Recommendations. A misspelled value (anything but exactly `"DESKTOP"` or `"MOBILE"`) returns HTTP 500. |
 | `includeRetailMediaInReview` | boolean | No | Include retail-media campaigns still in review state - same field as Search/Recommendations |
 | `params` | object | Yes | Base/gross filters - see [params.filters](#paramsfilters) below |
 | `products` | object | Yes | Pagination, fields, user-selected filters/sorting - see [products object](#products-object) below |
@@ -165,11 +166,27 @@ for "either one"):
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `start` | number | Yes per Hello Retail's docs (Search only requires `count`, defaulting `start` to 0 - not independently re-verified whether Pages actually enforces this) | Offset |
-| `count` | number | Yes | Page size |
+| `start` | number | No - defaults to `0` when omitted, the same as Search | Zero-based offset of the first product to return. Combine it with `count` to paginate - see [Pagination](#pagination) below. |
+| `count` | number | Yes | Page size: the maximum number of products the response can return in `products.result`. Combine it with `start` to paginate - see [Pagination](#pagination) below. |
 | `fields` | string[] | No | Restrict which product fields come back. **Omitting it entirely returns every product field** (verified 2026-09-15; the same on every endpoint), while an empty array returns an empty object for every result. To learn which native properties exist and exactly what they are called (e.g. `imgUrl`, not `image`), send one request without `fields` and read them off the response. A property only has to be mapped through the Hello Retail ETL to be returned - it does **not** need to be indexed in *Data fields*; that requirement belongs to filtering (`params.filters` and `products.filters`) and `products.sorting`, not `fields` - once you do specify `fields`, the usual rule applies: list `trackingCode` explicitly or it won't be there, see [click-tracking-api](../../click-tracking-api/SKILL.md) |
 | `filters` | string[] | No | User-selected filters, same string syntax as Search: `"field:value"`. Must be indexed for filtering in *Data fields*, not just ETL-mapped - see [SKILL.md](../SKILL.md) item 3. **A `hierarchies` value needs a trailing `$`** here (e.g. `"hierarchies:snowboard$"`) even though `params.filters.hierarchies` doesn't - verified 2026-09-15, see the shape note below and the SKILL.md gotcha |
 | `sorting` | string[] | No | `"field asc\|desc"`, same syntax as Search. Must be indexed for sorting in *Data fields*, not just ETL-mapped. Not independently verified here whether more than one entry is accepted (Search restricts this to one) |
+
+### Pagination
+
+`products.count` sets the maximum number of products one response can
+return, and `products.start` is the zero-based offset of the first one.
+Omitting `start` is the same as sending `0`. Keep `count` fixed and step
+`start` by `count` to move through the pages:
+
+| Page | `products.start` | `products.count` | Returns |
+|---|---|---|---|
+| 1 | `0` | `20` | The first 20 available products |
+| 2 | `20` | `20` | The next 20 |
+| 3 | `40` | `20` | The 20 after that |
+
+A next-page request doesn't change the product scope, so it sends
+`firstLoad: false` - see the `firstLoad` row above.
 
 ## Response body
 
@@ -198,19 +215,22 @@ for "either one"):
 
 ### Error response
 
-Verified 2026-09-15, for both a missing `url` and an unresolvable `key`:
+Every HTTP 500 returns this same generic body, whatever caused it (first
+verified 2026-09-15 for a missing `url` and an unresolvable `key`):
 
 ```json
 {
   "success": false,
   "code": "UNEXPECTED ERROR",
-  "message": "Unexpected error, please contact Hello Retail support"
+  "message": "..."
 }
 ```
 
-HTTP 500 in both cases - a generic, opaque error that doesn't distinguish
-"you forgot a required field" from an actual server-side fault. See the
-SKILL.md gotcha on this.
+The `message` only says to contact Hello Retail support. It is an opaque error that doesn't distinguish "you forgot a
+required field" from an actual server-side fault. The same body comes back
+for a relative `url` without its leading slash, a misspelled `format` or
+`deviceType`, and a malformed `trackingUserId`. See the SKILL.md gotcha on
+this.
 
 ## Filter object shapes
 
