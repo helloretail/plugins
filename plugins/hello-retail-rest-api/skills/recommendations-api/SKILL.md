@@ -32,7 +32,9 @@ endpoint:
   answers those questions.
 - **Unmanaged**: no persistent dashboard entity exists at all. The algorithm
   itself lives in the request, via `sources[]` (an array of algorithm steps
-  - `TOP`, `MOST_BOUGHT`, etc. - each with its own `limit`/`filters`).
+  - `TOP`, `MOST_BOUGHT`, etc. - each with its own `limit`/`filters`),
+  and the request must also set `count`, the total number of products to
+  return. `count` is required for Unmanaged, not optional.
   Because there's no existing box for Hello Retail's dashboard to attribute
   analytics to, the request supplies `trackingKey` instead of `key` - **not
   a lookup into anything, just a name the caller invents on the spot** so
