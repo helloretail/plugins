@@ -201,8 +201,8 @@ Pages, in this order (later pages depend on earlier ones):
 5. **Search overlay** with a query that returns results. Type it the way search-qa's keystroke
    matrix says (short query, 60–150 ms/char, on 820 and 375). At 375 the desktop search field
    may be "visible" but off-screen: pick the trigger whose bounding box lies inside the viewport.
-   If the overlay drops characters (known template issue T10) and shows no results, do one more
-   pass with a pause before typing so you can still measure the banner, and record T10 as a
+   If the overlay drops characters and shows no results, do one more
+   pass with a pause before typing so you can still measure the banner, and record it as a
    cross-feature note for search-qa — don't let it block or replace the banner check.
 
 Empty the test cart at the end and record it under side effects. Serialise the browser (parallel
