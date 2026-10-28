@@ -174,6 +174,12 @@ with `/`**: `category/snowboards` without the leading slash returns an HTTP
 500, not a fallback. `window.location.pathname` always includes the slash;
 a path assembled by hand or taken from a router may not.
 
+**Paginate with `products.count` and `products.start`.** `count` is the
+maximum number of products one response can return; `start` is the offset
+of the first one, and defaults to `0` when omitted. The first 20 available products are `"start": 0,
+"count": 20`, the next 20 are `"start": 20, "count": 20`, and so on. See
+[reference/endpoints.md](reference/endpoints.md#pagination).
+
 ## Gotchas worth knowing before you build
 
 - **`format` defaults to `"html"`, not `"json"` - the opposite default from
