@@ -41,7 +41,10 @@ usual carrier.
   framework even runs inside the Hello Retail container. Alpine initialises new DOM only if the
   theme calls `Alpine.initTree()` on it; without that the attributes are inert and the
   framework-controlled element needs a static state (as with the loading-state normalisation in
-  Rule 10). Note the choice under SHELL CSS NOTES / MISSING DATA.
+  Rule 10). Note the choice under SHELL CSS NOTES / MISSING DATA. **Do not assume they are
+  inert:** on a Hyvä storefront whose Alpine observes inserted DOM the components initialise and
+  their handlers run (add-to-cart, wishlist), and a helper function that does not exist on the
+  current page then logs an error per tile. Run the function scan of step 3b.
 - **Escaping braces so Liquid ignores them is not documented for Hello Retail's engine.** The
   team believes the standard `{% raw %}` block does not work there, and the only known related
   construct is the `| rawHtml` *filter* (which unescapes HTML entities — a different thing).
