@@ -8,6 +8,12 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.49.0 — 2026-10-28
+
+### Added
+
+- `hello-retail-knowledge` now explains why Shopify Unlisted products show up in Search, Recommendations and Pages: the legacy Shopify feed helper can't see that status, and the fix is moving the feed to the V2 helper.
+
 ## 1.48.1 — 2026-10-28
 
 ### Removed
