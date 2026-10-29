@@ -214,6 +214,29 @@ The title then ends in the tile's own ellipsis, as on the native page.
 
 **Rendered check, desktop and 375px:** `getComputedStyle(container).gridTemplateColumns` shows equal tracks whose sum fits the container; `document.documentElement.scrollWidth` does not exceed `innerWidth`; the first tile's title has `scrollWidth > clientWidth` (it is truncated, not overflowing). With no Hello Retail widget, build the check as a mock: inject the design's `resultStyles` (tokens filled in) and the native tiles into a `.hr-overlay-search` container on the live category page.
 
+### Wide content inside the tile — the cell is narrower than the native tile
+
+Equal tracks do not stop a **tile root** from growing past its own cell. The overlay's columns are often narrower than the native grid's (a content column or filter sidebar takes width the category page does not spend), and anything inside the tile with an intrinsic width — a native `<select>` sizes itself to its longest option, a theme rule like `max-width: 265px` lets it get that wide, a long unbreakable word, a fixed-width button — then pushes the root past the cell and over its neighbour. Field case 2026-10 (WooCommerce): native tiles were 336px, the overlay's results columns 240px, and tiles with a size dropdown rendered 254–285px wide, overlapping the next column; the build checked a few ordinary tiles and never met the widest dropdown.
+
+**Check (Step 17b, desktop and 375 px), on the worst case, not on a fixture:** run broad queries that bring the tile's widest content into the results (the longest titles, the variable products with the most options, price ranges, tiles with every badge) and assert, for **every** tile: `li.getBoundingClientRect().width <= cell.getBoundingClientRect().width + 0.5`. List each offender with the element that is wider than the cell.
+
+**Fix, in order — derived, verify on the rendered panel before shipping:**
+
+1. When the native page gives the tile more width than the overlay can, prefer fewer columns (the *FIXED column counts* override) so the overlay's cell is as wide as the native tile.
+2. Otherwise cap the intrinsic element to its cell — scoped to the tile, appended after TILE FILL:
+
+```css
+/* Native selects size to their longest option; keep them inside the overlay's narrower cell */
+.hr-overlay-search .hr-search-overlay-product select {
+	max-width: 100%;
+}
+```
+
+   Add `min-width: 0` on the flex/grid parent only when the offender sits in one and still overflows. Never shrink the native font or padding to make it fit — that is tile styling.
+
+<!-- capture-back: wide-tile-content status=derived -->
+> 🧪 **Capture-back:** derived from one field case; the first build that ships the cap re-runs the every-tile width assertion and flips this to *verified live* with platform, date and column width.
+
 ## Tile width — match `product_tile_width` to the native tile's rendered width
 
 The base template's `{# text product_tile_width = "214" #}` is an arbitrary placeholder, not derived from the customer's actual layout. Left alone, the overlay's tiles render at the wrong width compared to the native category-page tiles — a visible mismatch even when the tile itself is pixel-perfect. This has come up as a "make it match native" follow-up request more than once — treat it as a **standard build step**, not something to wait for the operator to ask for.
