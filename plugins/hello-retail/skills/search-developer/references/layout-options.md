@@ -224,12 +224,16 @@ store-SE-1: 138 → `calc(100vh - 138px - 80px)`. Take the ≥1200px value; the 
 
 Only applies when L1 is **not** applied.
 
-**Base default: the filters already track the tiles.** The filter `<ul>` shares the products grid rule — `.hr-products-container, .aw-full-search-results__filter-wrapper { display: grid; grid-template-columns: repeat(auto-fill, minmax({{ product_tile_width }}px, 1fr)); gap: 5px }` (in the `resultStyles` of the overlay and embedded designs alike). For "match the tile width" write **nothing** unless (a) applies.
+**Base default: check which filter row the design ships — it differs by design version.** Grep `resultStyles` for `.aw-full-search-results__filter-wrapper`:
 
-**(a) The products grid got the fixed-column override** (`references/shell-structure.md` → *FIXED column counts*) · **derived**. That override is products-only by design, so the filters fall out of alignment. If the operator wants them aligned again, append the same columns and gap for the filter `<ul>`, at the same breakpoint and with the same numbers you used for the products (the example assumes the reference's 4 → 3 example):
+- **It shares the products grid rule** (`.hr-products-container, .aw-full-search-results__filter-wrapper { display: grid; grid-template-columns: repeat(auto-fill, minmax({{ product_tile_width }}px, 1fr)); gap: 5px }`): the filters already track the tiles — write **nothing** unless (a) applies.
+- **It has its own flex rule** (`display: flex; flex-wrap: wrap` on the wrapper, `flex: 1 0 auto` on each `.aw-filter__single-wrapper` — the default embedded design attached by `search_createConfig` in 2026-10 ships this): the filters size to their content and never line up with the tiles. Give the wrapper `display: grid` with the products' own column rule and gap — the base `auto-fill` rule when no override is set, the fixed columns of (a) when one is.
+
+**(a) The products grid got the fixed-column override** (`references/shell-structure.md` → *FIXED column counts*) · **derived**. The override now carries the filter row with it — same columns, gap and breakpoint, applied in the same edit, not on request (the CSS lives in that section). Recorded here for reference; the `display: grid` line matters on designs whose filter row is a flex row:
 
 ```css
 .hr-overlay-search .aw-full-search-results__filter-wrapper {
+	display: grid;                                      /* needed when the design's filter row is a flex row */
 	grid-template-columns: repeat(4, minmax(0, 1fr));   /* same count as your .hr-products-container override */
 	gap: 10px;                                          /* same gap as your .hr-products-container override */
 }
