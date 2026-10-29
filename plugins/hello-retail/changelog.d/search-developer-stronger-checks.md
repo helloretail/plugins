@@ -6,6 +6,8 @@
 
 - `search-developer` gives the embedded search panel a fully solid background (matching the page colour) instead of 97 % opacity, so the page's headings and banners no longer show faintly through the results.
 
+- `search-developer` now keeps the desktop filters exactly as wide as the product tiles below them: a fixed column count is applied to the filter row as well, and the filter row of the default embedded design (which sizes each filter to its text) is put on the same grid as the tiles.
+
 ### Changed
 
 - `search-developer` now clicks every control on the product tile (wishlist, compare, size select, add to cart) in the search overlay and compares its state after each click with the shop's own tile before handing off, so a wishlist heart that never toggles is caught in the build instead of in QA.
