@@ -4,6 +4,8 @@
 
 - `search-developer` now translates the three English screen-reader labels the default mobile search builds in its JavaScript (" filters selected" and the two recent-search labels); a new scan lists every such string before the push.
 
+- `search-developer` gives the embedded search panel a fully solid background (matching the page colour) instead of 97 % opacity, so the page's headings and banners no longer show faintly through the results.
+
 ### Changed
 
 - `search-developer` now clicks every control on the product tile (wishlist, compare, size select, add to cart) in the search overlay and compares its state after each click with the shop's own tile before handing off, so a wishlist heart that never toggles is caught in the build instead of in QA.
