@@ -109,6 +109,7 @@ Add the hooks to **every** `hr-products-container` occurrence in each `search.li
 
 - Rules scoped to **`body.<class>` or `html.<class>`** (e.g. `body.catalog-view .card { … }`) can't be satisfied by a class on a div — and adding classes to the customer's `<body>` is off-limits (it would restyle the whole page).
 - Rules scoped under an **`#id`** ancestor — never duplicate an id inside the overlay.
+- Rules scoped under an **element** ancestor — `ul.products li.product …`, `.woocommerce ul.products li …`. The shell cell is a `<div>`, so no class hook on it can satisfy `ul`. The tile skill collects these rules with its archive rescoper (step 4b) and returns them as an `archive-scoped:` block in SHELL CSS NOTES: append that block after the TILE FILL rule, unchanged. Field case 2026-10 (WooCommerce): the whole card style lived under `ul.products`, and the overlay tile rendered unstyled until the block was added.
 
 For those, copy the affected rules into `resultStyles` **rescoped under `.hr-overlay-search`** (same spirit as the copied customer rules on a non-global-CSS shop; keep the copied declarations byte-identical, only the scope changes) and note it in the report.
 
