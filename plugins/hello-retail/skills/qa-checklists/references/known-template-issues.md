@@ -25,6 +25,11 @@ domains yet missed on two others in the same period.
    code** (the no-customer-data rule); per-site reproduction status lives in the per-customer report
    under gitignored `QA/`, never in this file. An entry is **retired** (moved to the Retired
    section, never deleted) when the fix ships — upstream in Hello Retail's default design (Search), or in the wiki's base files (Recommendations and emails).
+4. **Accepted template defaults (D-entries, below) are the opposite of a defect.** They are how the
+   default template is meant to behave, confirmed by the QA team. Never put one in the bug list
+   or the defect counts; record it as **ACCEPTED** in the NOTE block, one line, with the viewport.
+   Only a **deviation from the described default** is reportable (the control is missing, broken
+   or visibly different from what the entry says).
 
 ---
 
@@ -55,7 +60,8 @@ domains yet missed on two others in the same period.
 - **Features:** Search, Pages.
 - **Verify:** apply one **custom/extraData** facet (length/width-style, not a standard
   brand/size facet) — the applied-state chip must render in the selected-filters row and must
-  be clearable. Standard facets rendering chips is not a PASS for this item.
+  be clearable. Standard facets rendering chips is not a PASS for this item. **Mobile filter
+  panel:** no chip row exists by default (D4) — grade this on desktop only.
 - **Origin:** custom facets bypass the standard selected-filters render path (store-NL-2,
   2026-08).
 
@@ -126,9 +132,63 @@ domains yet missed on two others in the same period.
   and the price filter must not stay behind while a different filter disappears. Then remove
   the chips **in a different order** and flag any chip that needs **two clicks** to go.
   "Clear all" working is not a PASS for this item — the single-removal path is the defect.
+  On the mobile filter panel there are no chips (D4): un-tick each applied option instead.
   **Mandatory, never skipped**, on desktop **and** on tablet/mobile.
 - **Origin:** found manually, never by a skill run — runs only exercised "clear all" and the
   filter counts.
+
+---
+
+## Accepted template defaults — record as ACCEPTED, never report
+
+Behaviour of the **default Search template's mobile filter panel** (the config served at ≤992 px,
+so 375 and 820) that looks like a defect but is how the template is built — confirmed
+not-an-issue by the QA team. Walk each one, note it as `ACCEPTED (default template)` with the
+viewport, and keep it out of the bug list, the defect counts and the fix list. They are *not*
+T-entries: nothing is wrong, so nothing goes to the base-template owners.
+
+### D1 · The reset button ("Clear all" / "Nulstil alle") is pure red in the browser's default font
+
+- **Features:** Search (mobile / tablet-served-by-mobile config).
+- **Looks like:** the reset button in the filter panel is `#ff0000`-style red, in Arial or the
+  UA default sans-serif, not the shop's font and brand colour.
+- **Still reportable:** the button is missing, does nothing, or does not reset the filters
+  (and, per the checklist, the sorting) — function is graded as normal. Only its colour and
+  font are accepted.
+
+### D2 · The filter-button count badge also counts the active sort
+
+- **Features:** Search (mobile / tablet-served-by-mobile config).
+- **Looks like:** with 3 filters and a sort applied the badge on the filter button reads 4.
+- **Still reportable:** a badge that is missing, not updated when a filter is added or
+  removed, or that disagrees with the applied filters by more than the sort.
+
+### D3 · Stray scroll-arrow glyphs in the filter panel
+
+- **Features:** Search (mobile / tablet-served-by-mobile config).
+- **Looks like:** small grey scroll arrows at the bottom of the price block and of the panel.
+- **Still reportable:** anything that overlaps text, a control or an option, or hides one.
+
+### D4 · No applied-filter chips in the mobile filter panel
+
+- **Features:** Search (mobile / tablet-served-by-mobile config). **Desktop is not covered** —
+  the desktop design renders the selected-filters row and T2 / T9 apply there as written.
+- **Looks like:** nothing shows which filters are applied except the checked options and the
+  count badge (D2).
+- **Consequence for T2 and T9:** with no chip row on mobile, do not grade chip rendering. Run
+  the T9 sequence through the panel instead — un-tick each applied option one at a time, same
+  three-filter set, same order change — and grade the same outcome (only that filter goes,
+  the price filter does not stay behind, one action per filter).
+
+### D5 · Focus leaves the price field after typing the min value
+
+- **Features:** Search (mobile / tablet-served-by-mobile config).
+- **Looks like:** type a min price, press Tab, and `document.activeElement` is the page body
+  instead of the max field, so the max field has to be tapped.
+- **Still reportable (T1 is unchanged):** the typed value must still register — both values
+  stay set, the dropdown does not close or apply after the first field, and the result set
+  changes. Only the lost focus itself is accepted. This is the **price** field; losing focus
+  in the **search** input while typing stays a defect.
 
 ---
 
