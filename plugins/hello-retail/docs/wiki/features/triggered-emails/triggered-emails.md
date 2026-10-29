@@ -39,9 +39,9 @@ There's a **Base Design** for triggered emails, then per-trigger design override
 
 Three pieces of plumbing are required before launch:
 
-- **Email permission sync** — Hello Retail must respect the customer's unsubscribe list. Auto-sync is supported for: Klaviyo, Mailchimp, ActiveCampaign, Omnisend, Drip, Rule, MarketingPlatform, BullSender, Ubivox, Campaign Monitor, Get A Newsletter, Brevo (formerly SendinBlue). Manual export is also supported (e.g., Mailchimp export).
+- **Email permission sync** — Hello Retail must respect the customer's unsubscribe list. Auto-sync is supported for: Klaviyo, Mailchimp, ActiveCampaign, Omnisend, Drip, Rule, MarketingPlatform, BullSender, Ubivox, Campaign Monitor, Get A Newsletter, Brevo (formerly SendinBlue), HeyLoyalty, MailerLite. Manual export is also supported (e.g., Mailchimp export).
 - **Sending domain (DNS)** — a dedicated subdomain (e.g. `triggers.example-shop.com`) with SPF (`include:_spf.helloretail.com`; only one SPF record per host), a DKIM TXT record with a key from Hello Retail support, a CNAME to `email.helloretailmail.com` and two Mailgun MX records; Hello Retail verifies the records before activation. Without this the from-address falls back to `noreply@helloretailmail.com`. See "Domain settings for Triggered Emails" and "Adding a Hello Retail SPF record".
-- **Unsubscribe link** in the base design (required); optionally point it at the ESP's own unsubscribe form (General Settings → third-party unsubscribe URL, `{{ email }}` supported) so opt-outs land in the source of truth.
+- **Unsubscribe link** in the base design (required); optionally point it at the ESP's own unsubscribe form (the **third-party unsubscribe URL** in Triggered Emails → Settings, in its Unsubscribes section — the general-settings article and the Mailchimp article name the same field from these two ends; `{{ email }}` supported) so opt-outs land in the source of truth.
 
 ## Tracking & analytics
 

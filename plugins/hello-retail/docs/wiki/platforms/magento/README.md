@@ -12,10 +12,11 @@ On a Magento 1 shop see [magento-1.md](./magento-1.md) — none of it applies.
 
 - Product feed
 - Conversion data tracking
-- Empty page for Dynamic Search
 - JS install
 
-This means **three of the first-steps tasks** are already done by installing the extension.
+The **empty page for Dynamic Search** is not created by the extension: it is a blank CMS page
+added by hand in the Magento admin (Content → Elements → Pages), then entered in the Hello Retail
+search settings — see [Setup your Search Page in Magento 2](https://support.helloretail.com/platforms-and-newsletter-providers/setup-your-search-page-in-magento-2/#create-a-blank-page-for-magento-2).
 
 **Install guide:** [Magento 2 Installation Guide](https://support.helloretail.com/platforms-and-newsletter-providers/magento-2-installation-guide/) · [Setup your Search Page in Magento 2](https://support.helloretail.com/platforms-and-newsletter-providers/setup-your-search-page-in-magento-2/)
 
