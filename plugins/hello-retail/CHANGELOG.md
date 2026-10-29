@@ -8,6 +8,12 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.50.0 — 2026-10-29
+
+### Changed
+
+- `search-qa` no longer reports five default behaviours of the mobile filter panel: the red Arial reset button, the filter badge counting the sort, stray scroll-arrow glyphs, the missing filter chips and focus leaving the price field after the min value. They are noted as ACCEPTED, and the single-filter removal check is run through the panel's options on mobile.
+
 ## 1.49.0 — 2026-10-28
 
 ### Added
