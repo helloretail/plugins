@@ -12,6 +12,10 @@ Hello Retail's support documentation site ([support.helloretail.com](https://sup
 > [script-not-loading.md](./script-not-loading.md): check whether `helloretail.js` loads on the
 > reported page before looking at any design, feed or configuration.
 
+> **Looking for a fix rather than an article?** [solutions/](./solutions/solutions.md) re-cuts the
+> support and developer docs by symptom — likely cause, fix, how to confirm it, and the source
+> article. Some of those articles are out of date, so confirm each fix before giving it.
+
 ## 1. General Setup
 
 The biggest category. Subdivided into:

@@ -19,13 +19,13 @@ This file maps each requirement to the relevant KB article and lists the typical
 
 | Field | Notes |
 | --- | --- |
-| **Stable product ID** | Must be consistent between the catalog feed and tracking events. Mismatches break Search and Rec quality immediately. |
+| **Product URL** | The product's ID in Hello Retail: views and cart adds are tracked by URL, so the feed must carry the canonical URL exactly as the site shows it. A URL that differs from the on-site one breaks Search and Rec quality immediately. See [Notes on product URLs](https://developer.helloretail.com/guides/setup/data_synchronization/#notes-on-product-urls). |
 | **Title** | Used for search matching and PI vectorization. |
 | **Price** | Including discounted price if applicable. |
 | **Currency** | Must match the storefront. |
 | **Availability / stock** | Drives availability filtering. |
 | **Category / hierarchy** | Drives category Pages, filters, and global hierarchy filters. |
-| **Brand** | Drives global brand filters. Not in the base `productData` list — supply it as an extra field. |
+| **Brand** | Drives global brand filters. The developer docs list `brand` as a native optional product field ([Product data](https://developer.helloretail.com/guides/setup/data_synchronization/product_data/#optional-fields)) — map it there. The support article's base `productData` list leaves it out; that list is the older one. |
 | **Image URL** | Used in widgets and emails. |
 | **Variants** | Variant relationships. |
 | **Custom attributes** | Size, color, material, etc. — `attributes` in the feed, indexed as `extraData` fields for filters, sorting and affinity. |
@@ -86,7 +86,7 @@ For customers who want their blog / guides / landing pages to appear in Search r
 
 ## Data quality checklist (pre-launch)
 
-- [ ] Stable product IDs match between feed and tracking events.
+- [ ] Product URLs in the feed match the canonical URLs the site shows — they are the product IDs tracking uses.
 - [ ] Currency is correct and matches storefront.
 - [ ] Categories / hierarchies are well-structured (not just "Uncategorized").
 - [ ] Custom attributes consistent (no mix of `"red"` and `"Red"`).

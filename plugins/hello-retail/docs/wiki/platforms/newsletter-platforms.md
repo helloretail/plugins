@@ -41,8 +41,10 @@ Hello Retail can automatically sync unsubscribe / opt-out state from these ESPs:
 | Campaign Monitor | [Auto Sync of Campaign Monitor permissions](https://support.helloretail.com/platforms-and-newsletter-providers/auto-sync-of-campaign-monitor-permissions/) |
 | Drip | [Auto Sync of Drip permissions](https://support.helloretail.com/platforms-and-newsletter-providers/auto-sync-of-drip-permissions/) |
 | Get A Newsletter | [Auto Sync of Get A Newsletter permissions](https://support.helloretail.com/platforms-and-newsletter-providers/auto-sync-of-get-a-newsletter-permissions/) |
+| HeyLoyalty | [Auto Sync of HeyLoyalty permissions](https://support.helloretail.com/platforms-and-newsletter-providers/auto-sync-of-heyloyalty-permissions/) |
 | Klaviyo | [Auto Sync of Klaviyo permissions](https://support.helloretail.com/platforms-and-newsletter-providers/auto-sync-of-klaviyo-permissions/) |
 | MailChimp | [Auto Sync of Mailchimp permissions](https://support.helloretail.com/platforms-and-newsletter-providers/auto-sync-of-mailchimp-permissions/) · [How to export permissions from Mailchimp](https://support.helloretail.com/platforms-and-newsletter-providers/how-to-export-permissions-from-mailchimp/) · [Redirecting to your Mailchimp Unsubscribe form](https://support.helloretail.com/platforms-and-newsletter-providers/redirecting-to-your-mailchimp-unsubscribe-form/) |
+| MailerLite | [MailerLite Permission Guide](https://support.helloretail.com/platforms-and-newsletter-providers/mailerlite-permission-guide/) |
 | MarketingPlatform | [Auto sync of MarketingPlatform permissions](https://support.helloretail.com/platforms-and-newsletter-providers/auto-sync-of-marketingplatform-permissions/) |
 | Omnisend | [Auto Sync of Omnisend Permissions](https://support.helloretail.com/platforms-and-newsletter-providers/auto-sync-of-omnisend-permissions/) |
 | Rule | [Auto Sync of Rule Permissions](https://support.helloretail.com/platforms-and-newsletter-providers/auto-sync-of-rule-permissions/) |

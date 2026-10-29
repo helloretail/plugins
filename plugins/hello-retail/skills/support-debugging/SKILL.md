@@ -233,6 +233,11 @@ Read the relevant `${CLAUDE_PLUGIN_ROOT}/docs/wiki/` pages for the feature and p
 writing the fix — platform nuance (Shopify vs Magento vs custom) changes the answer, and the
 knowledge base is the point of this skill. Cite the page in the reply.
 
+For a symptom you have not seen before, look it up in
+`${CLAUDE_PLUGIN_ROOT}/docs/wiki/support-knowledge/solutions/solutions.md` — the support and
+developer docs re-cut as symptom → cause → fix. Those articles are partly out of date, so an entry
+there is a lead to check against the config or the reproduction, never evidence on its own.
+
 **Then propose the fix and stop there.** Make no MCP writes — *not even drafts* — unless the
 operator asks for them. The default deliverable is the diagnosis plus the concrete change you
 would make, named down to the tool and the field.
@@ -458,5 +463,6 @@ Regardless of outcome, finish with three blocks:
   readable, what is writable as a draft, what is only partly reachable, and what to hand back.
   **Read §4 before writing any hand-back**, and §3 before concluding that you cannot help.
 - `${CLAUDE_PLUGIN_ROOT}/docs/wiki/` — feature and platform knowledge; `support-knowledge/support-knowledge.md`
-  indexes support.helloretail.com, `onboarding/data-requirements.md` lists what the customer must
+  indexes support.helloretail.com, `support-knowledge/solutions/` re-cuts it by symptom,
+  `onboarding/data-requirements.md` lists what the customer must
   supply, `platforms/platforms.md` covers per-platform install nuance.
