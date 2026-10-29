@@ -202,6 +202,8 @@ only in your own context — if you learned it, it is in one of these sections.
 
 ### SHELL CSS NOTES
 - hover-only: <selector> shown on <trigger>: <declarations>
+- root hover: <declarations the card root takes on hover, e.g. transform: scale(1.05)> — from the idle-vs-hovered
+  diff of the root, or `root hover: none (checked idle vs hovered)`
 - tile root: rendered width <N>px · real card / gutter-padded cell · grid <N> columns, gap <N>px
 - buy button: background <rgb> · color <rgb>; accent colour <rgb>
 - rules that can't reach the tile, preview-only differences, mobile hover behaviour

@@ -962,6 +962,16 @@ hoverRules;
 
 **What to look for:**
 
+- **The card root itself** — a zoom or lift (`transform: scale(1.05)` / `translateY(…)`), a shadow, a border or a background that the root takes on hover. The rule scan above finds it only when the selector happens to contain one of its keywords, so also diff the root's computed style idle vs hovered with a real hover (field case 2026-10, WooCommerce: `ul.products li:hover { transform: scale(1.05) }` was missed, and the report said only the button changed):
+
+```javascript
+// run once idle, once while browser_hover holds the pointer over the same tile root
+const root = document.querySelector(".tile-root");
+const keys = ["transform", "boxShadow", "borderTopColor", "backgroundColor", "opacity", "zIndex", "transition"];
+Object.fromEntries(keys.map((k) => [k, getComputedStyle(root)[k]]));
+```
+
+  Any value that differs between the two reads is a hover line under `SHELL CSS NOTES`, with the rule that sets it.
 - Buttons that are `display: none` by default and revealed on hover (Se produktet, wishlist, ATC)
 - Quick-view overlay that slides up from the bottom of the product image
 - Card border/shadow that appears on hover

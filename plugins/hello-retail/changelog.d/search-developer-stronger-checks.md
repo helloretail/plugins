@@ -8,7 +8,13 @@
 
 - `search-developer` now keeps the desktop filters exactly as wide as the product tiles below them: a fixed column count is applied to the filter row as well, and the filter row of the default embedded design (which sizes each filter to its text) is put on the same grid as the tiles.
 
+### Added
+
+- `search-developer` has a parity sweep that compares every product tile in the search overlay with the same product's tile on the shop's category pages, and lists any tile wider than its column; the build runs it over several broad searches instead of checking a handful of tiles.
+
 ### Changed
+
+- `tile-extractor` now checks what the whole product card does on hover (a zoom, lift or shadow), not only the elements inside it, and reports it so the search tile can do the same.
 
 - `search-developer` now clicks every control on the product tile (wishlist, compare, size select, add to cart) in the search overlay and compares its state after each click with the shop's own tile before handing off, so a wishlist heart that never toggles is caught in the build instead of in QA.
 - `search-developer` recommends 12 initial products for a mobile search in grid layout instead of 10, so the first panel has no single orphan tile at tablet width (three columns).
