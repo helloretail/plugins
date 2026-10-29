@@ -735,7 +735,7 @@ These are the most important checks — get these right.
       may go, the other two stay applied, and the price filter must not stay behind while a
       different filter is removed. Remove the chips in a different order too and flag any chip
       that needs two clicks. Desktop AND tablet/mobile. "Clear all" working is NOT a PASS for
-      this item.
+      this item. The mobile panel has no chips (D4): un-tick the applied options one at a time.
 - [ ] **Open-state icon** — each filter dropdown's arrow flips or rotates while the dropdown is
       open (check every filter dropdown at desktop and tablet)
 - [ ] **Filter-panel visual pass** — screenshots at all four viewports: options aren't cramped,
@@ -746,10 +746,20 @@ These are the most important checks — get these right.
       the slider and don't stick out past its edge or sit lower than the rest of it
 - [ ] **Custom-filter applied-state chip** (T2) — apply one custom/extraData facet and verify
       the applied chip renders in the selected-filters row and can be cleared; standard-facet
-      chips working is not a PASS for this item
+      chips working is not a PASS for this item; desktop only — the mobile panel has no chip row (D4)
 - [ ] **Nothing bleeds over an opened filter panel** (T4) — with discount/sale-labelled tiles
       in view, open each filter panel/dropdown and confirm no grid content paints over it
       (z-index); screenshot on reproduction
+- **ACCEPTED — do not flag (default mobile filter panel, 375 / 820):** the reset button
+  ("Clear all" / "Nulstil alle") in pure red Arial (D1); the filter-button count badge also
+  counting the active sort (D2); grey scroll-arrow glyphs at the bottom of the price block and
+  panel (D3); no applied-filter chips (D4 — run T9 by un-ticking options in the panel, grade T2
+  on desktop only); focus dropping to the page body after the min price is typed (D5 — the typed
+  value must still register, T1 unchanged). All five are template defaults confirmed by the QA
+  team (`../qa-checklists/references/known-template-issues.md`, "Accepted template defaults"):
+  note each as ACCEPTED, never FAIL/WARN. A deviation from the description — reset button not
+  working, badge missing or wrong by more than the sort, glyphs overlapping content — is still
+  a finding. Desktop is not covered.
 - **ACCEPTED — do not flag:** the price range slider showing bare numbers without a currency
   symbol (e.g. "40"–"250", no €). The shared `ui_utility.register_filter(…, {rangeSliderDecimals: 0})`
   component takes no currency parameter, so this is account-wide behaviour — confirmed
