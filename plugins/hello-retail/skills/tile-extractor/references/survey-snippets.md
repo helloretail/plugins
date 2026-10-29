@@ -541,6 +541,20 @@ missing ancestors as **PARENT HOOKS** — the calling shell skill mirrors them o
 container (`hr-products-container` for Search; see
 `../search-developer/references/shell-structure.md` for the application rules and the `body.`/`#id` limits).
 
+**When the ancestor is an element, not a class, hooks cannot help.** Many classic themes scope the card
+to a literal list: `ul.products li.product …`, `.woocommerce ul.products li …`, or a page-builder
+template class around it (`.elementor-1234 … ul.products li.product …`). The shell's cell is a `<div>`,
+so mirroring the classes onto it still matches nothing, and a hook harness that wraps the tile in a
+real `<ul>` passes while the shell renders the card unstyled (field case 2026-10, WooCommerce +
+Elementor: a hook-only check reported zero differences; the live overlay showed a bare card). Tell-tale:
+the candidate scan returns `products` (or another list class) and the rules that carry the card's
+padding, shadow, background and typography all contain `ul.` or `> li`. Then run
+`scripts/rescope-archive-css.js` on category pages that between them show every tile state, and
+report its block under SHELL CSS NOTES as `archive-scoped: <n> rules (rescope-archive-css.js on
+<pages>)` with the CSS in a fenced block — the shell appends it after its TILE FILL rule. These are
+the theme's own rules, rescoped, never a reconstruction from computed styles. Rules scoped to Hello
+Retail's own boxes (`#slider-…`, `.aw-…`) are never part of it: they are our copy, not the theme's.
+
 Candidate scan — list ancestor tokens required by rules that target the tile's own classes:
 
 ```javascript
