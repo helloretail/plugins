@@ -330,6 +330,12 @@ for the accessibility-template generation.
 
 ### Selected filters
 
+> **ACCEPTED — do not flag (default mobile filter panel, 375 / 820):** no applied-filter chips
+> (D4), the red Arial reset button (D1), grey scroll-arrow glyphs at the bottom of the price block
+> and panel (D3), and focus dropping to the page body after the min price is typed (D5). Record
+> each as ACCEPTED; only a deviation from the description in
+> `known-template-issues.md` is a finding. Desktop chips are unaffected.
+
 - [ ] Filter boxes differ in size
 - [ ] x-button disappears (same color as the background)
 - [ ] **Filter removal** (known-template-issues T9): apply the price filter plus two other
@@ -380,7 +386,9 @@ for the accessibility-template generation.
 
 ### Separate filter/sorting buttons
 
-- [ ] When adding a sorting option, the notification is added to filters too
+- [ ] When adding a sorting option, the notification is added to filters too *(ACCEPTED on the
+      default mobile filter panel — the badge counts the sort, known-template-issues D2; report
+      only a badge that is missing or off by more than the sort)*
 - [ ] Sorting back button jumps to the filters window instead of back to search
 - [ ] Swap the text of the options set up
 - [ ] Specify what the options do — e.g. not just 'price' but 'lowest price'
