@@ -102,6 +102,18 @@ Several of these are filed under a key that is **not** the base default's Englis
 
 A string with no key here and no entry for the language (the content-feed subtitle, the `label_*` screen-reader tokens) is translated by you — and **listed as self-translated** in the translation table below, so the operator can check it and the QA team can add it to the file. Filter titles copied from a sibling config are the customer's own wording; keep them, and mark them `sibling` in the table.
 
+## Literals in the base JS — not declared, still visible
+
+The base `initializationCode` builds some page text by joining literals around a variable, so none of it appears as a `{# text … #}` declaration and a scan of the header never sees it. `scripts/js-string-literals.mjs` lists them (Step 12b). On the default **mobile** design they are three accessibility strings, read aloud by screen readers on every non-English store until translated (field case 2026-10, a Danish store):
+
+| Literal in the mobile base | Where it lands | Danish example |
+|---|---|---|
+| `" filters selected"` | accessible name of the filters button, after the count | `" valgte filtre"` |
+| `"Remove search '"` + term + `"'"` | `aria-label` of a recent search's remove button | `"Fjern søgning '"` |
+| `"Search again for '"` + term + `"'"` | `aria-label` of a recent search's re-search link | `"Søg igen efter '"` |
+
+Change the literal only — keep the leading space, the quote marks and the variable — and list each one in the translation table as `self-translated — no entry`. The default desktop designs (overlay and embedded) build none of these. Literals inside `console.*` calls are developer output and stay as they are.
+
 ## The translation table — shown with the diff, before the push
 
 Every build shows this table next to the Step 16 diff, one row per visible string — header tokens and search-data strings alike:
@@ -128,4 +140,5 @@ If you ever read a design whose header still carries the old `__<Language>` vari
 - [ ] All `$query$`, `$totalResults$`, `$contentType$`, `<strong>…</strong>` interpolations preserved verbatim.
 - [ ] Every visible string — header tokens, filter titles, sort labels, content-feed and initial-content texts — looked up in `translations.json` first (the key table above for the ones filed under a different key); where the file has the string, its value is used exactly, punctuation included.
 - [ ] The translation table was shown with the diff; every row names its source, and no `self-translated` row has an entry in the file.
+- [ ] `scripts/js-string-literals.mjs` run on every `initializationCode` in scope; every VISIBLE literal is in the target locale (the three mobile accessibility strings included) and listed in the translation table.
 - [ ] Key order and group spacing preserved; header is followed by the Liquid body exactly as in the source design.
