@@ -59,7 +59,7 @@ the recommended option and record the question under Manual checks for the opera
 | Pages | `references/pages.md` | Placement, design & styling, filters, category filter, sorting, loading, products, translations, dashboard |
 | Retail Media | `references/retail-media.md` | isBanner code, `hr-b-image` class, image sizing/naming, banner rendering; runner: `retailmedia-qa` |
 | Newsletter Content tile & Triggered Emails | `references/newsletter.md` | **v1, authored (no QA-workbook sheet exists)** — foundation diff vs the shared default, markers/dynamic-ness, translation, renderer (N) or email-client (T) compatibility, data binding, Liquid gotchas, rendered checks, "similar to the customer's tile" table; runner: `newsletter-qa` |
-| Known template issues (every run) | `references/known-template-issues.md` | Standing template-level defects walked on **every** QA run regardless of feature — typed price input, custom-filter chips, facet ordering, label z-index, separator/suffix, scroll-lock, back-nav popup, OOS-in-recoms, single-filter removal |
+| Known template issues (every run) | `references/known-template-issues.md` | Standing template-level defects walked on **every** QA run regardless of feature — typed price input, custom-filter chips, facet ordering, label z-index, separator/suffix, scroll-lock, back-nav popup, OOS-in-recoms, single-filter removal — plus the **accepted template defaults** (mobile filter panel quirks that are never reported) |
 
 ## Execution flow
 
