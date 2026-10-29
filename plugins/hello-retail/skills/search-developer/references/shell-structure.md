@@ -259,7 +259,7 @@ The base grid is `repeat(auto-fill, minmax({{ product_tile_width }}px, 1fr))`. T
 
 **Check during the survey:** read the native grid's computed `grid-template-columns`. Repeated *pixel* values (e.g. `352.5px 352.5px 352.5px 352.5px`) or `repeat(4, …)` = fixed count. `auto-fill`/`auto-fit` = fluid; keep the base rule.
 
-**If fixed, add a products-only override** (after the base rule; the filter bar shares the base rule and must keep it):
+**If fixed, add a products override** (after the base rule):
 
 ```css
 .hr-overlay-search .hr-products-container {
@@ -273,6 +273,32 @@ The base grid is `repeat(auto-fill, minmax({{ product_tile_width }}px, 1fr))`. T
 	}
 }
 ```
+
+**…and give the filter row the same columns and gap in the same edit.** Without it the filters keep their own layout and fall out of line with the tiles below them (field case 2026-10: three filters of 348 / 303 / 357 px above 4 tile columns of 240 px). In the default embedded design the filter row is a flex row (`display: flex; flex-wrap: wrap` on `.aw-full-search-results__filter-wrapper`, `flex: 1 0 auto` on each filter), so the alignment needs `display: grid` as well — columns alone do nothing on a flex container. Use the same count, gap and breakpoint as the products:
+
+```css
+/* Filters sit on the same columns as the product tiles */
+.hr-overlay-search .aw-full-search-results__filter-wrapper {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 10px;
+}
+
+@media (max-width: 1250px) {
+	.hr-overlay-search .aw-full-search-results__filter-wrapper {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+.hr-overlay-search .aw-full-search-results__filter-wrapper > .aw-filter__single-wrapper {
+	min-width: 0;
+}
+```
+
+Fewer filters than columns leave the last columns empty — each filter still sits exactly over a tile column. **Check (Step 17b):** each filter's `getBoundingClientRect().left` and `width` equal the tile column below it (±1 px) at every breakpoint of the override, and each dropdown still opens at least 220 px wide. An operator who asks for filters sized to their text instead gets `references/layout-options.md` → L4 (b).
+
+<!-- capture-back: filter-row-aligned status=derived -->
+> 🧪 **Capture-back:** the grid conversion is derived from the default embedded design's filter CSS, not yet rendered on a build; the first build that ships it measures filter vs tile columns at both breakpoints and flips this to *verified live* with platform, date, columns and gap.
 
 Mirror the native column count; add one step-down breakpoint (the desktop-overlay JS exits ≤992px, so nothing narrower is needed). **Ask the operator about the gap** with `AskUserQuestion` — header `Grid gap`: *<native>px — the native gap (Recommended)* / *10px — tighter*, *Other* for another value — matching the native gap exactly (e.g. 57px) is the parity default, but operators often prefer a tighter overlay grid (10px came up in practice); it's a one-line preference, so confirm rather than assume.
 

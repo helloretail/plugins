@@ -267,7 +267,7 @@ Report, then a diff — never full files unprompted:
 - siblings: <none | hidden in the widget (rule 19)> · <offered same-or-different | isolated on operator request (`isolate-from-siblings`)>
 
 ### Applied defaults                (base behaviour left untouched — one line from the operator changes any of them via `references/layout-options.md`; list those as "overridden: <option> (recipe Ln / MLn)")
-- desktop: filter bar horizontal above the products, its chips tile-aligned via the shared grid rule; content column on the left; nothing sticky; result-count text shown (`show_products_results_text = true`); initial content per Step 13d
+- desktop: filter bar horizontal above the products, each filter on a tile column — the shared grid rule where the design has one, otherwise the filter row converted to the products' grid, and always carried along by a fixed-column override (`references/layout-options.md` → L4); content column on the left; nothing sticky; result-count text shown (`show_products_results_text = true`); initial content per Step 13d
 - mobile: header row shown with the logo; close + filters in the header row (in the island when M3 = yes — header buttons then off); recent searches on
 
 ### Trigger / placement
