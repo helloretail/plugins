@@ -1,7 +1,6 @@
 ### Added
 
 - `hello-retail-knowledge` answers "how do I fix X" questions from a solutions section in the knowledge base: the support and developer docs re-cut by symptom, with the likely cause, the fix, how to confirm it and the source article. Some of those articles are out of date, so each answer flags that the fix should be checked against the live configuration first.
-- `support-debugging` looks up unfamiliar symptoms in the same solutions section, and treats what it finds there as a lead to verify rather than as evidence.
 
 ### Fixed
 
