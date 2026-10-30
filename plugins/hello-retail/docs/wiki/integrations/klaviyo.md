@@ -4,7 +4,7 @@ verified: 2026-09-15
 ---
 
 # Klaviyo
-Klaviyo is an email + SMS marketing platform widely used by ecommerce brands. For Hello Retail, Klaviyo is the ESP Hello Retail integrates with most deeply and the **only supported ESP** for Product Agents.
+Klaviyo is an email + SMS marketing platform widely used by ecommerce brands. For Hello Retail, Klaviyo is the ESP Hello Retail integrates with most deeply and the only ESP with a built-in Product Agents integration. Product Agents can also deliver to a customer-defined webhook instead — see [Integration overview](https://developer.helloretail.com/guides/product_agents/integration-overview/#supported-delivery-channels).
 
 Hello Retail integrates with Klaviyo at three layers:
 
