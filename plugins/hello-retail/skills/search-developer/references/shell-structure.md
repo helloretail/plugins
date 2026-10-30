@@ -109,6 +109,7 @@ Add the hooks to **every** `hr-products-container` occurrence in each `search.li
 
 - Rules scoped to **`body.<class>` or `html.<class>`** (e.g. `body.catalog-view .card { … }`) can't be satisfied by a class on a div — and adding classes to the customer's `<body>` is off-limits (it would restyle the whole page).
 - Rules scoped under an **`#id`** ancestor — never duplicate an id inside the overlay.
+- Rules scoped under an **element** ancestor — `ul.products li.product …`, `.woocommerce ul.products li …`. The shell cell is a `<div>`, so no class hook on it can satisfy `ul`. The tile skill collects these rules with its archive rescoper (step 4b) and returns them as an `archive-scoped:` block in SHELL CSS NOTES: append that block after the TILE FILL rule, unchanged. Field case 2026-10 (WooCommerce): the whole card style lived under `ul.products`, and the overlay tile rendered unstyled until the block was added.
 
 For those, copy the affected rules into `resultStyles` **rescoped under `.hr-overlay-search`** (same spirit as the copied customer rules on a non-global-CSS shop; keep the copied declarations byte-identical, only the scope changes) and note it in the report.
 
@@ -214,6 +215,29 @@ The title then ends in the tile's own ellipsis, as on the native page.
 
 **Rendered check, desktop and 375px:** `getComputedStyle(container).gridTemplateColumns` shows equal tracks whose sum fits the container; `document.documentElement.scrollWidth` does not exceed `innerWidth`; the first tile's title has `scrollWidth > clientWidth` (it is truncated, not overflowing). With no Hello Retail widget, build the check as a mock: inject the design's `resultStyles` (tokens filled in) and the native tiles into a `.hr-overlay-search` container on the live category page.
 
+### Wide content inside the tile — the cell is narrower than the native tile
+
+Equal tracks do not stop a **tile root** from growing past its own cell. The overlay's columns are often narrower than the native grid's (a content column or filter sidebar takes width the category page does not spend), and anything inside the tile with an intrinsic width — a native `<select>` sizes itself to its longest option, a theme rule like `max-width: 265px` lets it get that wide, a long unbreakable word, a fixed-width button — then pushes the root past the cell and over its neighbour. Field case 2026-10 (WooCommerce): native tiles were 336px, the overlay's results columns 240px, and tiles with a size dropdown rendered 254–285px wide, overlapping the next column; the build checked a few ordinary tiles and never met the widest dropdown.
+
+**Check (Step 17b, desktop and 375 px), on the worst case, not on a fixture:** run broad queries that bring the tile's widest content into the results (the longest titles, the variable products with the most options, price ranges, tiles with every badge) and assert, for **every** tile: `li.getBoundingClientRect().width <= cell.getBoundingClientRect().width + 0.5`. List each offender with the element that is wider than the cell.
+
+**Fix, in order — derived, verify on the rendered panel before shipping:**
+
+1. When the native page gives the tile more width than the overlay can, prefer fewer columns (the *FIXED column counts* override) so the overlay's cell is as wide as the native tile.
+2. Otherwise cap the intrinsic element to its cell — scoped to the tile, appended after TILE FILL:
+
+```css
+/* Native selects size to their longest option; keep them inside the overlay's narrower cell */
+.hr-overlay-search .hr-search-overlay-product select {
+	max-width: 100%;
+}
+```
+
+   Add `min-width: 0` on the flex/grid parent only when the offender sits in one and still overflows. Never shrink the native font or padding to make it fit — that is tile styling.
+
+<!-- capture-back: wide-tile-content status=derived -->
+> 🧪 **Capture-back:** derived from one field case; the first build that ships the cap re-runs the every-tile width assertion and flips this to *verified live* with platform, date and column width.
+
 ## Tile width — match `product_tile_width` to the native tile's rendered width
 
 The base template's `{# text product_tile_width = "214" #}` is an arbitrary placeholder, not derived from the customer's actual layout. Left alone, the overlay's tiles render at the wrong width compared to the native category-page tiles — a visible mismatch even when the tile itself is pixel-perfect. This has come up as a "make it match native" follow-up request more than once — treat it as a **standard build step**, not something to wait for the operator to ask for.
@@ -236,7 +260,7 @@ The base grid is `repeat(auto-fill, minmax({{ product_tile_width }}px, 1fr))`. T
 
 **Check during the survey:** read the native grid's computed `grid-template-columns`. Repeated *pixel* values (e.g. `352.5px 352.5px 352.5px 352.5px`) or `repeat(4, …)` = fixed count. `auto-fill`/`auto-fit` = fluid; keep the base rule.
 
-**If fixed, add a products-only override** (after the base rule; the filter bar shares the base rule and must keep it):
+**If fixed, add a products override** (after the base rule):
 
 ```css
 .hr-overlay-search .hr-products-container {
@@ -250,6 +274,32 @@ The base grid is `repeat(auto-fill, minmax({{ product_tile_width }}px, 1fr))`. T
 	}
 }
 ```
+
+**…and give the filter row the same columns and gap in the same edit.** Without it the filters keep their own layout and fall out of line with the tiles below them (field case 2026-10: three filters of 348 / 303 / 357 px above 4 tile columns of 240 px). In the default embedded design the filter row is a flex row (`display: flex; flex-wrap: wrap` on `.aw-full-search-results__filter-wrapper`, `flex: 1 0 auto` on each filter), so the alignment needs `display: grid` as well — columns alone do nothing on a flex container. Use the same count, gap and breakpoint as the products:
+
+```css
+/* Filters sit on the same columns as the product tiles */
+.hr-overlay-search .aw-full-search-results__filter-wrapper {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 10px;
+}
+
+@media (max-width: 1250px) {
+	.hr-overlay-search .aw-full-search-results__filter-wrapper {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+.hr-overlay-search .aw-full-search-results__filter-wrapper > .aw-filter__single-wrapper {
+	min-width: 0;
+}
+```
+
+Fewer filters than columns leave the last columns empty — each filter still sits exactly over a tile column. **Check (Step 17b):** each filter's `getBoundingClientRect().left` and `width` equal the tile column below it (±1 px) at every breakpoint of the override, and each dropdown still opens at least 220 px wide. An operator who asks for filters sized to their text instead gets `references/layout-options.md` → L4 (b).
+
+<!-- capture-back: filter-row-aligned status=derived -->
+> 🧪 **Capture-back:** the grid conversion is derived from the default embedded design's filter CSS, not yet rendered on a build; the first build that ships it measures filter vs tile columns at both breakpoints and flips this to *verified live* with platform, date, columns and gap.
 
 Mirror the native column count; add one step-down breakpoint (the desktop-overlay JS exits ≤992px, so nothing narrower is needed). **Ask the operator about the gap** with `AskUserQuestion` — header `Grid gap`: *<native>px — the native gap (Recommended)* / *10px — tighter*, *Other* for another value — matching the native gap exactly (e.g. 57px) is the parity default, but operators often prefer a tighter overlay grid (10px came up in practice); it's a one-line preference, so confirm rather than assume.
 
@@ -311,6 +361,7 @@ The embedded and overlay designs ship a universal reset near the top of `resultS
 It zeroes **padding-left** and **vertical margins** on *every* descendant of the overlay — which flattens the customer's reproduced tile and its labels (sale tag, discount/savings %, badges) because it's a same-specificity collision that loads *after* the theme CSS. **Delete this block** from `resultStyles` as a standard build step so the customer's own stylesheet (present on live embedded *and* overlay, since the overlay is injected into their page) styles the tile naturally.
 
 - **What to remove:** exactly the four lines above (the `.hr-overlay-search * { … }` rule with those three properties). Leave the surrounding `/* CSS Resets */` comment header in place — harmless.
+- **What to add in the same edit — always, not "when it shows":** the content-heading rule from *Known casualty* below, in the `/* Category + Content */` section. The removal and the rule are one sanctioned edit: the heading only renders once a content feed is configured (often after the first screenshot), so waiting to see the symptom ships it (field case 2026-10: the rule was read, not applied, and QA found "Kategorier"/"Mærker" sitting below "Produkter").
 - **Heads-up — it also normalized HR's own chrome.** That reset wasn't tile-specific; it also stripped default UA margins/padding from HR's own `<ul>` filter lists, `<p>`/`<h2>` titles, and the results header. After removing it, **QA the overlay chrome** (filters, header, result subtitle) for reintroduced default spacing. If chrome regresses, the safer fallback is to *scope* the reset to exclude the tile subtree instead of deleting it — but default to deletion and verify.
 - **Known casualty — the content-feed heading (field-confirmed, store-SE-6 2026-07).** The content column's `h2.hr-title` wrapper has **no margin rule of its own** (only its inner `.hr-content-header` div is styled), so once the reset is gone the UA `h2` margin pushes "Categories"/"Brands" ~27px below the "Products" heading. No default design ships the fix yet, so add it per design once the reset is gone:
 
