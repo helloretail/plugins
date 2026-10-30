@@ -15,6 +15,9 @@ Hello Retail's support documentation site ([support.helloretail.com](https://sup
 > **Looking for a fix rather than an article?** [solutions/](./solutions/solutions.md) re-cuts the
 > support and developer docs by symptom — likely cause, fix, how to confirm it, and the source
 > article. Some of those articles are out of date, so confirm each fix before giving it.
+>
+> **Need the article itself?** Every published article is mirrored as text in
+> [support-docs/](../../support-docs/index.md), with its live URL and sync date.
 
 ## 1. General Setup
 

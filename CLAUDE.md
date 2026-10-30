@@ -16,12 +16,20 @@ Node.js is used only for `scripts/validate.mjs` and markdownlint.
   managed plugin, and a Liquid design is never built from the unmanaged one.
 - `plugins/hello-retail/` — the managed plugin. `.claude-plugin/plugin.json` (name == directory,
   semver `version`), `skills/<skill>/SKILL.md`, `docs/wiki/` (the knowledge base — source of
-  truth, not a copy), `docs/browser-login.md`, `.mcp.json`, `hooks/hooks.json`, `AUTHORING.md`,
+  truth, not a copy), `docs/support-docs/` (a generated, text-only mirror of
+  support.helloretail.com — the one folder that *is* a copy; never edit it, run
+  `npm run sync:support-docs`), `docs/browser-login.md`, `.mcp.json`, `hooks/hooks.json`, `AUTHORING.md`,
   `CHANGELOG.md` (the release notes — see below).
 - `scripts/validate.mjs` — the checks CI runs. Run `npm run check` before proposing a PR.
 - `scripts/wiki-lint.mjs` — content checks for `docs/wiki/`: provenance frontmatter on every page, links,
   orphans, customer-identifiable data. Part of `npm run check`; its `LEVELS` table records which checks
-  are still warnings while the wiki cleanup is in progress.
+  are still warnings while the wiki cleanup is in progress. It also checks `docs/support-docs/` with a
+  lighter profile (frontmatter, links, identifiable data).
+- `scripts/sync-support-docs.mjs` — rebuilds `docs/support-docs/` from a local checkout of the private
+  `helloretail/support-docs` repository (default `../support-docs`): published nav pages only, images
+  and scripts dropped, links rewritten. `scripts/support-docs-allowlist.json` lists the hosts and
+  e-mails it may publish and the redactions it applies — a real customer's name or domain is always
+  redacted, never allowed. Sync in its own PR, with `--changelog` to write the fragment.
 - `PLUGIN-TEMPLATE.md` — the canonical plugin layout, file templates and conventions. Scaffold
   a new plugin from it, and keep it current when a structural convention changes.
 - `scripts/changelog.mjs` — folds `changelog.d/` fragments into a `## <version>` section of

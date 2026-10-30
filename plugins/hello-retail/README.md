@@ -50,7 +50,7 @@ if you want to be explicit.
 | `qa-checklists` | The master QA catalogue by feature (Setup & Data, Product Tile, Recommendations, Search, Pages, Retail Media, Newsletter) and the shared QA procedure the per-feature skills run on. |
 | `customer-handoff` | Writes or updates the customer's living hand-off document under `output/handoffs/` (local for now; company → website, one file per website): platform and theme, the ClickUp card with project owner / developer / CSM and dates, the stage plan derived from the sold features, onboarding performance for management (per-stage ledger, running snapshot, closing figures), the configuration snapshot per feature, every unique case and its solution, decisions, open items, and anonymised learnings for the wiki. Runs automatically at the end of every developer, feed and QA skill; two modes: record a stage, close the onboarding. Read-only towards ClickUp and the dashboard. |
 | `support-debugging` | Triages a pasted support ticket before investigating it: confirms the website and the feature (both arrive unverified), checks the cause against the MCP capability matrix, rules out the known false positives (logged-in reporter, failing feed, content type not enabled), and widens the scope the mail understated. Ends in a hand-back, a request for what's missing, or a draft fix. |
-| `hello-retail-knowledge` | Answers any Hello Retail question from `docs/wiki/`, citing the page. |
+| `hello-retail-knowledge` | Answers any Hello Retail question from `docs/wiki/`, then the support-docs mirror, citing the page. |
 | `browser-login` | Gets the Playwright browsers logged in to Hello Retail: one saved login shared by every worker, so any number of sessions QA in parallel. Runs when a login check fails or on a new machine. |
 
 Every skill states what it needs before it starts (usually a storefront URL and a `website-uuid`)
@@ -83,6 +83,7 @@ and asks for anything missing rather than guessing.
 .claude-plugin/plugin.json   name, semver version, description
 skills/<skill>/SKILL.md      + references/ scripts/ — paths into the wiki are ${CLAUDE_PLUGIN_ROOT}/docs/wiki/…
 docs/wiki/                   the knowledge base (source of truth — edit here)
+docs/support-docs/           text-only mirror of support.helloretail.com (generated — npm run sync:support-docs)
 docs/browser-login.md        browser backends and the login check
 .mcp.json                    hello-retail (HTTP) + playwright, playwright-01…10 (isolated, shared login) + playwright-profile
 hooks/hooks.json             dashboard guard
