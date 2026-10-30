@@ -277,7 +277,16 @@ say which ones you exercised. On every fixture page, run and record the same set
   widths say fits (container ÷ (tile + gap)). "Reflows cleanly" is not a verdict; "1/row at
   820px vs native 2/row (container 780px, tile 372px + 16px gap)" is (real case,
   store-DK-1: the prose version shipped a broken tablet grid that the next run's
-  count caught immediately).
+  count caught immediately). **When the grid or the filter drawer fails at a width, find out
+  whether another HR design causes it** before you blame the Pages design: run the
+  cross-design leak probe (`../pages-developer/SKILL.md` → step 4m) at that width, and at
+  820 and 375 even when they pass. Search and recom designs share class names with Pages
+  (`.hr-products-container`, `.hr-filters-container`, `.aw-filter-tag-list`), and an unscoped
+  rule in one of them restyles the Pages grid only below desktop (real case, store-NO-1: a
+  mobile search design's `display:grid` and filter-row rules broke the tablet grid and the
+  phone drawer; it was found only because 820 happened to be measured). A leak goes in the
+  report as its own FAIL naming the other design, the selector and the property — the fix is
+  on the Pages side (`pages-developer` step 4m), never in the other design.
 
 **Facet lists legitimately differ between two categories.** Filter options are computed from the
 result set, so a different fixture page returning a different facet list is *not* a finding, and two
