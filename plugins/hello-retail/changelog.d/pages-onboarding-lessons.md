@@ -9,3 +9,5 @@
 
 - `pages-developer` sorts "newest" / "oldest" on the shop's own product date (e.g.
   `extraData.createdAt`) instead of Hello Retail's import date, so the order matches the shop.
+- `pages-developer` measures the filter sidebar's width and gap at every width where the shop
+  changes it, not only at desktop.
