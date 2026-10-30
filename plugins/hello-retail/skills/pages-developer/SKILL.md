@@ -250,7 +250,12 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
 
 - **Left sidebar.** Measure the shop's sidebar width and its gap to the grid (fixture
   305 px + 32 px) and swap `.hr-filters-container` flex-basis/max-width and
-  `.hr-results-container` margin-left/flex-basis to them. Then the rows: the title row
+  `.hr-results-container` margin-left/flex-basis to them. **Measure it in every band where
+  the sidebar shows, not only at desktop:** walk the same width ladder as 4b (1440 → the
+  sidebar breakpoint) and record width + gap at each step. A shop often narrows the
+  sidebar before it hides it (field case 2026-10, Shopify Enterprise theme: 273 px + 32 px
+  at 1024 px, wider at desktop), and a desktop-only measurement ships the desktop width
+  into that band. Each band's values go in that band's `@media` block. Then the rows: the title row
   (`.hr-category-page-filter-title` — the shop's "Filter by:" with the result count
   appended, `{{ totalResults }} {{ product_title_multiple }}`, and its divider), the group
   heading (font/weight/padding — fixture 16 px/500, 16 px top and bottom — with the
@@ -285,8 +290,9 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
   border, radius, shadow and offset; option rows the shop's font, the unselected ones
   dimmed (fixture opacity .7), the selected one full with the shop's check icon on
   `span.checkbox-span:after`.
-- **Verify by computed style, not by screenshot**, at the shop's desktop and both sides
-  of its sidebar breakpoint (fixture 1440 / 999 / 390): sidebar width and gap, title and
+- **Verify by computed style, not by screenshot**, at the shop's desktop, at every width
+  where its sidebar width changes, and both sides of its sidebar breakpoint (fixture
+  1440 / 999 / 390): sidebar width and gap, title and
   heading font, option row pitch, checkbox size, pill size and gap, sort weight and panel
   width, and the vertical rhythm heading → pills → grid (fixture 16 px and 48 px). A 10 px
   spacing difference is invisible by eye and obvious in numbers.
