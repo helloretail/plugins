@@ -124,7 +124,8 @@ The fix is manual, but you can narrow it. Do this *before* writing the hand-back
 
 | Cause | What you can confirm via MCP | What stays manual |
 |---|---|---|
-| **Content missing from search** (brand, category, blog, page) | **Three different problems — only the third is a hand-back.** (1) Is the type enabled on the LIVE config? `search_getLinkContent`; if `BRAND` / `BLOG_POST` / `CATEGORY` / `SITE_PAGE` is absent that alone explains it, and `search_updateLinkContent` **fixes it**. (2) Are the content fields indexed? `dataFields_getContentFields` → `dataFields_updateContentFieldsIndexing` **fixes it**. (3) Is the item missing from the content index altogether? | Only (3) — the content feed itself. Reaching for "no content tooling exists" without doing (1) and (2) is wrong |
+| **Content missing from search** (brand, category, blog, page) | **Four different problems — two are fixable here, two are hand-backs.** (1) Is the type enabled on the LIVE config? `search_getLinkContent`; if `BRAND` / `BLOG_POST` / `CATEGORY` / `SITE_PAGE` is absent that alone explains it, and `search_updateLinkContent` **fixes it**. (2) Does the field exist at all? `dataFields_getContentFields` lists only what the content feed extracts — if the expected fields are **absent** (often only `hierarchy` is listed), the feed's crawl config does not map them and **no indexing toggle can fix it**. To name the expected fields, run the same call on a working sister website of the same company and diff. (3) Present but not indexed? `dataFields_updateContentFieldsIndexing` **fixes it**. (4) Is the item missing from the content index altogether? | (2) — mapping the fields in the content feed's crawl config and re-running the feed — and (4), the content feed itself. Reaching for "no content tooling exists" without doing (1) and (3) is wrong; toggling indexing on fields (2) found absent is wrong too |
+| **Content feed history** — "when was the content feed set up, activated or changed, and by whom" | `auditLog_getEntries` with `resourceType: ["CONTENT_FEED_CONFIG"]` lists the feed's create, update and activate events, the `changedFields` (`type`, `rootElement`, `crawlConfig`, `active`) and the actor. A `crawlConfig` update right before fields appeared, or none since the feed was created, is the evidence for (2) above | The feed's configuration itself — which fields its crawl config maps — and its runs. §4 |
 | **Legacy V1 feed** | Read the old configuration: `internal_feeds_listV1Configs`, `internal_feeds_getV1Config` | Editing or re-running it. The route forward is a V2 migration — the `feed-migration` skill |
 | **Product Agents / Klaviyo** | The Hello Retail side: `productAgents_getSettings`, `getChannels`, `getAnalytics`, credit status and message stats | Anything inside the customer's Klaviyo account — flows, templates, list membership, sending |
 | **Integration says "the API isn't working"** | Whether calls arrive and how they fail: `apiLog_getStats`, `apiLog_getEntries` (enable first with `apiLog_setLogging` — see the consent gate in §2.B) | The customer's own code and infrastructure |
@@ -137,7 +138,7 @@ No tool exists. Say so in the **first line** of the reply and do not investigate
 
 | Not possible | What to say / who does it |
 |---|---|
-| **Content feeds** — the source populating categories, brands, blog posts and site pages. No config read, no run history, no errors, no re-sync | Operator checks the content feed in the dashboard. The MCP configures *indexing* and *which types search searches* — not the feed |
+| **Content feeds** — the source populating categories, brands, blog posts and site pages. No config read (so no view of which fields its crawl config maps), no run history, no errors, no re-sync. Its *change history* is readable — when it was created, activated or changed, and by whom (§3) | Operator checks the content feed in the dashboard; for fields absent from `dataFields_getContentFields`, they map them in the feed's crawl config and re-run it. The MCP configures *indexing* and *which types search searches* — not the feed |
 | **Individual content item lookup** — there is no `productData_get` equivalent for a brand, category, blog post or page | "Is this brand actually in the content index?" cannot be answered via MCP. Operator verifies in the dashboard |
 | **Order feeds / conversion data** | Operator, in the dashboard |
 | **Tracking and visitor state** — logged-in status, user bias, tracking-script health, IP filtering | No tool, and a frequent *false* bug: a logged-in staff member sees stale, bias-influenced results. Verify in a clean session before diagnosing anything |
@@ -164,8 +165,9 @@ working V1 feed the MCP cannot see. Do not conclude the data must arrive by craw
 feed is visible; if this website is on a V1 feed I cannot inspect it — operator, please check the
 feed's run history."
 
-**"Content isn't showing in search" is three problems, not one.** Only the third is a hand-back —
-see §3, first row.
+**"Content isn't showing in search" is four problems, not one.** A field that is not listed by
+`dataFields_getContentFields` at all is a content feed problem, not an indexing one — see §3, first
+row.
 
 **Check the plumbing before the payload.** On any wrong / missing / stale product data ticket,
 `feeds_getLatestRun` comes *before* `productData_get` comparisons. Tickets have burned a whole cycle
