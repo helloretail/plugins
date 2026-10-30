@@ -666,6 +666,26 @@ image (`img[alt="loading"]`) must be hidden at every step — idle, during a cli
    Keep a numbered local copy of every stylesheet and script you send (`final7.css`,
    `final8.css` …): the next write is built from the last verified copy, never from
    memory, and a regression is a plain diff between two numbers.
+6b. **Look for the shop's own Pages div before the first preview.** The theme may already
+   carry a `#helloretail-category-page-<key>` container — added by the customer or an earlier
+   setup — with its own `data-filters`. A test div injected with the same id (the pages cheat
+   sheet's probe) is then the second element with that id, Hello Retail renders into the
+   theme's one, and its filters decide what shows. Field case 2026-10: the page showed 0
+   products and the time went into debugging the design. On the category page, before
+   injecting anything:
+
+   ```js
+   [...document.querySelectorAll('[id^="helloretail-category-page-"]')].map(function (d) {
+     return { id: d.id, filters: d.getAttribute('data-filters'), parent: d.parentElement && d.parentElement.className };
+   })
+   ```
+
+   - **Empty** → inject the test div as the cheat sheet shows.
+   - **A div exists** → record its id and `data-filters` in the build summary and the
+     hand-off. Preview through that div (it is what the live page will use), or remove it
+     (`.remove()`) before injecting a test div with the same id — never leave two. A preview
+     that shows 0 products with this div in place is a `data-filters` question (the keys
+     and values it filters on), not a design fault.
 7. **Tile fidelity, by eye.** Where a native reference exists, put a rendered HR tile next to
    the native tile of the same state at 1440 and 375 px (the FIDELITY CHECK harness in
    `../tile-extractor/references/survey-snippets.md` works on the live page). Same → done.
