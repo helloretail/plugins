@@ -20,6 +20,7 @@
     "lint:changelog": "node scripts/changelog-lint.mjs",
     "lint": "npm run lint:md && npm run lint:wiki && npm run lint:changelog",
     "changelog": "node scripts/changelog.mjs preview hello-retail",
+    "sync:support-docs": "node scripts/sync-support-docs.mjs",
     "check": "npm run validate && npm run lint",
     "version:preview": "node scripts/bump-version.mjs --dry-run",
     "version:bump": "node scripts/bump-version.mjs"

@@ -25,6 +25,7 @@
     "internal/**",
     ".claude/**",
     "plugins/*/docs/wiki/**",
+    "plugins/*/docs/support-docs/**",
     "plugins/*/skills/*/references/wiki/**",
     "**/CHANGELOG.md"
   ]

@@ -111,7 +111,10 @@ npm run check      # validate + lint — the same checks CI runs
 
 1. Edit under `plugins/hello-retail/`. The plugin is self-contained: the wiki the skills read
    lives at `plugins/hello-retail/docs/wiki/` and skills reference it as
-   `${CLAUDE_PLUGIN_ROOT}/docs/wiki/…`. Nothing here is a generated mirror.
+   `${CLAUDE_PLUGIN_ROOT}/docs/wiki/…`. The one generated folder is
+   `plugins/hello-retail/docs/support-docs/`, a mirror of support.helloretail.com: never edit it —
+   fix the article in `helloretail/support-docs`, then run `npm run sync:support-docs -- --changelog`
+   (it reads a checkout at `../support-docs`, or `--from <path>`) and open a PR with the result.
 2. Open a PR with a [Conventional Commits](https://www.conventionalcommits.org) title —
    `fix: …` (patch), `feat: …` (minor), `feat!: …` or a `BREAKING CHANGE` footer (major). The
    "Version bump preview" check shows what will be released.

@@ -105,7 +105,7 @@ What each piece is for, and the rule attached to it:
 | `skills/<skill>/SKILL.md` | The skill: a repeatable, multi-step procedure. | One `SKILL.md` per directory, exactly one level deep — a nested `skills/<a>/…/SKILL.md` is never discovered. **CI** |
 | `skills/<skill>/references/` | Anything long or platform-specific: per-platform quirks, snippet libraries, templates, harness scripts (`.py`, `.rb`, `.js` are fine here). | Loaded only when the body says "read `references/<x>.md` before …". Keeps `SKILL.md` cheap. |
 | `skills/<skill>/scripts/` | Executable helpers the skill tells the operator or the model to run. | `#!/usr/bin/env bash`, `set -euo pipefail`, a header comment with usage, ShellCheck-clean at `warning`. **CI** |
-| `docs/` | Runtime documents: the knowledge base (`docs/wiki/`), setup guides (`docs/browser-login.md`). | The copy here is the source of truth, not a mirror. Skills reach it as `${CLAUDE_PLUGIN_ROOT}/docs/…`. |
+| `docs/` | Runtime documents: the knowledge base (`docs/wiki/`), setup guides (`docs/browser-login.md`), and optionally a generated mirror of an external docs site (`docs/support-docs/`). | The copy here is the source of truth, not a mirror — except a generated mirror, which a sync script owns and nobody edits. Skills reach it as `${CLAUDE_PLUGIN_ROOT}/docs/…`. |
 | `.mcp.json` | MCP servers the plugin needs, registered on install. | Public URLs and home-relative paths only. No tokens — auth happens on first use (`/mcp`). Must parse. **CI** |
 | `hooks/hooks.json` | Hard policy the model cannot talk itself out of, e.g. a deny on browser automation against an admin dashboard. | A hook enforces a rule that already exists in prose; it does not replace the prose. Must parse. **CI** |
 
@@ -345,7 +345,7 @@ folders in the operator's working directory — `QA/<customer>/`, `QA/screenshot
 - Lint is lenient on purpose: long lines, tabs inside fenced Liquid/JS, inline HTML and multiple
   H1s are allowed because skill bodies are prose for a model. Headings, lists, tables and fences
   still need blank lines around them. **CI**
-- `docs/wiki/**`, `skills/*/references/wiki/**` and every `CHANGELOG.md` are excluded from lint —
+- `docs/wiki/**`, `docs/support-docs/**`, `skills/*/references/wiki/**` and every `CHANGELOG.md` are excluded from lint —
   imported knowledge and release notes are not reformatted to satisfy a linter. The wiki has its own
   gate instead, `scripts/wiki-lint.mjs`: every page opens with `source` / `verified` frontmatter, every
   relative link resolves, no page is orphaned, and nothing customer-identifiable (UUIDs, e-mails, shop

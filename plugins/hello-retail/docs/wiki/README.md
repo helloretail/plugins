@@ -23,6 +23,7 @@ This is the Hello Retail knowledge base bundled with the `hello-retail` plugin. 
 | [translations/](./translations/README.md) | Canonical UI strings for Search, Recommendations and Pages, per language, in `translations.json`. |
 | [onboarding/](./onboarding/onboarding.md) | The background for an onboarding — lifecycle, implementation methods, data requirements, SPA tracking, review & testing. The step-by-step procedures are the plugin's skills, listed there. |
 | [support-knowledge/](./support-knowledge/support-knowledge.md) | Curated index of support articles by topic, and [solutions/](./support-knowledge/solutions/solutions.md) — the support and developer docs re-cut as symptom → cause → fix. |
+| [../support-docs/](../support-docs/index.md) | Not part of the wiki: a generated, text-only mirror of every published support.helloretail.com article, for when the wiki does not cover a question. Never edited by hand. |
 | [glossary/](./glossary/glossary.md) | Terms, acronyms and platform jargon (D&TS, JS, PI, RM, etc.). |
 
 ---

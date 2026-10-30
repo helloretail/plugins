@@ -53,6 +53,8 @@ Every page here is therefore a set of **leads, not verdicts**:
   [when changes go live](../../onboarding/when-changes-go-live.md).
 - **How a feature is meant to work**, rather than what is broken — the feature pages under
   [features/](../../features/features.md).
+- **The full support article** an entry was cut from — the text mirror in
+  [support-docs/](../../../support-docs/index.md), at the same path as on support.helloretail.com.
 
 ## Keeping these pages right
 
