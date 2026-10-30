@@ -250,7 +250,12 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
 
 - **Left sidebar.** Measure the shop's sidebar width and its gap to the grid (fixture
   305 px + 32 px) and swap `.hr-filters-container` flex-basis/max-width and
-  `.hr-results-container` margin-left/flex-basis to them. Then the rows: the title row
+  `.hr-results-container` margin-left/flex-basis to them. **Measure it in every band where
+  the sidebar shows, not only at desktop:** walk the same width ladder as 4b (1440 → the
+  sidebar breakpoint) and record width + gap at each step. A shop often narrows the
+  sidebar before it hides it (field case 2026-10, Shopify Enterprise theme: 273 px + 32 px
+  at 1024 px, wider at desktop), and a desktop-only measurement ships the desktop width
+  into that band. Each band's values go in that band's `@media` block. Then the rows: the title row
   (`.hr-category-page-filter-title` — the shop's "Filter by:" with the result count
   appended, `{{ totalResults }} {{ product_title_multiple }}`, and its divider), the group
   heading (font/weight/padding — fixture 16 px/500, 16 px top and bottom — with the
@@ -285,8 +290,9 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
   border, radius, shadow and offset; option rows the shop's font, the unselected ones
   dimmed (fixture opacity .7), the selected one full with the shop's check icon on
   `span.checkbox-span:after`.
-- **Verify by computed style, not by screenshot**, at the shop's desktop and both sides
-  of its sidebar breakpoint (fixture 1440 / 999 / 390): sidebar width and gap, title and
+- **Verify by computed style, not by screenshot**, at the shop's desktop, at every width
+  where its sidebar width changes, and both sides of its sidebar breakpoint (fixture
+  1440 / 999 / 390): sidebar width and gap, title and
   heading font, option row pitch, checkbox size, pill size and gap, sort weight and panel
   width, and the vertical rhythm heading → pills → grid (fixture 16 px and 48 px). A 10 px
   spacing difference is invisible by eye and obvious in numbers.
@@ -605,6 +611,61 @@ image (`img[alt="loading"]`) must be hidden at every step — idle, during a cli
   clear returns the full result count; then at desktop and just below the breakpoint the
   title, footer and × are hidden and the sidebar matches step 4k unchanged.
 
+4m. **Cross-design CSS leaks — other HR designs' rules reach the Pages markup.** Search and
+   recom designs share class names with Pages (`.hr-products-container`, `.hr-filters-container`,
+   `.aw-filter-tag-list`, the range slider, the sort label), and their CSS is on every page,
+   not only where their own widget renders. An unscoped rule in one of them restyles the Pages
+   grid and drawer. Field-proven 2026-10 (Shopify Enterprise theme): a mobile overlay search
+   design's `.hr-products-container{display:grid;gap:8px}`, filter-label padding, absolute
+   filter counts, `.hr-filters-container` height/overflow, slider handle and labels, and a
+   white sort-label background broke the Pages tablet grid and mobile drawer below 1024 px;
+   desktop looked clean, so it was found only by measuring at 820. With the Pages draft
+   rendered, run this at **820 and 375** (and any other width where 4b/4k/4l look wrong) and
+   read every row:
+
+   ```js
+   {
+     var root = document.querySelector('[id^="helloretail-category-page-"]');
+     var out = [];
+     [...document.styleSheets].forEach(function (sheet, i) {
+       var rules; try { rules = sheet.cssRules; } catch (e) { return; }
+       // The Pages design's own stylesheet is the one that styles .hr-category-page-*
+       var own = [...rules].some(function (r) { return /hr-category-page/.test(r.cssText); });
+       (function walk(list, media) {
+         [...list].forEach(function (r) {
+           if (r.media && r.cssRules) { if (matchMedia(r.media.mediaText).matches) walk(r.cssRules, r.media.mediaText); return; }
+           if (!r.selectorText || !/\.(hr|aw)-/.test(r.selectorText)) return;
+           var hits; try { hits = root.querySelectorAll(r.selectorText).length; } catch (e) { return; }
+           if (hits) out.push({ sheet: i, own: own, owner: (sheet.ownerNode && (sheet.ownerNode.id || sheet.ownerNode.className)) || sheet.href || '-',
+             media: media || '-', selector: r.selectorText, css: r.style.cssText.slice(0, 120), hits: hits });
+         });
+       })(rules);
+     });
+     console.table(out);
+   }
+   ```
+
+   Each row is an `.hr-` / `.aw-` rule that matches an element inside the Pages container at
+   this width; `own: true` rows come from the Pages design's stylesheet, `own: false` rows from
+   any other (another HR design, or the theme reusing HR class names). A row is a leak when
+   its CSS is not in the design's `templateCss` — if every row says `own: true` but the layout
+   is still wrong, the designs share one stylesheet: compare each row's `css` with
+   `templateCss` instead. The block and `var` keep it re-runnable at each width. No leak at
+   either width → note it under the build summary. Otherwise:
+
+- **Fix on the Pages side, never in the other design** — it may be LIVE and belongs to
+  another feature. Raise the specificity of the Pages design's own rule for that element:
+  prefix its selector with the Pages container
+  (`[id^="helloretail-category-page-"] .hr-products-container`) so it outranks the
+  unscoped one. Where the design sets no value for a property the leaking rule sets,
+  add it to that same rule (under the leaking rule's `@media` condition when the leak is
+  band-specific) with the property's initial value — `display: flex` back from `grid`,
+  `position: static`, `background: transparent`, `height: auto`, `overflow: visible`.
+  Only the properties the leaking rule sets, per the CSS hard rule below.
+- Re-run the snippet and the 4b grid measurement at the same widths; the rows the
+  override covers must now resolve to the Pages values (`getComputedStyle`).
+- Report the leaking design and its selectors in the hand-off, so its owner can scope it.
+
 5. **Filters & sorting.** Read the current facets with `pages_getDesignFilters` /
    `pages_getDesignSorting`, then write with `pages_updateDesignFilters` /
    `pages_updateDesignSorting` — enable the flag only when configuring real settings,
@@ -615,6 +676,17 @@ image (`img[alt="loading"]`) must be hidden at every step — idle, during a cli
    schema. Hide irrelevant filters
    (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/pages/general.md` has the field-proven snippet), and
    structure `extraDataList` values per the same cheat sheet's `data-filters` note.
+
+   **Date sorts take the shop's product date, not `created`.** HR's `created` is the
+   date the product was imported into Hello Retail, so a whole catalogue imported in one
+   run shares a few dates and "newest" comes out in an order the shop never shows
+   (field case 2026-10: the shop's "Dato" sort and HR's `created` disagreed from the
+   first row). Look in `dataFields_getProductFields` for the feed's own product date —
+   `extraData.createdAt` on that Shopify feed, otherwise the feed's equivalent (check that
+   its values are real dates that differ per product) — index it if it is not `searchIndexed` (it goes in the same single
+   `dataFields_updateProductFieldsIndexing` call as any other field this build needs), and
+   sort on it. Fall back to `created` only when the feed has no product date, and say so
+   in the hand-off.
 5b. **Dropdowns close on an outside click — the base JS does not do this.** Field-proven
    2026-09-28: the default design's `templateJs` hides an open filter or sorting dropdown
    only when another heading is clicked; the one `container` click listener it has is the
@@ -666,6 +738,26 @@ image (`img[alt="loading"]`) must be hidden at every step — idle, during a cli
    Keep a numbered local copy of every stylesheet and script you send (`final7.css`,
    `final8.css` …): the next write is built from the last verified copy, never from
    memory, and a regression is a plain diff between two numbers.
+6b. **Look for the shop's own Pages div before the first preview.** The theme may already
+   carry a `#helloretail-category-page-<key>` container — added by the customer or an earlier
+   setup — with its own `data-filters`. A test div injected with the same id (the pages cheat
+   sheet's probe) is then the second element with that id, Hello Retail renders into the
+   theme's one, and its filters decide what shows. Field case 2026-10: the page showed 0
+   products and the time went into debugging the design. On the category page, before
+   injecting anything:
+
+   ```js
+   [...document.querySelectorAll('[id^="helloretail-category-page-"]')].map(function (d) {
+     return { id: d.id, filters: d.getAttribute('data-filters'), parent: d.parentElement && d.parentElement.className };
+   })
+   ```
+
+   - **Empty** → inject the test div as the cheat sheet shows.
+   - **A div exists** → record its id and `data-filters` in the build summary and the
+     hand-off. Preview through that div (it is what the live page will use), or remove it
+     (`.remove()`) before injecting a test div with the same id — never leave two. A preview
+     that shows 0 products with this div in place is a `data-filters` question (the keys
+     and values it filters on), not a design fault.
 7. **Tile fidelity, by eye.** Where a native reference exists, put a rendered HR tile next to
    the native tile of the same state at 1440 and 375 px (the FIDELITY CHECK harness in
    `../tile-extractor/references/survey-snippets.md` works on the live page). Same → done.
@@ -697,8 +789,9 @@ The caller (the customer's backend or frontend) requests `/serve/pages/{key}` wi
      own choosing. Titles follow the platform page when it sets them (the caller may key
      on the title).
    - **Sorting:** mirror the sort options the storefront already offers (read them from
-     the live category page), e.g. lowest/highest price → `price`, newest/oldest →
-     `created`.
+     the live category page), e.g. lowest/highest price → `price`, newest/oldest → the
+     feed's product date (`extraData.createdAt` or equivalent; `created` only when there
+     is none — Step 5).
 4. **Page config — no product conditions by default.** A caller that scopes the page
    itself sends the field it needs in `params.filters`; that works on any indexed field
    without a matching INPUT filter. So:
