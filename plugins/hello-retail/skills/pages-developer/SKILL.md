@@ -670,6 +670,17 @@ image (`img[alt="loading"]`) must be hidden at every step — idle, during a cli
    schema. Hide irrelevant filters
    (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/pages/general.md` has the field-proven snippet), and
    structure `extraDataList` values per the same cheat sheet's `data-filters` note.
+
+   **Date sorts take the shop's product date, not `created`.** HR's `created` is the
+   date the product was imported into Hello Retail, so a whole catalogue imported in one
+   run shares a few dates and "newest" comes out in an order the shop never shows
+   (field case 2026-10: the shop's "Dato" sort and HR's `created` disagreed from the
+   first row). Look in `dataFields_getProductFields` for the feed's own product date —
+   `extraData.createdAt` on that Shopify feed, otherwise the feed's equivalent (check that
+   its values are real dates that differ per product) — index it if it is not `searchIndexed` (it goes in the same single
+   `dataFields_updateProductFieldsIndexing` call as any other field this build needs), and
+   sort on it. Fall back to `created` only when the feed has no product date, and say so
+   in the hand-off.
 5b. **Dropdowns close on an outside click — the base JS does not do this.** Field-proven
    2026-09-28: the default design's `templateJs` hides an open filter or sorting dropdown
    only when another heading is clicked; the one `container` click listener it has is the
@@ -772,8 +783,9 @@ The caller (the customer's backend or frontend) requests `/serve/pages/{key}` wi
      own choosing. Titles follow the platform page when it sets them (the caller may key
      on the title).
    - **Sorting:** mirror the sort options the storefront already offers (read them from
-     the live category page), e.g. lowest/highest price → `price`, newest/oldest →
-     `created`.
+     the live category page), e.g. lowest/highest price → `price`, newest/oldest → the
+     feed's product date (`extraData.createdAt` or equivalent; `created` only when there
+     is none — Step 5).
 4. **Page config — no product conditions by default.** A caller that scopes the page
    itself sends the field it needs in `params.filters`; that works on any indexed field
    without a matching INPUT filter. So:
