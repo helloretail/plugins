@@ -8,6 +8,13 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.51.1 — 2026-11-02
+
+### Added
+
+- `hello-retail-knowledge` now covers Viskan order feeds: the API client the customer creates with
+  read access to orders, the feed-helper URL, and its parameters (`language`, `countryCode`, `webStoreNumber`).
+
 ## 1.51.0 — 2026-10-30
 
 ### Added
