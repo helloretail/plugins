@@ -91,7 +91,9 @@ deviation-by-design from the native category page. Grade with it throughout — 
 append the brief's extra checks to the coverage manifest. No card for this domain → look for the
 customer's Onboarding card under the customer / brand name, and ask the operator before using
 context from another domain of the same customer (Step 1.5: *Search by customer*, *Same
-customer, different domain*). Then ask the **operator questions at
+customer, different domain*). A build that is a copy of another domain → read the source's
+context too, after asking the operator (*Copy of another domain*). Then ask the **operator
+questions at
 the start** (same step) for whatever the card leaves open — for Pages: whether filter options
 should be alphabetical, which variants a tile shows and where a variant click leads, and
 tablet tiles per row.
