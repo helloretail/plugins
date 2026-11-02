@@ -79,6 +79,7 @@ Improves cold-start performance considerably. Bring it in via a one-time histori
 
 - [How to Supply Historical Order Data Through a Feed](https://support.helloretail.com/general-setup/how-to-supply-historical-order-data-through-a-feed/)
 - DanDomain-specific: [Exporting historical orders from DanDomain](https://support.helloretail.com/platforms-and-newsletter-providers/exporting-historical-orders-from-dandomain/)
+- Viskan-specific: Hello Retail fetches the orders from Viskan's API with a customer-created API client. See [Viskan feeds → Order feed](../platforms/viskan/feeds.md#order-feed-historical-orders).
 
 ## 4 · Content data (optional)
 
