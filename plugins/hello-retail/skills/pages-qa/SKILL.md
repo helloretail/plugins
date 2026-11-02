@@ -88,12 +88,9 @@ distill the QA brief before the walk — for Pages it typically decides the QA s
 vs live), which category templates were ordered, filter/sorting requirements, and any
 deviation-by-design from the native category page. Grade with it throughout — `PASS (by spec)`
 / `N/A (declined in ticket)` / `KNOWN — pending [owner/ETA]`, each citing its comment — and
-append the brief's extra checks to the coverage manifest. Also look for the customer's other
-onboardings under the customer / brand name, and ask the operator before using context from
-another domain of the same customer (Step 1.5: *The customer's other onboardings*, *Same
-customer, different domain*). A build that is a copy of another domain → read the source's
-context too, after asking the operator (*Copy of another domain*). Then ask the **operator
-questions at
+append the brief's extra checks to the coverage manifest. A build that is a copy of another
+domain → read the source's context too, after asking the operator (Step 1.5: *Copy of another
+domain*). Then ask the **operator questions at
 the start** (same step) for whatever the card leaves open — for Pages: whether filter options
 should be alphabetical, which variants a tile shows and where a variant click leads, and
 tablet tiles per row.
