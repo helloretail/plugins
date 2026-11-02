@@ -117,6 +117,43 @@ one they confirm. Never adopt an unconfirmed match —
 customers accumulate cards across lists, and grading against the wrong card is worse than
 grading blind.
 
+**Search by customer, not only by domain.** A domain is often added after the first onboarding
+(another country, language or brand store), so it has no card named after it — the onboarding
+card is titled with the customer's main brand or another domain. When the domain search finds
+nothing, or only Bug/Task cards, widen it: search the customer / brand name (the part of the
+domain before the TLD, with and without the country suffix, and the `Customer` field value if
+the card shows it) and keep only cards whose `list.name` is Onboarding. Offer them in the same
+*Card* call as above, and say in the option description whether the card's own text mentions the
+domain under QA. A card that **names this domain** is its card — use it per the ladder. A card
+that is the customer's onboarding but **does not mention this domain** is a sibling's card —
+handle it as the next paragraph says, never as this domain's spec.
+
+**Same customer, different domain — ask before using its context.** An onboarding card, brief,
+hand-off document or QA report for another domain of the same customer (a sibling country
+store, the domain this build was copied from) holds context this domain probably shares: the
+customer's design decisions, declined requests, waived items, feed and platform notes. It does
+not hold this domain's own spec. Look in two places — the ClickUp search above and the
+operator's local `QA/<customer>/` folder (earlier briefs, hand-off documents, reports) — and
+when either turns up a sibling, **ask the operator first, never adopt it silently**:
+`AskUserQuestion`, header *Sibling*, *"This looks like the same customer as `<sibling domain>`
+(<card title>, list <list name>) — use its onboarding context for `<this domain>`?"* — *Yes, use
+it as context (Recommended)* / *No, treat this domain on its own*. On **yes**, run the full
+two-lane fetch below on the sibling's card (description, checklists, attachments, comments —
+all of it, not a skim), read any local brief or hand-off for it, and distil it into the brief
+under its own **Inherited from `<sibling>`** section, with these rules:
+
+- **Carry over:** customer decisions, declined requests, waived / shelved items, platform and
+  theme notes, the reference site the design was modelled on.
+- **Re-verify, never trust:** the sibling's known-open items and earlier findings are claims to
+  check on this domain — a fix the sibling got may not exist here (see Copy lineage).
+- **Never inherit:** the QA surface and staging URL, logins, feed URLs and tokens, website
+  UUID, placement divs, currency, locale and translated strings. Resolve each from this
+  domain's own card, or ask — this is the same value-by-value rule as the QA surface below.
+
+On **no**, record "sibling context declined" in the brief and carry on as for a domain with no
+card. If the domain has its own card **and** a sibling exists, the question is still asked — the
+sibling only adds context, and the own card wins wherever the two disagree.
+
 **Match the card type to the work under QA — an onboarding QA uses the Onboarding card.** The
 fetched task says which list it lives in (`list.name` — e.g. `Onboarding`), so check it
 mechanically. A customer regularly has **Bug/Task cards open for the LIVE site in parallel**
@@ -234,7 +271,9 @@ return, its timestamps and `reply_count` values are a cheap way to confirm the b
 didn't skip a thread. A disagreement between the two means re-scroll, not split the difference.
 
 **Rung naming and degraded mode.** A normal run records **"tier 1 (MCP details + browser
-comments)"** on the report's ticket-context line. If Chrome is unavailable (no extension, or
+comments)"** on the report's ticket-context line; when sibling context was used, append
+**"+ sibling context from `<sibling domain>` (operator confirmed dd/mm)"**, and when it was
+offered and declined, **"sibling context declined"**. If Chrome is unavailable (no extension, or
 ClickUp not logged in and the operator can't sign in), rung 2's operator paste applies **to the
 comments only** — the Lane A details still stand, so say that rather than dropping the whole
 resolution to rung 3.
