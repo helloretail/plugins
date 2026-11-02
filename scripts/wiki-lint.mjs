@@ -74,12 +74,13 @@ const SOURCES = ["public-docs", "field", "index"];
 const DOMAIN_ALLOWLIST = [
   "helloretail.com", "helloretailmail.com", // the second is Hello Retail's own sending domain for triggered emails
   "helloretailcdn.com", // the CDN that serves helloretail.js and its module assets
+  "addwish.com", // Hello Retail's former domain, still used by internal services such as feed-helper.addwish.com
   // placeholders
   "example.com", "example-shop.com", "example.dk", "example-shop.dk", "siteurl.com", "your-shop.com",
   // ecommerce platforms and their CDNs
   "shopify.com", "myshopify.com", "shopify.dev", "magento.com", "adobe.com", "hyva.io",
   "woocommerce.com", "wordpress.org", "shopware.com", "dandomain.dk", "lightspeedhq.com",
-  "webshopapp.com", "starweb.se", "bigcommerce.com", "viskan.se", "wikinggruppen.se",
+  "webshopapp.com", "starweb.se", "bigcommerce.com", "viskan.se", "viskan.com", "wikinggruppen.se",
   "centra.com", "prestashop.com",
   "hr.sw-test.se", // Hello Retail's own Starweb test shop, used with Starweb when troubleshooting
   // email, marketing, review and payment vendors

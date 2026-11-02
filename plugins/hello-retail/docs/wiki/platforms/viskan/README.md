@@ -16,7 +16,7 @@ This page covers both. The shared rules come first; only the differences are spl
 **Pages:**
 
 - [add-to-cart.md](./add-to-cart.md): the `window.viskan.cart` JavaScript cart API
-- [feeds.md](./feeds.md): product feed versions (v1/v2/v3) + content feeds
+- [feeds.md](./feeds.md): product feed versions (v1/v2/v3), the order feed (historical orders) + content feeds
 
 ---
 
