@@ -1,12 +1,12 @@
 ---
 source: field
-verified: 2026-09-15
+verified: 2026-11-02
 ---
 
 # Viskan — Feeds
 
-Feed setup notes for Viskan customers. Read alongside the `feed-setup` skill, which owns the
-general V2 feed-creation flow.
+Feed setup notes for Viskan customers: product, order and content feeds. Read alongside the
+`feed-setup` skill, which owns the general V2 feed-creation flow.
 
 ---
 
@@ -43,6 +43,49 @@ There are a couple of different versions of the Viskan product feeds — mainly 
 
 ---
 
+## Order feed (historical orders)
+
+Hello Retail can fetch a Viskan shop's historical order data straight from Viskan's API, so the
+customer doesn't have to export orders themselves.
+
+**Customer side: API credentials.** The customer creates an API client in Viskan Backoffice with
+**read access to orders**, following Viskan's guide:
+[Create an API client](https://api-docs.viskan.com/get-started/create-api-client.html).
+
+- Backoffice → **Developers → API clients** → **Create API client**. Needs the administrator role.
+- Grant only the order read scope. Viskan's API reference lists the exact scope on each Order method.
+- The result is a **Client Id** and a **Client Secret**. The secret is shown once; if it is lost,
+  the customer regenerates it (the Client Id stays the same). Both go into the order feed URL,
+  never into a ticket, card or chat in plain text.
+
+### Feed URL
+
+The order feed points at Hello Retail's Viskan feed helper. Replace each `{{…}}` placeholder
+with the customer's value, and drop the optional parameters you don't use:
+
+```text
+http://feed-helper.addwish.com/viskan/orders.py?clientId={{client_id}}&clientSecret={{client_secret}}&daysBack=2&language={{lang}}&countryCode={{country_code}}&webStoreNumber={{web_store_number}}
+```
+
+### Parameters
+
+| Parameter | Required | What it does |
+|---|---|---|
+| `clientId` | **Yes** | The Client Id of the customer's Viskan API client. |
+| `clientSecret` | **Yes** | The Client Secret of the same API client. |
+| `daysBack` | — | How many days of orders to fetch, counted back from today. The reference setup uses `2`. |
+| `language` | **Yes** | Technically required. Falls back to `sv` when omitted, so always set it to the shop's language. |
+| `countryCode` | No | Only returns orders matching that country code. |
+| `webStoreNumber` | No | Only returns orders from that web store. |
+
+> **Multi-store / multi-country customers:** one Viskan tenant can hold several web stores or
+> countries. Set `webStoreNumber` and/or `countryCode` so each Hello Retail website only gets its
+> own store's orders.
+
+Order feeds have **no MCP tooling**: the order feed is set up by hand in the dashboard.
+
+---
+
 ## Content feeds
 
 Content feeds are created **on demand** and need to be requested from Viskan or the customer. There
@@ -62,3 +105,4 @@ work in the dashboard.
 
 ## Timeline
 - 2026-08-27: Page created from the Viskan feed notes in Confluence.
+- 2026-11-02: Added the order feed: Viskan API client for historical orders, and its parameters.
