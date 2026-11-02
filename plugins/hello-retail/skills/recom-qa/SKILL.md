@@ -206,10 +206,10 @@ what covers the drafted changes; never present the rendered result as QA of that
 > requests, and known-open items (e.g. "placement divs pending the customer's developer") all
 > live in the card and its reply threads. The brief drives the step-1 card cross-check and the
 > grading — `PASS (by spec)` / `N/A (declined in ticket)` / `KNOWN — pending [owner/ETA]`, each
-> with its comment citation — and its extra checks join the coverage manifest. No card for this
-> domain → look for the customer's Onboarding card under the customer / brand name, and ask the
-> operator before using context from another domain of the same customer (Step 1.5: *Search by
-> customer*, *Same customer, different domain*). A build that is a copy of another domain →
+> with its comment citation — and its extra checks join the coverage manifest. Also look for the
+> customer's other onboardings under the customer / brand name, and ask the operator before using
+> context from another domain of the same customer (Step 1.5: *The customer's other onboardings*,
+> *Same customer, different domain*). A build that is a copy of another domain →
 > read the source's context too, after asking the operator (*Copy of another domain*). If the
 > card is
 > vague on a point you need, one clarifying question is fine (`AskUserQuestion` when the card's

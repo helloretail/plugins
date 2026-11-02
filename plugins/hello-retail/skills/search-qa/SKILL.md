@@ -151,10 +151,10 @@ ClickUp card and distill the QA brief — it can change *what* you QA (staging v
 which variants were ordered) and what *correct* means (ordered deviations from native,
 declined requests, known-open items). Grade with it throughout: `PASS (by spec)` /
 `N/A (declined in ticket)` / `KNOWN — pending` all carry their comment citation, and the
-brief's extra checks join the coverage manifest. No card for this domain → look for the
-customer's Onboarding card under the customer / brand name, and ask the operator before using
-context from another domain of the same customer (Step 1.5: *Search by customer*, *Same
-customer, different domain*). A build that is a copy of another domain → read the source's
+brief's extra checks join the coverage manifest. Also look for the customer's other onboardings
+under the customer / brand name, and ask the operator before using context from another domain
+of the same customer (Step 1.5: *The customer's other onboardings*, *Same customer, different
+domain*). A build that is a copy of another domain → read the source's
 context too, after asking the operator (*Copy of another domain*). When the card names a
 reference site for the
 overlay ("similar to [another-shop.com]"), judge **shell-design** items against that reference;

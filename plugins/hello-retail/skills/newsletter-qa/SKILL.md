@@ -49,7 +49,7 @@ and there is no write path for Triggered Emails at all. It reports; the develope
 | Triggered Email files | T | The base design + the trigger block(s) under QA — paths in `output/…` or pasted (prose). Ask **which triggers** if not stated — `AskUserQuestion`, header *Triggers*, `multiSelect: true`: *Abandoned Cart* / *Price Drop* / *Back in Stock* / *Post Conversion*, the ones whose files are present first and the first marked "(Recommended)"; all four picked = all |
 | Customer category-page URL | N+T | The native-tile reference. Without it the comparison and the fixture harvest are `SKIPPED — no native reference given`; ask before proceeding |
 | Optional: Search key | N+T | `search_getDesign` gives the authoritative field map for the tile (first `[class^="hr-search-overlay-product"]` inner markup) |
-| ClickUp card (URL or id) | N+T | **Ask up front** — resolve per `../qa-checklists/SKILL.md` Step 1.5; it decides "deviation by design" (e.g. no CTA on purpose, ex-VAT prices ordered); no card for this domain → the customer's Onboarding card by customer / brand name, and ask the operator before using context from another domain of the same customer, or from the domain this build was copied from |
+| ClickUp card (URL or id) | N+T | **Ask up front** — resolve per `../qa-checklists/SKILL.md` Step 1.5; it decides "deviation by design" (e.g. no CTA on purpose, ex-VAT prices ordered); also look for the customer's other onboardings by customer / brand name, and ask the operator before using context from another domain of the same customer, or from the domain this build was copied from |
 
 If the `website-uuid` or the lane is missing, ask before proceeding.
 
