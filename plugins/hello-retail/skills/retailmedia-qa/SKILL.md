@@ -50,7 +50,9 @@ skill wins — the differences are called out below.
 - A customer URL **or** a `website-uuid` (or several → one independent run and report per domain).
   With only a URL, find the uuid via `website_listForCompany` / the card's Supervisor ID; ask if
   you still can't. Without it there is no code pass — say so loudly in the report.
-- The **ClickUp card** — ask up front (resolve it per qa-checklists Step 1.5). For this skill the
+- The **ClickUp card** — ask up front (resolve it per qa-checklists Step 1.5; no card for this
+  domain → the customer's Onboarding card by customer / brand name, and ask the operator before
+  using context from another domain of the same customer). For this skill the
   card matters more than usual: a Retail Media onboarding card normally carries
   **"Banners to check SEARCH / RECOMS"** checklists with one line per search config and per
   recom box (e.g. `Front page - Retargeted - Banner placed ✅ - Responsive ✅`), a
