@@ -246,8 +246,8 @@ alphabetical order on every sampled product, not smart-collections-first. If the
 ## Known differences (always state the ones that apply)
 
 1. **Collection set and order.** The two helpers don't return the same collections. The legacy helper is
-   deprecated and can miss collections a product belongs to; V2 returns them (seen on one shop: "Heren Jeans",
-   "Accessoires" and four more on 4 sampled products). Keep them: never filter V2 collections down to the legacy
+   deprecated and can miss collections a product belongs to; V2 returns them (seen on one shop: six extra
+   collections on 4 sampled products). Keep them: never filter V2 collections down to the legacy
    set. V2 also leaves out unpublished collections, so "all products" / discount-code / app helper
    collections can drop out, and a V2 id list can come out in plain ascending id order where the legacy one wasn't.
    Everything built from collection titles or ids (hierarchies, keywords, `collection_ids`, category ids,
