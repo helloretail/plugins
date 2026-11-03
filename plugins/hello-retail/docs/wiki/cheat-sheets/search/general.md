@@ -760,6 +760,9 @@ var searchBtn = document.querySelector(".header-search");
 searchBtn.replaceWith(searchBtn.cloneNode(true));
 ```
 
+Run it right after the device-width guard, before HR binds the trigger. On Viskan every managed
+desktop Search config does this for each native trigger, and mobile only when its trigger needs it: [../../platforms/viskan/README.md](../../platforms/viskan/README.md) → Search (managed).
+
 ---
 
 ### _Add hierarchy path to category content template_
