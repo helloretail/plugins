@@ -8,6 +8,12 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.52.0 — 2026-11-03
+
+### Changed
+
+- `search-qa`, `recom-qa`, `pages-qa`, `retailmedia-qa`, `newsletter-qa` and `qa-checklists` now handle a build that is a copy of another domain: they ask the operator, then read the source domain's onboarding card and earlier QA files to learn why the design is as it is. A source from another customer contributes build facts only, never that customer's decisions, and a behaviour shared with the source is never passed as by-spec unless this domain's own card says so.
+
 ## 1.51.1 — 2026-11-02
 
 ### Added
