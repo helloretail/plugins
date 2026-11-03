@@ -151,7 +151,9 @@ ClickUp card and distill the QA brief — it can change *what* you QA (staging v
 which variants were ordered) and what *correct* means (ordered deviations from native,
 declined requests, known-open items). Grade with it throughout: `PASS (by spec)` /
 `N/A (declined in ticket)` / `KNOWN — pending` all carry their comment citation, and the
-brief's extra checks join the coverage manifest. When the card names a reference site for the
+brief's extra checks join the coverage manifest. A build that is a copy of another domain →
+read the source's context too, after asking the operator (Step 1.5: *Copy of another domain*).
+When the card names a reference site for the
 overlay ("similar to [another-shop.com]"), judge **shell-design** items against that reference;
 **tile parity stays against the customer's own native tiles** unless the card says otherwise.
 Then ask the **operator questions at the start** (`../qa-checklists/SKILL.md` Step 1.5) for
