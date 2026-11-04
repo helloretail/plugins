@@ -8,6 +8,13 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.53.1 — 2026-11-04
+
+### Changed
+
+- `tile-extractor` builds Wikinggruppen tiles for the newest WGO theme: the native tile markup with `extraData.combinationId` on the buy button and no add-to-cart JavaScript, because the theme's own handler already covers Hello Retail tiles.
+- `hello-retail-knowledge` answers Wikinggruppen questions from rewritten platform pages: theme detection, the product export and its field mapping, add to cart and favorites on the newest theme, category-page context, multi-currency prices, and older-theme differences kept apart as caveats.
+
 ## 1.53.0 — 2026-11-03
 
 ### Added
