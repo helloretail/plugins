@@ -20,7 +20,7 @@ This is the single most platform-dependent part of an HR install — each platfo
 | Viskan (Streamline / NG) | [viskan/add-to-cart.md](./viskan/add-to-cart.md) | `window.viskan.cart.add(plu, qty)` from a delegated click handler with a quantity stepper |
 | DanDomain / Lightspeed | [dandomain/add-to-cart.md](./dandomain/add-to-cart.md) | plain form POST, no JS |
 | BigCommerce Stencil | [bigcommerce/add-to-cart.md](./bigcommerce/add-to-cart.md) | `POST /remote/v1/cart/add` with `FormData`; CSRF headers injected by the storefront |
-| Wikinggruppen | [wikinggruppen/README.md#add-to-cart](./wikinggruppen/README.md#add-to-cart) | platform AJAX endpoint from a delegated click handler appended to `initializationCode` |
+| Wikinggruppen | [wikinggruppen/add-to-cart.md](./wikinggruppen/add-to-cart.md) | newest theme: the theme's own delegated handler (`WGR.cart.addItem`) catches Hello Retail tiles — copy the native tile markup, add no cart JS; older themes in the page's caveats |
 
 ## Quick reference: selector and API per platform
 
@@ -33,7 +33,7 @@ This is the single most platform-dependent part of an HR install — each platfo
 | Viskan (Streamline / NG) | `window.viskan.cart` JS API (`add(plu, qty)`, `get()`) | `.hr-cta-button` buy button + `.hr-qty-container` stepper | delegated `click` on `document`, `await window.viskan.cart.add(...)`, then a state sweep; fires GA4 events itself |
 | DanDomain / Lightspeed | native form POST | the tile's own form | none |
 | BigCommerce | `POST /remote/v1/cart/add` (`FormData`) | `form[data-cart-item-add-from-card]` | per-form submit listener, guarded |
-| Wikinggruppen | platform AJAX endpoint | `.js-product-item-add` | delegated `click` handler in `initializationCode` |
+| Wikinggruppen | `WGR.cart.addItem` → `/ajax/?action=cart-additem` (called by the theme) | `.js-product-item-add[data-cid]` inside `.js-product-item[data-title][data-artno][data-price]` | none — the theme delegates on `document` / `body`; never bind a second handler |
 
 ## Platform inference (storefront-side — never feed shape)
 
@@ -112,3 +112,4 @@ Without the call, add-to-cart clicks from Hello Retail tiles are never attribute
 - 2026-09-14: Moved here from `cheat-sheets/add-to-cart/README.md` to sit with the platform pages; the per-platform cheat-sheet copies were merged into `platforms/<platform>/add-to-cart.md`. Corrected the Viskan row — the recipe is a delegated click handler with a stepper, not an `.hr-form` submit binding — and added the DanDomain, BigCommerce and Wikinggruppen rows.
 - 2026-10-08: Added *Click tracking on the buy button* — the rule, the copy-verbatim trap, and where `tile-extractor` adds it.
 - 2026-09-23: The tile carries the shop's own form, never a Hello Retail one; selectors now name the copied theme form first and the legacy `.hr-form` / `.aw-buy-form` classes only for reading older designs.
+- 2026-11-03: Wikinggruppen rows now point to `wikinggruppen/add-to-cart.md`: on the newest WGO theme the theme's own delegated handler covers Hello Retail tiles, so no cart JS is added.
