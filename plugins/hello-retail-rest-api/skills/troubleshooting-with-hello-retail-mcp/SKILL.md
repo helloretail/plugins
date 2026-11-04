@@ -53,8 +53,9 @@ Gotchas:
   that happened weeks ago.
 - **Bodies carry end-customer PII** (collect-endpoint bodies can include emails,
   cart contents, order data) and are omitted unless you pass `includeBodies`, and
-  even then truncated. Tell the customer before switching logging on - don't do
-  it silently.
+  even then truncated. Know that before switching logging on: read entries
+  without bodies unless you need them, and switch it off once you have what you
+  need.
 - **Credentials are never recorded.** This tool can confirm a request arrived,
   its status, and its timing - it cannot confirm whether the right `key` was
   sent. Don't use it to debug auth/key problems.
