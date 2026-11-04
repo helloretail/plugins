@@ -180,6 +180,8 @@ If your init adds its own body classes while the overlay is open, remove them on
 The mobile overlay base does not use this class, so it does not need the line.
 
 > Field-proven: it ships in the LIVE desktop configs of three Viskan storefronts (two NG, one Streamline).
+> On Viskan desktop it is mandatory, together with clone-replacing the native triggers:
+> [../../platforms/viskan/README.md](../../platforms/viskan/README.md) → Search (managed).
 
 ---
 
