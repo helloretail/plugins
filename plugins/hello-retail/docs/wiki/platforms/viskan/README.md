@@ -1,6 +1,6 @@
 ---
 source: field
-verified: 2026-09-24
+verified: 2026-11-03
 ---
 
 # Viskan
@@ -106,6 +106,72 @@ always runs managed Search).
   feed, leave it out.
 - **Publishing:** the Search API only serves a LIVE config, so nothing is returned until the config
   is published in My Hello Retail. Leave any existing managed (script) search configs as they are.
+
+---
+
+## Search (managed): the SPA prelude, on every desktop config
+
+Both storefronts are SPAs. The page is never reloaded, Viskan's own search handlers stay bound to
+its header, and the HR init can run again while the overlay is open. Every managed **desktop**
+Search config on Viskan therefore starts with the same prelude, **right after the device-width
+guard and before the token declarations**. Nothing may run ahead of the guard: it decides whether
+this config runs on this device at all. Mobile is decided per shop (below).
+
+**1. Clone-replace every native trigger.** `replaceWith(el.cloneNode(true))` swaps the node for a
+copy without listeners, so Viskan's own search (its predictive dropdown, Enter to its results page,
+the header search dropdown) can't fire alongside HR Search. Clone every element the visitor uses
+to search: the input, and on Streamline also the `.CMS-Dropdown-trigger` icon that opens the
+header search. Clone before HR binds anything, so HR's own listeners land on the clone.
+
+**2. The SPA fix (desktop only).** Remove `hr-search-disable-scroll` from `<body>`. The desktop
+base adds it on open and removes it only on close, so a re-init while the overlay is open (a route
+change, `hrq.push(["reload"])`) leaves the page blurred and locked. Also remove any body class
+your own init adds while the overlay is open. Details:
+[../../cheat-sheets/search/spa-react.md](../../cheat-sheets/search/spa-react.md) → Stale scroll lock.
+
+Desktop:
+
+```js
+var ui_utility = ui_utility_vanilla;
+if (ui_utility.window_size().width <= 992) {
+	// Don't activate on mobile
+	return;
+}
+
+// Viskan: strip the storefront's own search listeners, one block per native trigger
+var nativeTrigger = document.querySelector("<native trigger selector>");
+if (nativeTrigger) {
+	nativeTrigger.replaceWith(nativeTrigger.cloneNode(true));
+}
+
+document.querySelector("body").classList.remove("hr-search-disable-scroll"); // SPA FIX
+
+/* text */ var trigger_selector = "<native trigger selector>";
+```
+
+Mobile: never the SPA fix, since the mobile overlay base does not use `hr-search-disable-scroll`.
+The clone only when the mobile trigger needs it, so test before adding it: tap the trigger, type and
+press Enter with real interactions. If Viskan's own search opens alongside HR Search, or Enter goes
+to Viskan's results page, add the clone after the mobile guard (`width > 992` → `return`). If HR
+Search opens cleanly, leave it out. The Streamline header dropdown icon is a known case that needs
+it.
+
+**Selectors seen live**, as a starting point. Confirm them on the shop with `querySelectorAll` and
+a real click:
+
+| Storefront | Input | Icon |
+|---|---|---|
+| Streamline | `input[name='query'].SearchForm-input` | `.CMS-Dropdown-icon.CMS-Dropdown-trigger` |
+| NG | `form[role='search'] input[type='search']`, or the input's `aria-label` | — |
+
+**Verify** with real interactions, never a synthetic dispatch: type, press Enter, and click the
+icon. Each must open HR Search only, with no Viskan dropdown and no navigation to Viskan's results
+page. Then navigate to another page through the shop's own menu and repeat, and close the overlay
+to check the page scrolls and is not blurred.
+
+> Field-proven: the prelude ships in the LIVE desktop configs of three Viskan storefronts (two NG,
+> one Streamline). Of their LIVE mobile configs, the Streamline one clones its dropdown icon and an
+> NG one needs no clone.
 
 ---
 
@@ -273,3 +339,5 @@ Product URL pattern: `/[lang]/artikel/[slug]?attr1_id=[colorId]`
   per feature, the `_id` field rule and the Pages (API) setup.
 - 2026-09-24: NG adds `extraDataList.categoryUUID` to the indexed fields and the Pages filters;
   added the Search (API) setup.
+- 2026-11-03: Added the managed-Search SPA prelude for desktop (clone-replace the native triggers,
+  the SPA fix) from the LIVE Viskan configs; mobile clones only when its trigger needs it.
