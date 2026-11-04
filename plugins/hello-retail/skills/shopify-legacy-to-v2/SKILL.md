@@ -16,7 +16,9 @@ feed items. So **never guess the shape of a V2 item**. Everything below was veri
 output of both helpers on full catalogues (three shops, about 19,500 products, V2 transforms and V1 crawl
 strings, with and without `...product` spreads).
 
-The only agreed exception to 1:1: **oldPrice = price when the product has no compare-at price.**
+The only agreed exceptions to 1:1: **oldPrice = price when the product has no compare-at price**, and **the
+collections V2 returns** (the legacy helper is deprecated and can miss collections; known difference 1). Every
+other field stays 1:1.
 
 ## Rules
 
@@ -25,6 +27,11 @@ The only agreed exception to 1:1: **oldPrice = price when the product has no com
   a V2 feed. Never create or edit a V1 config.
 - Create a **new** feed with `feeds_create`, `state: "INACTIVE"`. Never update, activate, deactivate or archive
   the old feed (V2 or V1), and never activate the new one. A person compares the two and switches.
+- Never run the new feed, and tell the person not to: a manual run of an INACTIVE V2 feed is a real full run. It
+  overwrites live product data and deletes products missing from its output, while the old feed stays active. The
+  old feed does not always put the data back: when its download is unchanged, its next run writes nothing. The safe
+  check is the editor's test (no save). If the new feed was run anyway, `productData_getChanges` at the run's
+  timestamp shows what changed; a manual run of the old feed restores it.
 - Copy the old feed's `runIntervalSeconds`, `cacheBusting`, `allowDeltaRuns` and `createProducts`. Set `format`
   JSON, `itemsPath` `items`, `requestType` SINGLE_REQUEST, `headers` []. A V1 `deleteProductsMissingFromFeed` has no
   V2 setting: V2 feeds always delete missing products on full runs.
@@ -62,7 +69,8 @@ The only agreed exception to 1:1: **oldPrice = price when the product has no com
 8. `feeds_create` as INACTIVE.
 9. Report: new feed id, the dashboard editor link
    `https://my.helloretail.com/company/app/{companyId}/websites/{websiteUuid}/feed/product/productFeed-{feedId}`,
-   the field checklist, the known differences that apply (below), and what to check in the editor.
+   the field checklist, the known differences that apply (below), and what to check with the editor's test (not a
+   manual run: see Rules).
 
 ## New url
 
@@ -98,13 +106,13 @@ Same scheme and host as the old url (`http://feed-helper.addwish.com` stays as i
 | variant `presentment_prices[0].price.amount` / `.compare_at_price.amount` (url currency) | variant `contextual_pricing.price.amount` / `.compare_at_price?.amount` (url country). `contextual_pricing.price.currency_code` exists, so a `.find((p) => p.price.currency_code === "XXX")` lookup ports as `variants.find((v) => v.contextual_pricing?.price?.currency_code === "XXX")` |
 | variant `sku`, `barcode`, `title`, `position`, `inventory_quantity` | same |
 | variant `inventory_policy` "deny" / "continue" | "DENY" / "CONTINUE" |
-| variant `option1..3` | `variant.title.split(" / ")[0..2]` |
+| variant `option1..3` | `variantOptions(variant)[0..2]` → pattern `variantOptions`. Never `variant.title.split(" / ")`: an option value can itself contain " / " (trouser size "31 / 34") |
 | `images[]` {src, position} (position order) | `productimages[]` {url} in **reverse** order → pattern `images`; `.url` equals legacy `.src` |
 | `main_image.src` | `images[0]?.url` after the reverse (identical to `featured_image.url` on every product tested; use one) |
 | `options[]` {name, values} (position order) | `options` object keyed by lowercased name, **reverse** order → pattern `options` |
 | `hierarchies` ["Title", …] (all collections) | `collections.map((c) => c.title)` (published collections only) |
 | `hierarchies_<locale>` (translated titles, published collections only, so it can be shorter than `collection_ids`) | `collections.map((c) => (c[`hierarchy_${locale}`] ?? c.hierarchy)[0])`: same content |
-| `collection_ids` (numbers, all collections incl. unpublished) | `collections.map((c) => c.legacy_resource_id)` (published only) |
+| `collection_ids` (numbers, all collections incl. unpublished) | `collections.map((c) => c.legacy_resource_id)` (published only; also the collections the legacy helper missed: known difference 1) |
 | `translations.<field>_<locale>.value` | identical |
 | `metafields["<namespace>_<key>"]` | `metafields["<key lowercased>"]`; the entry's `.value`, `.namespace`, `.key` are identical. Two namespaces with the same key collide (one survives): check `.namespace` |
 | `is_master` "true" | none → the constant `"true"` |
@@ -124,9 +132,23 @@ const mainVariant = variants.filter((variant) => variant.position === variants[0
 const variantsSellable = variants.filter((variant) => variant.inventory_quantity > 0 || variant.inventory_policy !== "DENY");
 // legacy product.images (position order); images[0] is the legacy main_image
 const images = [...(product.productimages ?? [])].reverse();
+// legacy variant option1..3: the title read against the option values, longest match first ("31 / 34" before "31")
+const optionValues = Object.values(product.options ?? {}).flatMap((option) => option.values ?? []);
+const leadingOptionValue = (text) => optionValues.filter((value) => text === value || text.startsWith(`${value} / `)).sort((a, b) => b.length - a.length)[0];
+const variantOptions = (variant) => {
+	const values = [];
+	let rest = variant?.title ?? "";
+	while (values.length < 3) {
+		const value = leadingOptionValue(rest);
+		if (value === undefined) break;
+		values.push(value);
+		rest = rest.slice(value.length + 3);
+	}
+	return values;
+};
 // legacy product.options (position order)
-const titleParts = (variants[0]?.title ?? "").split(" / ");
-const optionPosition = (option) => titleParts.findIndex((part) => (option.values ?? []).includes(part));
+const firstVariantOptions = variantOptions(variants[0]);
+const optionPosition = (option) => firstVariantOptions.findIndex((value) => (option.values ?? []).includes(value));
 const options = Object.values(product.options ?? {}).sort((a, b) => optionPosition(a) - optionPosition(b));
 // legacy collection order: smart collections first; closest the V2 data allows
 const collections = [...(product.collections ?? [])].sort((a, b) => Boolean(b.rule_set) - Boolean(a.rule_set) || a.legacy_resource_id - b.legacy_resource_id);
@@ -142,6 +164,9 @@ const size = product.metafields?.size?.namespace === "custom" ? product.metafiel
   data, and in the new feed one throw aborts the whole run. In a helper with fallback branches (e.g. one for
   `metafields.custom_x` and one for `metafields.custom.x`), port the branch that matches the legacy shape and drop
   the one that never could.
+- **Option values:** `variantOptions` was verified on a shop where 19 of 332 products had sizes like "31 / 34"
+  (0 mismatches against the storefront's `/products.json` option values). A value that matches no option value ends
+  the list, so that option comes out `undefined` instead of a wrong fragment.
 - **The oldPrice exception:** only where the old code leaves oldPrice empty. Write `<ported compare-at expression> ??
   <ported price expression>`. A compare-at the old code did send (also "0.00", or one below the price) stays as it is.
   When the old code already has its own fallback, port it unchanged.
@@ -220,10 +245,15 @@ alphabetical order on every sampled product, not smart-collections-first. If the
 
 ## Known differences (always state the ones that apply)
 
-1. **Unpublished collections.** The V2 helper only returns published collections. Anything built from collection
-   titles or ids (hierarchies, keywords, `collection_ids`, `hierarchies_<locale>`) can miss "all products" /
-   discount-code helper collections, and the order of collection-based lists can differ. Native `hierarchies` are
-   stored sorted, so only their content matters. A flag built from one specific collection (e.g. "is in collection
+1. **Collection set and order.** The two helpers don't return the same collections. The legacy helper is
+   deprecated and can miss collections a product belongs to; V2 returns them (seen on one shop: six extra
+   collections on 4 sampled products). Keep them: never filter V2 collections down to the legacy
+   set. V2 also leaves out unpublished collections, so "all products" / discount-code / app helper
+   collections can drop out, and a V2 id list can come out in plain ascending id order where the legacy one wasn't.
+   Everything built from collection titles or ids (hierarchies, keywords, `collection_ids`, category ids,
+   `hierarchies_<locale>`) changes with it: compare those fields on 2–3 products in the editor's test and list the
+   added and missing collections in the report. Native `hierarchies` are stored sorted, so only their content
+   matters. A flag built from one specific collection (e.g. "is in collection
    X") flips for the whole catalogue if X is unpublished: name the flag in the report and ask the person to check, in
    the feed editor, a product where it is "true" today.
 2. **Product scope.** The V2 helper returns ACTIVE products only; the legacy helper returns every published
@@ -247,6 +277,8 @@ alphabetical order on every sampled product, not smart-collections-first. If the
 | Guessing V2 field names, or guarding on `product.variants` / `main_image` | every product skipped: a full run removes the catalogue |
 | Keeping `apikey`, `apipassword`, `currency` in the url | the V2 helper fails or prices the wrong market |
 | Updating the old feed in place, or activating the new one | live data changes before anyone compared |
+| Running the new INACTIVE feed manually to "test" it | live products overwritten and missing ones deleted; the old feed may not restore them |
+| `variant.title.split(" / ")` for option1..3, or for the `options` order | wrong values when an option value contains " / " ("31 / 34" stored as "31"), and `findIndex` -1 puts that option first |
 | Using the D&TS Shopify-V2 template | cheapest-variant price, `_600x` images, tags as keywords, a different stock rule: not 1:1 |
 | Dropping keys that came from `...product` | designs lose data (e.g. `extraData.id` used for add-to-cart) |
 | `productimages` / `options` in the order given | second image and option order wrong (both come reversed) |
