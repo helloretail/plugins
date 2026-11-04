@@ -8,6 +8,18 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.54.0 — 2026-11-04
+
+### Added
+
+- `search-developer` now adds the Viskan SPA prelude to every Viskan desktop Search config: it
+  clone-replaces the native search triggers and adds the SPA fix that clears a stale scroll lock. On
+  mobile it clones a trigger only when Viskan's own search still reacts to it.
+- `search-qa` fails a Viskan desktop config that lacks the prelude. It also re-tests the trigger after a
+  page change without a reload on SPA storefronts.
+- `hello-retail-knowledge` documents the Viskan managed-Search prelude, with the trigger selectors seen
+  on Streamline and NG.
+
 ## 1.53.1 — 2026-11-04
 
 ### Changed
