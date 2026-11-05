@@ -335,7 +335,7 @@ Always **plumbing → payload → presentation**. Most failed tickets inverted t
 | **Newsletter** tile looks wrong, or a campaign reports nothing | `newsletterContent_getCampaign` → `getDesign` → `renderDesign` (the real output — clipping is invisible in the source). For "the numbers are zero", check it is not an **Auto campaign configuration**, which never serves and so never has figures of its own — sum its sends with `getAnalyticsGrouped` |
 | **Pages** wrong products, filters or sorting | `pages_listConfigs` → `pages_getConfig` → `pages_getConfigProductFilters` / `ProductBoosts` → `pages_getDesignFilters` / `DesignSorting` → `pages_getUrlBreakdown` |
 | **"It worked last week"**, any feature | `auditLog_getEntries` **first** → `internal_auditLog_getEntrySnapshots` for the before/after → then the feature's row above |
-| **Integration / API** calls not landing | `apiLog_getStats` → `apiLog_getEntries`. Recording is off by default; **get the customer's agreement before switching it on** — see *Hard rules* |
+| **Integration / API** calls not landing | `apiLog_getStats` → `apiLog_getEntries`. Recording is off by default; switch it on with `apiLog_setLogging` — no customer sign-off needed, but see *Hard rules* for handling the data |
 | **Nothing is tracking** | Not MCP-visible. Clean session first, then hand back — §4 |
 
 ## Reply templates — the four outcomes
@@ -442,10 +442,10 @@ Regardless of outcome, finish with three blocks:
   writes go through the MCP. The storefront is fair game; the dashboard is not.
 - **API logging captures shoppers' personal data.** Switching it on with `apiLog_setLogging`
   records full request and response bodies, and the tracking endpoints' bodies carry the
-  website's own end-customers' e-mail addresses, cart contents and order contents. Tell the
-  customer what it captures and get their agreement **before** enabling it; read entries without
-  bodies unless the problem needs them; switch it off as soon as the reproduction is captured.
-  Nothing from the log goes into a ticket, a hand-off document, or this repository.
+  website's own end-customers' e-mail addresses, cart contents and order contents. No sign-off
+  from the customer is needed to switch it on, but read entries without bodies unless the problem
+  needs them, switch it off as soon as the reproduction is captured, and put nothing from the log
+  into a ticket, a hand-off document, or this repository.
 - **No customer data in this repository.** Findings, screenshots and reports stay in the working
   directory's gitignored `QA/` and `output/` folders, or inline in the reply.
 - **Hand off, don't duplicate.** If triage lands on "this design needs rebuilding", the job belongs
