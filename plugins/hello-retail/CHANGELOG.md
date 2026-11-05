@@ -8,6 +8,30 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.55.1 — 2026-11-05
+
+### Added
+
+- `search-qa` and `recom-qa` now fail a Shopify design that sends `variantProductNumbers | first` or
+  `| last` as the cart id, since depending on the feed that is the product id or a SKU.
+- `search-qa` and `recom-qa` now fail a variant branch gated on `variantProductNumbers.size` or on
+  a `hasVariants` field the feed does not map. They also list Liquid block tags that share a line
+  with markup, and any `</img>`, as a NOTE.
+
+### Changed
+
+- `feed-setup` now maps `extraData.id` to the default variant id in every Shopify feed, so
+  add-to-cart and wishlist buttons have a reliable cart id.
+- `hello-retail-knowledge` and `tile-extractor` now bind Shopify add-to-cart and wishlist buttons to
+  `extraData.id` instead of `variantProductNumbers`, and the Loox rating widget to `productNumber`.
+- `tile-extractor`, `search-developer`, `recom-developer` and `pages-developer` now gate every
+  variant decision on `extraData.hasVariants`. When the feed does not map it, they stop and ask
+  the operator to map it or name another field, instead of falling back to a list length.
+- `tile-extractor`, `search-developer`, `recom-developer` and `pages-developer` now put every Liquid
+  block tag on its own line with its body indented, and remove any `</img>`, including in the
+  banner branch.
+- `feed-setup` now maps `extraData.hasVariants` in every Shopify feed.
+
 ## 1.55.0 — 2026-11-05
 
 ### Added
