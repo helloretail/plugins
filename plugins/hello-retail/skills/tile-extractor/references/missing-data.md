@@ -26,6 +26,7 @@ the feed truly cannot express it (a badge with no feed field at all), with that 
 | `extraDataList.swatchIMG`                        | Magento swatch images — served from Magento CDN, not in feed by default; use `product.imgUrl` as fallback                                  |
 | `extraData.brandLogoUrl`                         | Brand logo for CLK/third-party brand badge systems — not in feed; render brand name as text fallback via `extraData.extraattributes_brand` |
 | Shopify `section-id`                             | Page-specific, not in feed — omit entirely                                                                                                 |
+| Shopify `extraData.id`                           | The default variant id (`main_variant.legacy_resource_id`): the cart `id` every ATC and wishlist button sends. Never `variantProductNumbers \| first` / `\| last`; if the feed lacks it, ask the feed team to map it |
 | `extraDataList.siblingUrls`                      | Sibling product URLs — often missing, fallback to `product.url`                                                                            |
 | `brand`                                          | Often empty even when the storefront shows a brand — on Magento check `extraData.extraattributes_brand` instead                            |
 | `extraDataList.size`                             | Weight/size shown on the native tile (e.g. "2805 gram") — usually unmapped                                                                 |

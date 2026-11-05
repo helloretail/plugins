@@ -35,7 +35,7 @@ themes nothing more is needed.
         action="/cart/add" method="post">
     <input type="hidden" name="form_type" value="product">
     <input type="hidden" name="utf8" value="✓">
-    <input type="hidden" name="id" value="{{ product.variantProductNumbers | first }}">
+    <input type="hidden" name="id" value="{{ product.extraData.id }}">
     <button name="add" type="submit"
             data-add-to-cart-text="Add to cart"
             aria-haspopup="dialog"
@@ -170,9 +170,35 @@ initQuickViewButtons();   // from afterInit
   the drawer never refreshes. The IIFE above uses `cart:updated` + a section refresh.
 - The variant CTA ("Vælg variant") navigates or opens the quick-add dialog; it never carries
   `trackClick` — tracking is for add-to-cart actions only (tile-extractor Output Rule 11).
-- No-variant products: the theme form's hidden `id` input carries the default variant id
-  (`product.variantProductNumbers | first`).
+- No-variant products: the theme form's hidden `id` input carries the default variant id,
+  `product.extraData.id` — see below.
 - Shopify B2B / draft orders may need the Storefront API instead of `/cart/add.js`.
+
+## The cart id: `extraData.id`, never `variantProductNumbers`
+
+Every Shopify tile with an add-to-cart or wishlist button sends `{{ product.extraData.id }}` as the
+variant id. The feed maps it from the product's default variant, which is the id the store's own
+tiles send:
+
+```js
+extraData: {
+    id: product.main_variant?.legacy_resource_id,
+    …
+}
+```
+
+The feed-setup Shopify default transform carries this mapping. Add it to any Shopify feed that lacks
+it before you build a buy or wishlist button.
+
+**Why not `variantProductNumbers`:** what it holds depends on the feed. A feed can start the list
+with the product id, and a feed that makes SKUs searchable appends them, so one simple product can
+read `["<product id>", "<variant id>", "<sku>"]`. `| first` then sends the product id, `| last` sends
+the SKU, and Shopify's `/cart/add` rejects both.
+
+**Feeds ported from the legacy helper** store `extraData.id` as the **product** id (the auto-mapped
+top-level `id`). Compare it with `productNumber` in `productData_get` before you bind it. When the
+two are equal, ask the feed owner to remap `extraData.id` to `main_variant.legacy_resource_id`, and
+first check that no live design reads it as the product id (a Loox `data-id`, for example).
 
 **Related:**
 - Cross-platform binding rules — [../add-to-cart.md](../add-to-cart.md)
@@ -187,3 +213,4 @@ initQuickViewButtons();   // from afterInit
 - 2026-07-01: Approach A / B page consolidated from the Search, Recom and tile-extractor skill references.
 - 2026-09-14: Merged the cheat-sheet copy into this page. The Quick View re-init now targets `#hello-retail-{{ key }}`, the base template's box id, instead of the legacy `#aw-box-{{ key }}`.
 - 2026-09-23: Approach A (Hello Retail's own `.hr-form` inside the tile) retired — the tile copies the theme's form. The variant-CTA example no longer carries `trackClick`; tracking is for add-to-cart only.
+- 2026-11-05: The cart `id` is `extraData.id` (the default variant's `legacy_resource_id`) instead of `variantProductNumbers | first`. On a feed whose list starts with the product id and ends with SKUs, `| first` sent the product id and `| last` a SKU.

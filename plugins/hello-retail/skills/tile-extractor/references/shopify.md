@@ -12,7 +12,8 @@ Read before writing a Shopify tile's ATC form, rating widget, or ATC JavaScript.
 
 **Never a Hello Retail form.** The tile keeps the theme's `<product-form>` / `form.js-product-form`
 markup exactly as the category page has it — custom elements upgrade themselves when inserted, so
-much of it works without any binding — with the variant id bound to the feed and the tracking call
+much of it works without any binding — with the variant id bound to `{{ product.extraData.id }}`
+(never `variantProductNumbers`; see the cart-id section of the page below) and the tracking call
 of Output Rule 11 on the submit button. The binding, when one is needed, is the shell's job:
 `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md` → **Approach B** (AJAX add +
 cart-section refresh + quick-add dialog).
