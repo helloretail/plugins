@@ -61,6 +61,7 @@ working customer transforms and a verified `main_variant` payload sample.)
 | `contextual_pricing.min_variant_pricing.price.amount` | `price` | On the **product**, not `main_variant`. Market-dependent (`country=`) |
 | `contextual_pricing.min_variant_pricing.compare_at_price.amount` | `oldPrice` | Falls back to the price itself when not on sale — see note below |
 | `productvariants[].legacy_resource_id` | `variantProductNumbers` | |
+| `main_variant.legacy_resource_id` | `extraData.id` | The default variant id: the cart `id` every add-to-cart and wishlist button sends. Never use `variantProductNumbers` for that, as its first entry can be the product id and SKUs can follow |
 | `tags` | `keywords` | Joined with spaces |
 | `variants_sellable` / `productvariants` / `main_variant` | `inStock` | Three-tier fallback — see In-stock logic |
 | `published_at` | `created` | `new Date(product.published_at)` |
@@ -620,6 +621,7 @@ function transform(product:any): TransformationResult {
 		: null,
 		extraData: {
 			...shopifyOptionsObject.extraData,
+			id: product.main_variant?.legacy_resource_id, // default variant id, the cart id for add-to-cart and wishlist buttons.
 			altImage: product.productimages?.filter(image => image.url != product.featured_image.url)[0]?.url, // find all images that aren't the same as the featured image, and use the first of the images found as the altImage.
 			sortByTitle: product.title,
 		},
