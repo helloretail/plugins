@@ -122,7 +122,7 @@ Produce the two complete fields: `recom.liquid` (`templateCode`) and `recom.css`
 
 ### Step 6 — Show the diff and wait for approval
 
-Show a **diff of just the regions you changed**, labeled by field — not the whole multi-KB field. Offer full files on request. Then ask with `AskUserQuestion` (header *Push*: *Yes, push as a REVIEW draft* / *No, change something first* — no option recommended; *Other* carries the change) and **wait for that explicit "go ahead."** Never write customer output to disk (the hand-off document `customer-handoff` writes under `output/handoffs/` in Step 8 is the one exception); never overwrite `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/`.
+Show a **diff of just the regions you changed**, labeled by field — not the whole multi-KB field. Offer full files on request. Then ask with `AskUserQuestion` (header *Push*: exactly two options, *Push as draft* / *Don't push*, plus the automatic *Other* for changes — nothing else: no third option, no tool names or steps in the option descriptions, neither recommended) and **wait for that explicit "go ahead."** *Don't push* ends the build without a write; *Other* carries the change, then show the new diff and ask again. Never write customer output to disk (the hand-off document `customer-handoff` writes under `output/handoffs/` in Step 8 is the one exception); never overwrite `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/`.
 
 ### Step 7 — Push the REVIEW draft (only after approval)
 
