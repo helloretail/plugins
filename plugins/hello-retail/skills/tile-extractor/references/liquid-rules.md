@@ -7,6 +7,47 @@ always apply on top of them. Platform-specific markup lives in `magento.md`, `sh
 
 ## LIQUID RULES — CRITICAL
 
+### Formatting — every block tag on its own line
+
+Every Liquid block tag that sits between HTML elements gets its own line: `{% if %}`, `{% elsif %}`,
+`{% else %}`, `{% endif %}`, `{% unless %}`, `{% endunless %}`, `{% for %}`, `{% endfor %}` and
+`{% continue %}`. The branch body is indented one level deeper than its tag, with a tab in Hello
+Retail designs. Sibling elements (an `<input>` next to a `<button>`) get a line each. A condition
+inside an attribute value stays inline: `class="x {% if a %}y{% endif %}"`.
+
+Not this:
+
+```liquid
+<span class="card__price">{{ product.price | price }}</span>{% if product.isOnSale %}<span class="card__old">{{ product.oldPrice | price }}</span>{% endif %}</div>{% if product.extraData.hasVariants == "true" %}<a href="{{ product.url }}" class="card__btn">Choose variant</a>{% endif %}
+```
+
+But this:
+
+```liquid
+	<span class="card__price {% if product.isOnSale %}card__price--sale{% endif %}">{{ product.price | price }}</span>
+	{% if product.isOnSale %}
+		<span class="card__old">{{ product.oldPrice | price }}</span>
+	{% endif %}
+</div>
+{% if product.extraData.hasVariants == "true" %}
+	<a href="{{ product.url }}" class="card__btn">Choose variant</a>
+{% else %}
+	<div class="card__buy">
+		<input class="card__qty" type="number" min="1" value="1">
+		<button type="button" class="card__btn" onclick="hrq.push(['trackClick','{{ product.trackingCode }}'])">Add to cart</button>
+	</div>
+{% endif %}
+```
+
+- **Check the parent's `display` before splitting inline siblings.** A line break between two
+  elements becomes a whitespace text node. It is harmless when the parent is flex or grid, or the
+  elements are absolutely positioned. Between plain inline siblings, such as two spans in a price row
+  that is not flex, it can add a visible space. There, trim it with `{%-` / `-%}` instead of putting
+  the tags back on one line.
+- **Never write `</img>`.** `<img>` is a void element. The stray closing tag reads as an unbalanced
+  tag and breaks HTML formatters. Remove it wherever you find it, including the banner branch of an
+  existing design, where removing it is the one sanctioned edit.
+
 ### Free-text feed fields — ask operator: raw or strip?
 
 Feed text fields (`title`, `extraData.shortDescription`, any subtitle/description) routinely contain raw HTML from the source platform — WooCommerce short descriptions in particular ship `<p>…</p>` wrappers and inline `<a href>` links. Injected unfiltered, this corrupts the DOM: an `<a>` inside the tile's product-link `<a>` is illegal and the parser auto-closes the outer anchor, and a block `<p>` inside inline elements force-closes its ancestors. In a swiper / `loop: true` slider this cascades — slides nest inside each other and the trailing `<script>`/`<style>` get pulled into `.swiper-wrapper`, breaking the slider entirely.
@@ -191,6 +232,25 @@ DIFF): each listed text becomes an `[INPUT:name]` token that the script turns in
 ```liquid
 {% if product.extraData.hasVariants == "true" %}
 ```
+
+### Variant conditions — ALWAYS `extraData.hasVariants`
+
+Every variant decision in the tile is gated on `product.extraData.hasVariants == "true"` /
+`"false"`: "Choose variant" vs "Add to cart", a link vs a buy button, swatches, a "from" price.
+Never infer variants from `variantProductNumbers.size` or a list length. What that list holds
+depends on the feed: a single-variant product can carry its product id, its variant id and its SKU,
+so a `size > 2` test marks every product as a variant product.
+
+**Check the field exists before writing the condition.** Look for `extraData.hasVariants` in the
+`productData_get` rows, and confirm both values occur across the sample, before any branch reads it.
+When the feed does not map it, do not fall back silently: a condition on a missing field never
+matches, and the tile renders one branch for every product. Stop and tell the operator. Ask them to
+either map it (Shopify: `hasVariants: !product.has_only_default_variant`) or name the field they
+want used instead. Running as a subagent, list it under OPEN QUESTIONS and MISSING DATA.
+
+A platform page that documents a different gate for one specific block takes precedence for that
+block, e.g. Magento swatches gate on the swatch data
+(`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/magento/swatches.md`).
 
 ### Unique IDs — ALWAYS use productNumber
 

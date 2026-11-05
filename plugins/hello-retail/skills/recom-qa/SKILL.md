@@ -1170,6 +1170,18 @@ Checks against `templateCode` / `templateStyles` that the rendered pass can't se
       stripped in the feed; plain text is the expected case). Without a website-uuid it becomes
       an operator item, recorded OPERATOR — never a WARN implying a defect (retired hedge,
       2026-08-19).
+- [ ] **Variant conditions read `extraData.hasVariants`** — every variant branch ("choose
+      variant" vs buy button, link vs ATC, swatches) tests `product.extraData.hasVariants ==
+      "true"` / `"false"`, and the field exists in `productData_get` with both values across the
+      sample. A gate on `variantProductNumbers.size` or a list length is a **FAIL**: depending on
+      the feed, a single-variant product carries several entries. So is a gate on a field the
+      feed does not map, because the condition never matches and one branch renders for every
+      product. → `../tile-extractor/references/liquid-rules.md` → Variant conditions
+- [ ] **Liquid formatting** — every Liquid block tag between HTML elements (`if` / `elsif` /
+      `else` / `endif` / `unless` / `for` / `continue`) on its own line with its body indented,
+      conditions inside attributes inline, and no `</img>` anywhere, the banner branch included.
+      Code hygiene, not a rendering defect: record it as NOTE, list the offending lines, and
+      never grade it FAIL. → `../tile-extractor/references/liquid-rules.md` → Formatting
 - [ ] **`templateStyles` / CUSTOM_STYLING_BLOCK** — empty or minimal; the slider is injected into
       the live page where theme CSS styles the tile, so tile CSS in the design is *usually* a
       smell. **Documented exception — CSS-in-JS storefronts** (MUI/Emotion, styled-components;
