@@ -8,6 +8,12 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.54.3 — 2026-11-05
+
+### Changed
+
+- `recom-developer`, `search-developer`: the question before pushing a design now offers only *Push as draft* and *Don't push*, with *Other* for changes. No extra options or tool details in the answers.
+
 ## 1.54.2 — 2026-11-05
 
 ### Changed
