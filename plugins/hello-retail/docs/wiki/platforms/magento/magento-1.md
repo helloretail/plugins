@@ -15,7 +15,7 @@ material.
 | | Magento 1 | Magento 2 |
 |---|---|---|
 | Status | Legacy — EOL June 2020 | Current (Adobe Commerce) |
-| Hello Retail install | Manual — script, feed and tracking each set up by hand | [Dedicated extension](./README.md) — feed, tracking, JS and empty search page automatic |
+| Hello Retail install | Manual — script, feed and tracking each set up by hand | [Dedicated extension](./README.md) — feed, tracking and JS automatic; the empty search page is still a manual CMS page |
 | Install guide | [Magento 1 Installation Guide](https://support.helloretail.com/platforms-and-newsletter-providers/magento-1-installation-guide/) | [Magento 2 Installation Guide](https://support.helloretail.com/platforms-and-newsletter-providers/magento-2-installation-guide/) |
 | Frontend | Prototype.js, `skin/frontend` themes | Knockout (Luma / Breeze) or Alpine (Hyvä) |
 | Tile / ATC / swatch references | none — not documented | [add-to-cart](./add-to-cart.md) · [rating](./rating.md) · [swatches](./swatches.md) |

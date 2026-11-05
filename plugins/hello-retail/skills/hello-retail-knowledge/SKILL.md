@@ -1,6 +1,6 @@
 ---
 name: hello-retail-knowledge
-description: Answer any question about Hello Retail from the bundled team wiki — what the platform does, how features work (Search, Recommendations, Pages, Product Agents, Retail Media), platform-specific install nuance (Shopify, Magento, custom), the D&TS onboarding flow, base templates, code cheat-sheets, acronyms and jargon. Trigger for questions like "how does X work in Hello Retail", "what does HR's Y feature do", "how do we onboard a customer", "what does this acronym mean", "which fields does the feed need", "how do swatches work on Magento", or any Hello Retail / HR / D&TS domain question.
+description: Answer any question about Hello Retail from the bundled team wiki — what the platform does, how features work (Search, Recommendations, Pages, Product Agents, Retail Media), platform-specific install nuance (Shopify, Magento, custom), the D&TS onboarding flow, base templates, code cheat-sheets, acronyms and jargon. Trigger for questions like "how does X work in Hello Retail", "what does HR's Y feature do", "how do we onboard a customer", "what does this acronym mean", "which fields does the feed need", "how do swatches work on Magento", "how do I fix X", "why isn't Y tracking / syncing / showing", or any Hello Retail / HR / D&TS domain question.
 ---
 
 # Hello Retail Knowledge
@@ -29,11 +29,13 @@ Answer Hello Retail questions **wiki-first** from the bundled copy at `${CLAUDE_
 | Why does search return these products? Boosts, synonyms, query rules | `features/search/search-relevance.md` |
 | Is my change live yet? What needs a re-index? | `onboarding/when-changes-go-live.md` |
 | Who changed this config? Why is the integration failing or slow? | `support-knowledge/diagnostics.md` |
+| "X is broken / doesn't work / how do I fix Y" — a symptom, not a concept | `support-knowledge/solutions/solutions.md` → the area page |
 
 (All paths relative to `${CLAUDE_PLUGIN_ROOT}/docs/wiki/`.)
 
 ## Rules
 
+- **Solutions pages are leads.** Pages under `support-knowledge/solutions/` are cut from support and developer articles, some of them out of date. When you answer from one, say it is from the docs, repeat any **May be outdated** flag, and prefer a `source: field` page where the two disagree.
 - **The live site wins.** If the wiki seems to disagree with helloretail.com or support.helloretail.com, say so and prefer the live site; flag the wiki page as possibly stale.
 - **Don't fabricate people, customers, or partners.** If someone or something isn't documented in the wiki, say so.
 - **Never include customer-identifiable data** (SKUs, prices, per-customer code) in answers destined for shared documents.

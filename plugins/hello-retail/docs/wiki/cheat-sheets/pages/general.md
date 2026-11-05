@@ -138,25 +138,20 @@ fetch("https://core.helloretail.com/serve/pages/{key}", {
 
 ### _Tracking user ID — bootstrap a new visitor_
 
-Get a `trackingUserId` for a visitor who doesn't have the `hello_retail_id` cookie yet.
+Get a `trackingUserId` for a visitor who doesn't have the `hello_retail_id` cookie yet. The
+documented call is a plain `GET` with no body; the response is `{"success": true, "id": "…"}`.
 
 ```javascript
-fetch('https://core.helloretail.com/serve/trackingUser', {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-        "websiteUuid": "<your-website-uuid>"
-    }),
-}).then((res) => {
-    return res.json();
-}).then((data) => {
-    console.log(data)
-});
+fetch('https://core.helloretail.com/serve/trackingUser')
+    .then((res) => res.json())
+    .then((data) => {
+        console.log(data.id)
+    });
 ```
 
-Replace `websiteUuid` with the customer's UUID (visible in the my Hello Retail panel URL).
+Every call mints a **new** ID. Store it (session or cookie) and reuse it for that visitor — never
+call this once per request. See
+[Tracking user](https://developer.helloretail.com/sdk/tracking/tracking_user/#getting-the-trackinguserid-using-the-rest-api).
 
 ---
 
@@ -202,7 +197,7 @@ fetch('https://core.helloretail.com/serve/collect/click', {
     body: JSON.stringify({
         "trackingUserId": "<tracking-user-id>",
         "websiteUuid": "<your-website-uuid>",
-        "source": "<source-uuid>"
+        "source": "<the clicked product's trackingCode>"
     }),
 }).then((res) => {
     return res.json();
@@ -211,7 +206,10 @@ fetch('https://core.helloretail.com/serve/collect/click', {
 });
 ```
 
-`source` is the **box / page ID** the click came from — needed to attribute revenue to the right HR module.
+`source` is the clicked product's **`trackingCode`**, sent back verbatim — the Search,
+Recommendations and Pages responses return one per product, and it differs from product to product.
+It is not the box or page ID; any other value breaks revenue attribution to the HR module. See
+[Click tracking](https://developer.helloretail.com/sdk/tracking/click_tracking/).
 
 ---
 
