@@ -18,7 +18,7 @@ widget markup; it renders empty until Loox's injector re-scans the DOM after HR 
 {% if product.extraData.ratingCount and product.extraData.ratingAvg %}
   <div class="reviews-placeholder">
     <div class="loox-rating"
-         data-id="{{ product.extraData.id }}"
+         data-id="{{ product.productNumber }}"
          data-rating="{{ product.extraData.ratingAvg }}"
          data-raters="{{ product.extraData.ratingCount }}"
          title="{{ product.extraData.ratingCount }} reviews"
@@ -49,6 +49,9 @@ if (window.LOOX) {
 ## Notes
 
 - Requires `extraData.ratingAvg` + `extraData.ratingCount` in the feed — flag to the feed team if absent.
+- Loox's `data-id` is the **product** id: `productNumber` in the V2 default. `extraData.id` is the
+  default variant id that add-to-cart sends ([./add-to-cart.md](./add-to-cart.md)), except on feeds
+  ported from the legacy helper, where it is still the product id.
 - Other Shopify review apps (Yotpo, Judge.me, Stamped, Okendo) follow the same shape: emit the app's
   widget markup, re-trigger its own DOM-scan / init after each render. Inspect the live widget's
   attributes and reproduce them; capture new libraries to `docs/wiki/cheat-sheets/reviews/<lib>.md`.

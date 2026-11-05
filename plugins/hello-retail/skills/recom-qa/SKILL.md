@@ -1100,6 +1100,11 @@ Where the MCP exposes the same fact, verify it there; otherwise flag for a manua
 
 Checks against `templateCode` / `templateStyles` that the rendered pass can't see.
 
+- [ ] **Shopify cart id** (Shopify only) — every add-to-cart and wishlist button sends
+      `{{ product.extraData.id }}`, the default variant id. `variantProductNumbers | first` or
+      `| last` as the cart `id` is a **FAIL**, even when the products you clicked added fine:
+      depending on the feed, the list can start with the product id and end with SKUs.
+      → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md` → The cart id
 - [ ] **Click tracking in source** — the buy/ATC action (button **or** `<a>`-tag ATC) carries
       `hrq.push(['trackClick','{{ product.trackingCode }}'])`; check the Liquid source, not just
       rendered HTML — it may sit inside a `{% if %}` branch that didn't render for the products
