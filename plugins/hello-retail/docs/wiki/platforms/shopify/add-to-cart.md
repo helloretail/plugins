@@ -51,7 +51,7 @@ themes nothing more is needed.
 ### Form markup — variant product (opens quick-add dialog)
 
 ```liquid
-{% if product.extraData.hasOptions == "true" %}
+{% if product.extraData.hasVariants == "true" %}
   <div class="no-js-hidden atc-wrap">
     <button class="js-quick-add"
             type="button"
@@ -61,7 +61,6 @@ themes nothing more is needed.
       Vælg variant
     </button>
   </div>
-{% else %}
 {% endif %}
 ```
 

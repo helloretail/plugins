@@ -67,6 +67,7 @@ working customer transforms and a verified `main_variant` payload sample.)
 | `published_at` | `created` | `new Date(product.published_at)` |
 | `hierarchies` | `hierarchies` | Strings **or nested arrays** — see Hierarchies |
 | `collection_ids` | `extraDataList.categoryIds` | |
+| `has_only_default_variant` | `extraData.hasVariants` | Negated: `"true"` when the product has real variants. Tiles gate every variant decision on it, never on `variantProductNumbers` length |
 | `options[]` | `extraData*.PO_*` | Auto-mapped, opt-in — see Auto-mapping |
 | `metafields{}` | `extraData*.PM_*` | Auto-mapped, opt-in — see Auto-mapping |
 | `productvariants[].metafields{}` | `extraDataList.VM_*` | Auto-mapped, opt-in — see Auto-mapping |
@@ -624,6 +625,7 @@ function transform(product:any): TransformationResult {
 			id: product.main_variant?.legacy_resource_id, // default variant id, the cart id for add-to-cart and wishlist buttons.
 			altImage: product.productimages?.filter(image => image.url != product.featured_image.url)[0]?.url, // find all images that aren't the same as the featured image, and use the first of the images found as the altImage.
 			sortByTitle: product.title,
+			hasVariants: !product.has_only_default_variant, // drives every variant condition in the tiles ("choose variant" vs "add to cart").
 		},
 		extraDataNumber: {
 			...shopifyOptionsObject.extraDataNumber
@@ -693,10 +695,10 @@ product ID is already matched through `productNumber`, so they can be dropped.
 ## Open / unverified
 
 - On a `has_only_default_variant` product, `productvariants` was observed to yield two
-  ids (one matching the product's own `legacy_resource_id`), so a `hasVariants` mapping
-  can read `"false"` while `variantProductNumbers` has two entries. Not yet explained —
-  check before relying on `variantProductNumbers.length` to detect real variants. (The
-  default no longer maps `hasVariants`; add it by hand if a tile needs it.)
+  ids (one matching the product's own `legacy_resource_id`), so `hasVariants` reads
+  `"false"` while `variantProductNumbers` has two entries. Not yet explained. It is why
+  tiles read `hasVariants` and never `variantProductNumbers.length`: a feed that appends
+  SKUs for searchability grows the list further.
 - `contextual_pricing` is **product-level** in the default (`min_variant_pricing`), while
   older customer transforms read `main_variant.price`. The default's choice is the right
   one for multi-market stores since `contextual_pricing` respects `country=` — but note

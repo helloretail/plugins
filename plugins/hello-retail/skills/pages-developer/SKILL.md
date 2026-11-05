@@ -837,6 +837,13 @@ bootstrap) are in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/pages/general.md
 - Tile body verbatim from the tile skill; no invented classes; no Hello Retail class inside
   the tile; no `hr-product` boilerplate where the design's own wrapper differs. A difference
   after the push is a tile fix, a hook or a restated theme rule — never CSS that re-creates the look.
+- Liquid you write or edit yourself follows `../tile-extractor/references/liquid-rules.md`:
+  every block tag on its own line (→ *Formatting*). Every variant branch is gated on
+  `extraData.hasVariants`, confirmed in `productData_get` first. When the field is missing,
+  stop and ask the operator to map it or name another field, and never fall back to
+  `variantProductNumbers.size` (→ *Variant conditions*).
+- Banner branch untouched, except to remove a stray `</img>` (`<img>` is void, and the closing
+  tag breaks HTML formatters).
 - CSS authoring: extend a rule that already exists before adding a second one for the same
   selector, never re-declare a value that already holds, and put a new rule in the section that
   already styles that element.

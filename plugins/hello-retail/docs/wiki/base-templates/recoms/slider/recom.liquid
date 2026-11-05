@@ -19,9 +19,13 @@
 			{% comment %} Replace "BANNER_SIZE_NAME_PLACEHOLDER" with the size created for this design {% endcomment %}
 			{% assign banner_size_recom = product.bannerImages.BANNER_SIZE_NAME_PLACEHOLDER.url %}
 			{%- if product.isBanner -%}
-				{%- unless banner_size_recom != blank and product.url != blank -%}{% continue %}{%- endunless -%}
+				{%- unless banner_size_recom != blank and product.url != blank -%}
+					{% continue %}
+				{%- endunless -%}
 			{%- else -%}
-				{%- unless product.url != blank -%}{% continue %}{%- endunless -%}
+				{%- unless product.url != blank -%}
+					{% continue %}
+				{%- endunless -%}
 			{%- endif -%}
 			<div class="swiper-slide">
 				{% if product.isBanner == true %}
