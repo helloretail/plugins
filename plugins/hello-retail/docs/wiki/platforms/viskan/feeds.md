@@ -1,6 +1,6 @@
 ---
 source: field
-verified: 2026-11-02
+verified: 2026-11-04
 ---
 
 # Viskan — Feeds
@@ -40,6 +40,11 @@ There are a couple of different versions of the Viskan product feeds — mainly 
 
 > **Check the page start per version:** v3 starts on page **1**, v1 and v2 start on page **0**.
 > Using the wrong one can cause unintended side effects.
+
+> **v3 on NG hosts:** one NG tenant's v3 feed took `languageCode` (`sv`, `en`, `de`, `nl`) instead
+> of `languageId`, and its page size parameter was `size`: `pageSize` was ignored and every page
+> held 500 items. Test both on the customer's own URL. Moving a live customer from v1/v2 to v3:
+> [ng-migration.md](./ng-migration.md).
 
 ---
 
@@ -106,3 +111,4 @@ work in the dashboard.
 ## Timeline
 - 2026-08-27: Page created from the Viskan feed notes in Confluence.
 - 2026-11-02: Added the order feed: Viskan API client for historical orders, and its parameters.
+- 2026-11-04: v3 on NG hosts: `languageCode` and `size`; linked the NG migration page.
