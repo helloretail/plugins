@@ -8,6 +8,14 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.1.8 — 2026-11-05
+
+### Changed
+
+- `troubleshooting-with-hello-retail-mcp` no longer tells you to notify the shop before switching
+  on API logging. It still says to read entries without bodies unless you need them, and to switch
+  logging off once you have what you need.
+
 ## 1.1.7 — 2026-10-28
 
 ### Changed

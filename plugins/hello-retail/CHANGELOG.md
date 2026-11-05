@@ -8,6 +8,14 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.54.2 — 2026-11-05
+
+### Changed
+
+- `support-debugging` no longer asks for the customer's agreement before switching on API logging.
+  It still reads entries without bodies unless the problem needs them, and switches logging off
+  once the problem is reproduced.
+
 ## 1.54.1 — 2026-11-04
 
 ### Changed
