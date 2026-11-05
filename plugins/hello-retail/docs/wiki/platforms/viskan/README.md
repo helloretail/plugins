@@ -1,6 +1,6 @@
 ---
 source: field
-verified: 2026-11-03
+verified: 2026-11-04
 ---
 
 # Viskan
@@ -17,6 +17,8 @@ This page covers both. The shared rules come first; only the differences are spl
 
 - [add-to-cart.md](./add-to-cart.md): the `window.viskan.cart` JavaScript cart API
 - [feeds.md](./feeds.md): product feed versions (v1/v2/v3), the order feed (historical orders) + content feeds
+- [ng-migration.md](./ng-migration.md): moving a live Streamline customer to NG (feed swap, URL
+  change, Pages overrides)
 
 ---
 
@@ -323,8 +325,11 @@ Product URL pattern: `/[lang]/artikel/[slug]?attr1_id=[colorId]`
   `helloRetailTrackingUserId` cookie, so its server-side API calls can send it.
 - **Product list:** Viskan's product-list component carries a `helloRetailTrackingCodes` field,
   which holds the tracking codes of the products when Hello Retail serves the list.
-- **Product URLs** observed on an NG storefront: `/<slug>`, with `?color=<attribute1Id>` when each
-  colour is its own product.
+- **Product URLs** observed on NG storefronts: `/<slug>`, or `/<locale>/artikel/<slug>` on a shop
+  that moved from Streamline, with `?color=<attribute1Id>` when each colour is its own product.
+  NG uses `?color=`, never Streamline's `?attr1_id=`. Set the website's URL mask to `sb:&`, so the
+  colour parameter is kept and any further ones (e.g. `&size=`) are cut.
+- **Moving a live Streamline customer to NG:** see [ng-migration.md](./ng-migration.md).
 
 ---
 
@@ -341,3 +346,5 @@ Product URL pattern: `/[lang]/artikel/[slug]?attr1_id=[colorId]`
   added the Search (API) setup.
 - 2026-11-03: Added the managed-Search SPA prelude for desktop (clone-replace the native triggers,
   the SPA fix) from the LIVE Viskan configs; mobile clones only when its trigger needs it.
+- 2026-11-04: NG product URLs use `?color=` and need URL mask `sb:&`; linked the new
+  Streamline → NG migration page.
