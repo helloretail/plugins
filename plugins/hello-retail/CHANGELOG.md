@@ -8,6 +8,14 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.55.2 — 2026-11-09
+
+### Changed
+
+- `hello-retail-knowledge` now recognises an HTTP 500 with "Website not found" after the script's
+  init as the sign that the page's URL is not configured on any website in Hello Retail, and
+  covers the usual fix for a checkout on its own subdomain.
+
 ## 1.55.1 — 2026-11-05
 
 ### Added
