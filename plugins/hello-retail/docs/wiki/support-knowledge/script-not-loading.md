@@ -100,6 +100,33 @@ In rough order of how often it turns out to be the answer:
 
 - **Wrong domain.** The shop is running on a domain that is not the one set up in Hello Retail —
   a staging host, a new market domain, `www` vs apex. The script loads and serves nothing.
+  Confirm it in the console: `window.hrq` is there and the `init` push has run, yet a request
+  fails with `Failed to load resource: the server responded with a status of 500 ()`. Its
+  response body names the cause:
+
+  ```json
+  {
+    "message": "Website not found",
+    "code": "NOT FOUND",
+    "success": false
+  }
+  ```
+
+  `Website not found` means the URL the `hrq.push(['init', …])` call runs on is not configured on
+  any website in Hello Retail.
+
+  A common trigger is one part of the shop on its own subdomain — typically the checkout
+  (`checkout.example-shop.com` next to `example-shop.com`). The main shop works, and the checkout
+  pages answer `Website not found`. Two fixes, either one is enough:
+
+  - Add the subdomain to the website's configuration in Hello Retail as an extra website address
+    (alias).
+  - Ask the customer to name the website explicitly in the init, so the script no longer depends
+    on the URL:
+
+    ```javascript
+    hrq.push(['init', { websiteUuid: '<website-uuid>' }]);
+    ```
 - **The solution is a draft.** Drafts do not render for shoppers. Open the HR widget
   (`#addwishPageAdd`) and check the Show toggles per solution.
 - **Single-page application.** The script boots once and the route change is invisible to it until
