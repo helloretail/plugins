@@ -1,6 +1,6 @@
 # Output rules — full text
 
-The 13 rules of `../SKILL.md` → OUTPUT RULES, with the reasons and the field cases behind each.
+The 16 rules of `../SKILL.md` → OUTPUT RULES, with the reasons and the field cases behind each.
 Read this once per build, before workflow step 8. The short form in `SKILL.md` is binding on its
 own; this file explains it and settles the edge cases.
 
