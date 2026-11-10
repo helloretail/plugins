@@ -227,6 +227,10 @@ Per-customer outputs do **not** go into the wiki — the wiki holds the shared
 defaults, not individual customer builds. Then run `customer-handoff` (`../customer-handoff/SKILL.md`; record mode, stage `triggered-emails`; mandatory — do not ask whether to, do not skip) so the flows delivered and any
 customer-specific decision are recorded in the customer's living hand-off document under `output/handoffs/` (local for now).
 
+Last, close the browser: call `browser_close` on every `playwright*` server the inspection and
+the rendered check used — also when the build stopped midway
+(`${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*).
+
 ## Quick reference: the rules that bite
 
 - **Extend the base, don't rewrite it.** Unless the operator explicitly says otherwise,

@@ -251,6 +251,8 @@ Fix failures in the same session via the normal diff → approval → push loop 
 
 Auto-fix anything inside the three fields via the same diff → approval → REVIEW-draft loop; report operator items. **Cap at 2 fix rounds.** Uses `search-qa`.
 
+**20. Close the browser.** Once the build is handed off and any self-QA has ended — and when the build stops midway — call `browser_close` on every `playwright*` server the build used, subagent workers included. → `${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*
+
 ## Output format (in chat)
 
 Report, then a diff — never full files unprompted:

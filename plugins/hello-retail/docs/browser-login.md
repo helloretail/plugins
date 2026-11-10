@@ -56,6 +56,32 @@ cookie/consent banner by clicking its real button (declining or deleting the ove
 Retail blocked and looks like a broken implementation), close newsletter and discount popups
 without entering anything, and answer region pickers with the market under work.
 
+## Close the browser when the work is done
+
+A `playwright*` server keeps its headed Chrome open until `browser_close` is called on it or the
+Claude Code session ends. Windows left open pile up, ignore Cmd-Q and block a macOS restart or
+shutdown until they are force quit. So every task that drove a Playwright browser ends with this
+step:
+
+1. When the browser work is finished — the survey is done, the last screenshot is on disk, the
+   report or reply is written — call `browser_close` on **every** `playwright*` server the task
+   opened a browser on: `playwright`, each `playwright-NN` worker, and `playwright-profile`.
+2. **Also when the task stops midway** — a failed step, a blocked login, the operator cancelling.
+   Close first, then report.
+3. **Subagents:** a subagent calls `browser_close` on its own worker before it returns. The
+   session that started it then closes every worker it handed out again, so a subagent that
+   failed or was stopped leaves nothing open.
+4. **Not mid-run.** Closing discards the session's consent cookie and on-site widget state, so
+   close once, at the end. A skill that another skill invoked (`tile-extractor` from a
+   `*-developer` skill, a QA skill run as self-QA after a build) leaves the browser to its caller;
+   the last skill of the run closes it.
+5. **Login exception:** while the operator is logging in on `playwright-profile`, leave that
+   window open. Close it only after the login check has passed in it — `browser-login` step 3 —
+   and before `refresh-hr-auth` saves the login.
+
+This applies to the Playwright backend only. Claude in Chrome is the operator's own browser —
+never close it.
+
 ## Output
 
 Screenshots and reports are written to `QA/<customer>/…` **in the current working directory**;

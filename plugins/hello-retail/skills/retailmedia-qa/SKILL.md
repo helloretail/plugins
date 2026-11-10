@@ -179,7 +179,7 @@ preflight when Step 1 requires it, then handle the first-load popups:
   profile already holds a consent cookie, read that cookie and record what it allows.
 - Close newsletter/discount popups without entering anything.
 - **Don't call `browser_close` mid-run** — it wipes the consent cookie and widget state, and the
-  next page fails on the cookie banner again.
+  next page fails on the cookie banner again. Close once, at the end (Step 5).
 
 Widget (only when boxes/designs are DRAFT, see Step 1): `#addwishPageAdd`, then switch Show ON
 for every Recom and Search solution at once with the per-box toggle
@@ -338,6 +338,9 @@ Follow qa-checklists Step 4 with these specifics. Use `references/report-templat
   `customer-handoff` in record mode, as the other QA skills do.
 - Close with a chat summary: verdict per domain, findings by severity, the campaign-gate caveat,
   report paths.
+- **Then close the browser.** After the last report is saved — and when the run stops midway —
+  call `browser_close` on every `playwright*` server the run used, subagent workers included:
+  `${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*.
 
 ## Reference files
 

@@ -1716,6 +1716,10 @@ customer's living hand-off document under `output/handoffs/` (local for now) is 
 it takes the verdicts, the fix plan as open items, and the brief's Decisions / Declined /
 Known-open with their author + date.
 
+**Then close the browser.** After the last report is saved — and when the run stops midway —
+call `browser_close` on every `playwright*` server the run used, subagent workers included:
+`${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*.
+
 If the user only asked to *see* a checklist, print it inline instead — no file needed.
 
 ## Running from the plugin

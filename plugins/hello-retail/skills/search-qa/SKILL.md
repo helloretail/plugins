@@ -460,6 +460,10 @@ Save the report to `QA/[customer]/[domain]-search-qa-[YYYY-MM-DD].md` plus its `
 **Multi-domain runs:** write each domain's report (both formats) at the end of that domain's
 workflow, before starting the next domain (naming per **Multi-domain mode**).
 
+**Then close the browser.** After the last report is saved — and when the run stops midway —
+call `browser_close` on every `playwright*` server the run used, subagent workers included:
+`${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*.
+
 ---
 
 ## Checklists (high-signal — walk these before the catalogue)
