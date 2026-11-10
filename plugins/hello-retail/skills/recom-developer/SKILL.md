@@ -185,6 +185,10 @@ Don't wait for publish — offer right after the push. Two passes:
 
 Auto-fix anything inside `templateCode`/`templateStyles` — and box settings the MCP can write (placement, crawl config, strategy, product count; `references/box-setup.md`) — via the same diff → approval → DRAFT loop; report the rest as operator items (publish, delete/archive, lock). **Cap at 2 fix rounds.** Uses `recom-qa`.
 
+### Step 10 — Close the browser
+
+Once the build is handed off and any self-QA has ended — and when the build stops midway — call `browser_close` on every `playwright*` server the build used, subagent workers included. → `${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*
+
 ## Output format (in chat)
 
 Report, then a diff — never full files unprompted (unless in the no-MCP inline fallback):

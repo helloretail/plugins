@@ -849,6 +849,9 @@ bootstrap) are in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/pages/general.md
   already styles that element.
   → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Writing the CSS itself*
 - Settings from real fields + live tool schema — never from memory.
+- Close the browser last: when the build is handed off — and when it stops midway — call
+  `browser_close` on every `playwright*` server the build used, subagent workers included.
+  → `${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*
 - Integration mode first (Step 0). API-JSON: no template edits, no product conditions
   unless the operator confirms the caller always sends that field. Both asked with the
   `AskUserQuestion` picker when the prompt, the card or the widget hasn't settled them.

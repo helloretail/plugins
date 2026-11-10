@@ -390,6 +390,10 @@ the dashboard is only the fallback when the MCP tools are unavailable. **Do not
 write into the wiki unless the operator explicitly asks** — the wiki holds the
 shared default, not per-customer outputs.
 
+Last, close the browser: call `browser_close` on every `playwright*` server the
+inspection used — also when the build stopped midway
+(`${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*).
+
 ## Quick reference: the rules that bite
 
 These are the mistakes that have actually broken tiles, kept here so you don't

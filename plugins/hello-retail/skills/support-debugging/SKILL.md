@@ -256,6 +256,10 @@ complete set back, or you silently disable everything you omitted. One write per
 Pick the template in *Reply templates* that matches the outcome, and close with the three blocks
 in *Closing every reply*.
 
+**Close the browser before you reply** — on every outcome, also when the reproduction failed or
+the ticket stopped at the gate: call `browser_close` on every `playwright*` server used,
+subagent workers included (`${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*).
+
 ## The grounding rule
 
 Every claim in the reply traces to one of three sources, and says which:

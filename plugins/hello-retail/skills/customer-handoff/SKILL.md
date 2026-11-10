@@ -107,7 +107,10 @@ the exact wording when a source is unavailable. In short:
   `../tile-extractor/references/platform-detection.md`, run in the Playwright MCP (Claude in Chrome
   as fallback). Value from the *Platform vocabulary*, plus theme / frontend flavour and version when
   visible. Ambiguous → carry both candidates to Step 3, never pick one silently. On an update, keep
-  the recorded platform unless detection shows a replatform — then ask.
+  the recorded platform unless detection shows a replatform — then ask. Run on its own, call
+  `browser_close` on that `playwright*` server once detection is done; invoked from another
+  skill, leave the browser to it
+  (`${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*).
 - **Configuration snapshot:** hello-retail MCP list/get tools for the stage just finished (and a
   light refresh of the others). Keys, IDs, states, types, selectors — never template code.
 - **ClickUp card:** the two-lane fetch in `../qa-checklists/SKILL.md` → *Step 1.5* (compact task,
