@@ -353,6 +353,37 @@ functionality instead: click-through, price parity with the feed data, CTA/ATC, 
 - [ ] Multiple labels: overwriting each other
 - [ ] Placement
 
+## Time-dependent elements (offer end date, countdown, "New")
+
+> **Render every time state on screen — reading the code is not a verdict.** Anything on the
+> tile that depends on today's date (an offer end date, a live countdown, a "New" label with a
+> day window, a "last days" splash) changes with the calendar, so a single visit sees one state
+> only. Move the **test browser's own clock** forward instead of waiting: Playwright
+> `page.clock.setFixedTime(<date>)` (or `page.clock.install({ time })` when the countdown must
+> tick) before the page loads, pinned to a real product's end date from the feed
+> (`productData_get`). It changes nothing on the shop or for shoppers. Without Playwright, mark
+> each state NOT TESTED with the reason, never PASS from code.
+>
+> In the 2026-11 comparison of a 15-domain card, the four domains where the clock was moved
+> showed two defects — the hours unit left in the source language ("t") and the offer ending
+> at 00:00, a day early — while the seven domains graded from code alone passed the same
+> template.
+
+Walk every state the card or the template defines, on every surface that shows it (desktop
+search, mobile search, each recom box, the recom inside search), and grade each separately:
+
+- [ ] **Far from the end** — the end date shows: text in the shop's language, date format as
+      on the shop, weight and alignment as ordered (measured, `../SKILL.md` Step 1.5 *Extra checks*)
+- [ ] **Switch point** — the element switches (e.g. date → live countdown) exactly when the
+      rule says (e.g. 2 days before the end); check one moment before and one after
+- [ ] **Countdown** — it ticks; every unit (days / hours / minutes / seconds) is in the shop's
+      language; the same look on every surface
+- [ ] **End moment** — the offer ends at the stated time (end of day vs midnight before), not
+      early or late
+- [ ] **After the end** — the element is gone: no "0d 0h 0m", no negative numbers, no sale
+      label or old price left behind
+- [ ] **"New" / day-window labels** — shown one day inside the window, gone one day after it
+
 ## Hover effect
 
 - [ ] Missing / not set up (e.g. show second image, label, variant options…)

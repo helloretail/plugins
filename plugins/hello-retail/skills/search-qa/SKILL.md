@@ -894,6 +894,17 @@ These are the most important checks — get these right.
       from its siblings is a finding
 - [ ] **Two ways before "not reproduced"** — an issue named in a manual report, card comment
       or QA chat is tested in at least two different ways before it is closed
+- [ ] **Same method on every domain** — on a multi-domain run, an item tested the stronger way
+      on one domain (clock moved forward, mobile viewport, rendered page) is redone that way
+      on every domain where it applies
+- [ ] **Known items tested** — an issue the card already tracks is tested anyway and reported
+      as still broken or fixed, never carried over untested
+- [ ] **Expected but missing** — something the card, an earlier manual QA or a sibling domain
+      expects that isn't there is a finding; checks on something absent are N/A, never PASS
+- [ ] **Offer dates and countdowns rendered** — every time state of the tile's date elements
+      is shown on screen with the test browser's clock moved forward
+      (`../qa-checklists/references/product-tile.md` → Time-dependent elements), in desktop
+      search, mobile search and the recom inside search
 
 ### Dashboard — OPERATOR (manual)
 
