@@ -640,7 +640,11 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
       to ask the customer to insert divs for the recoms
 - [ ] **Homepage / Category / PDP / Cart / 404** — box(es) visible and populated on each expected
       page type (note if intentionally absent)
-- [ ] **Upsell recom** — present on PDP/cart if implemented; noted as absent if not expected
+- [ ] **Upsell recom** — present on PDP/cart if implemented; noted as absent if not expected.
+      Absent while the card, an earlier manual QA or a sibling domain expects one → a finding
+      (*Expected but missing*, `../qa-checklists/SKILL.md` Step 3), never N/A "not ordered"
+      without the card line that says so; every check about the missing box is N/A (absent),
+      never PASS
 - [ ] **No whitespace from empty boxes** — any 0-slide box leaves no visible gap (check container
       margin/padding/min-height)
 - [ ] **Desktop/mobile pairs** — both IDs of a `show-for-medium`/`hide-for-medium` pair populate
@@ -994,6 +998,16 @@ workflow, before starting the next domain (naming per **Multi-domain mode**).
 - [ ] **Dynamic headline** — if requested: correct translation AND fetches the correct page title
 - [ ] **Hierarchies selector present** — a hierarchies-selector is configured so the box shows
       (popular) products from the category you're currently on, not site-wide
+- [ ] **Right products on the page — rendered, not only configured** — the selector being set
+      is not a PASS for relevance. Open **one category of each product type** the shop sells
+      (e.g. yarn, patterns, accessories, gift cards) and check that every tile in the box
+      belongs to that category. Then compare the category values the box filters on
+      (`recoms_getAlgorithm`) with the feed's own values for those products
+      (`productData_get` → `hierarchies`): a spelling or casing difference ("Accessories" vs
+      "ACCESSORIES") or a product filed under the wrong category makes the box fall back to
+      unrelated products. Name the categories and products you checked in the verdict.
+      (2026-11 comparison of a 15-domain card: the setup-only check passed on 11 domains while
+      manual QA had reported pattern categories showing yarn.)
 
 **Cart recom:**
 
@@ -1071,6 +1085,17 @@ drawer → *then* enable Show). Judge it against the drawer, not the category gr
       that differs from its siblings is a finding
 - [ ] **Two ways before "not reproduced"** — an issue named in a manual report, card comment
       or QA chat is tested in at least two different ways before it is closed
+- [ ] **Same method on every domain** — on a multi-domain run, an item tested the stronger way
+      on one domain (clock moved forward, lock state read via MCP, mobile viewport, rendered
+      category page) is redone that way on every domain where it applies
+- [ ] **Known items tested** — an issue the card already tracks is tested anyway and reported
+      as still broken or fixed, never carried over untested
+- [ ] **Expected but missing** — a box or element the card, an earlier manual QA or a sibling
+      domain expects that isn't there is a finding; checks on something absent are N/A, never
+      PASS
+- [ ] **Offer dates and countdowns rendered** — every time state of the tile's date elements
+      is shown on screen in every box that carries them, with the test browser's clock moved
+      forward (`../qa-checklists/references/product-tile.md` → Time-dependent elements)
 
 ### Dashboard — OPERATOR (manual)
 
