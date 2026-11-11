@@ -351,8 +351,8 @@ the value, and nothing flags it:
 |---|---|---|
 | `<id>12.50</id>` | `12.5` | trailing zero dropped |
 | `<sku>5.0</sku>` | `5` | decimal part dropped |
-| `<id>7856090687844791453875850</id>` | `7.856090687844792e+24` | integer above 2^53 loses precision |
 | `<ean>00123</ean>`, `<sku>12,50</sku>`, `<id>1e5</id>` | unchanged | leading zeros, comma decimals and exponents stay strings |
+| `<id>7856090687844791453875850</id>` | unchanged | an integer too long for a number stays a string; seen at 25 digits, untested between 16 and 19 |
 
 `String(item.id)` returns the damaged value, not the original: the text is gone before the
 transform runs. V1 read the same element as text, so the stored product number, EAN or
@@ -381,7 +381,7 @@ is the same number.
       text = element.text or ''
       if len(element) == 0 and NUMBER.match(text):
           whole, _, decimals = text.lstrip('-').partition('.')
-          if decimals.endswith('0') or len(whole) > 15:
+          if decimals.endswith('0') or 16 <= len(whole) <= 19:
               lost[element.tag].append(text)
       if element.tag == sys.argv[2]:   # the item element, e.g. "product"
           element.clear()
@@ -391,6 +391,11 @@ is the same number.
 
   Report the count per element with examples. Hits on amount fields are harmless; say so
   rather than leaving them out.
+
+  **A scan hit is a suspicion until the feed editor confirms it.** The scan models the
+  parser; it is not the parser. Have the operator open that product in the feed editor and
+  read the item as `transform` receives it. If the value is a quoted string there, it is
+  intact and there is nothing to report.
 - Without the feed, it is a check for the person with the feed editor, and it goes in the
   summary next to the price check:
 
@@ -399,7 +404,7 @@ is the same number.
 
   Name the fields at risk: every property the V1 config mapped to an identifier.
 
-**A hit cannot be fixed in the transform.** It is a blocker and belongs in bucket 3
+**A confirmed hit cannot be fixed in the transform.** It is a blocker and belongs in bucket 3
 (Step 8). Either the source sends the value in a form that is not a bare number, or the
 value comes from another field that still carries it as text. Say how many products are
 affected and name them.
@@ -407,10 +412,9 @@ affected and name them.
 **A clean scan is not a guarantee.** The next product with an all-digit or decimal id is
 hit the same way. Say that in the summary when identifiers in the feed are free-form.
 
-Two real cases: a shop whose product numbers lost their trailing zeros on migration, and a
-25-character id that happened to be all digits and came out as `7.856090687844792e+24` —
-one product in each of four feeds of about 250,000, missed by a check that looked at
-decimals only.
+Two real cases. A shop whose product numbers lost their trailing zeros on migration. And
+the opposite mistake: a 25-digit id was reported as losing precision on the strength of a
+local scan alone, when the item in the feed editor showed it intact as a string.
 
 ---
 
