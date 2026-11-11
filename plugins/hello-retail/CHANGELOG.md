@@ -8,6 +8,12 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.57.0 — 2026-11-11
+
+### Changed
+
+- `search-qa` and `recom-qa` now run the countdown / offer-date check (moving the test browser's clock forward) only when you ask for it, for example "include the countdown check". A default run skips it and notes "not requested" in the report.
+
 ## 1.56.1 — 2026-11-11
 
 ### Fixed
