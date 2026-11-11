@@ -347,7 +347,12 @@ domain on multi-domain runs) with these sections, every entry citing author + da
   store-G SE ← DK config drift, store-H ← store-E dead code).
 - **Extra checks** — customer-specific requirements no catalogue covers. Append each to the
   Step 3 coverage manifest as `- [ ] [ticket] …` — they get explicit verdicts like any other
-  item.
+  item. When the requirement is a visual detail (bold or regular, centred or left, a size, a
+  colour, a gap), **measure it** with `getComputedStyle` (`font-weight`, `text-align`,
+  `font-size`, `color`) or the element's box against its container, on every surface and
+  viewport it applies to, and put the measured value in the verdict ("font-weight 400 —
+  PASS"). A by-eye verdict is not a PASS for an ordered detail (2026-11 comparison of a
+  15-domain card: "date not bold" and "timer text centred" were never measured on 9 domains).
 - **Operator evidence** — screen recordings and attachments you can't
   watch: one operator-list item each, citing the comment.
 - **Open questions** — requirement talk that never concluded; these become WARN + operator
@@ -360,9 +365,13 @@ domain on multi-domain runs) with these sections, every entry citing author + da
   noise that buries real findings.
 - Ordered but missing or wrong → **FAIL** — this makes the standing "FAIL only if the ClickUp
   card ordered it" ruling operational instead of aspirational.
-- Matches a **Known open** item → verdict **KNOWN — pending [owner/ETA]**, listed in Issues
-  Found under a "Known / pending — already tracked in the ticket" sub-block, never as a fresh
-  defect.
+- Matches a **Known open** item → **test it anyway**, then grade what you saw: still
+  reproduces → **KNOWN — pending [owner/ETA]**, listed in Issues Found under a "Known / pending
+  — already tracked in the ticket" sub-block, never as a fresh defect; no longer reproduces →
+  say so (tested two ways) so the card can be closed. "Known" is never a reason to skip the
+  test, and a known item still gets a line in the report even when it is out of this run's
+  scope (2026-11 comparison of a 15-domain card: cart tracking was carried as known on three
+  domains without a test and left out entirely on a fourth).
 - Matches a **Declined** item → **N/A (declined in ticket)** with the citation.
 - Matches a **Waived / shelved** item → one line under **Known limitations** with the
   citation (card comment or operator, date), outside the defect counts.
@@ -1387,7 +1396,7 @@ don't get skill screenshots.
 Items are phrased as *known defects to look for* — an item "Missing OOS-label" means
 *check that the OOS label is present and correct*.
 
-**Cross-cutting checks — every run, every feature.** Two checks that belong to no single
+**Cross-cutting checks — every run, every feature.** Checks that belong to no single
 checklist and that manual QA keeps finding after a skill run has passed:
 
 - **Cross-domain diff (multi-domain customers).** After each domain's own walk, compare the
@@ -1395,6 +1404,20 @@ checklist and that manual QA keeps finding after a skill run has passed:
   value formatting, label and VAT-text casing, SKU and stock wording, tile layout. A domain that differs from its siblings is a finding on its own (or a question for
   the CSM when the difference is a language or locale choice), even when each domain passes
   its own checks in isolation. Record the comparison in each report's Summary.
+- **Same method on every domain (multi-domain runs).** Before closing the runs, compare the
+  coverage manifests side by side: when an item was tested one way on one domain (clock moved
+  forward, lock state read from `recoms_list`, a mobile viewport, a rendered category page) and
+  only from code, setup or one viewport on another, redo it the stronger way on every domain
+  where it applies. Parallel workers drift apart silently (2026-11, 15 domains over five
+  workers: the countdown was rendered on four domains and code-read on seven, the lock state
+  read on some and left to the operator on others).
+- **Expected but missing.** When the card, an earlier manual QA or a sibling domain expects a
+  box, element or feature (an upsell, a category box, a label) and it is not there, that is a
+  finding — FAIL when the card ordered it, WARN + operator question when it is unclear —
+  never N/A "not ordered" unless you quote the card line that says so. And every check about
+  something that does not exist is **N/A (absent)**, never PASS (2026-11: an upsell that no
+  longer existed was graded PASS on its arrows; two LIVE boxes that never rendered were listed
+  but not raised).
 - **Two ways before "not reproduced".** When a manual report, a card comment or the QA chat
   mentions an issue, test it in at least two different ways before closing it as "not
   reproduced" — a different input order, a different path to the same state, another
