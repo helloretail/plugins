@@ -253,6 +253,10 @@ Run the Step 4 completeness gate from `../qa-checklists/SKILL.md` (report vs man
 writing the chat summary. Close in chat with one line per lane: verdict, Blocker/High count,
 report path.
 
+**Then close the browser.** After the last report is saved — and when the run stops midway —
+call `browser_close` on every `playwright*` server the run used, subagent workers included:
+`${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*.
+
 ### Step 7 — Safe defaults
 
 - Never `newsletterContent_updateDesign` / `createDesign` / `copyDesign`. If the operator asks

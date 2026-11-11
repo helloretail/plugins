@@ -33,6 +33,13 @@ decision and it is the same in every skill.
 **Never** read the storefront with WebFetch, curl, or any HTTP client — tiles are client-rendered and
 only the real browser sees the final DOM, so a static fetch returns an incomplete or empty tile.
 
+## When the browser work is done
+
+Call `browser_close` on every `playwright*` server the task used, subagent workers included —
+also when the task stopped midway. The shared rule, with the caller and login exceptions, is
+`${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*.
+Claude in Chrome is the operator's own browser: never close it.
+
 ## When neither browser MCP is connected
 
 Do not fetch the page yourself. Ask the operator to either:
