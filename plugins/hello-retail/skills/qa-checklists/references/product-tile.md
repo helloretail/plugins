@@ -353,9 +353,16 @@ functionality instead: click-through, price parity with the feed data, CTA/ATC, 
 - [ ] Multiple labels: overwriting each other
 - [ ] Placement
 
-## Time-dependent elements (offer end date, countdown, "New")
+## Time-dependent elements (offer end date, countdown, "New") — optional
 
-> **Render every time state on screen — reading the code is not a verdict.** Anything on the
+> **Optional — run this block only when the operator asks for it** ("include the countdown
+> check", "test the offer dates"), typically for an onboarding whose tiles carry an offer end
+> date or a countdown. It is not part of the default walk: when it was not requested, leave it
+> out of the coverage manifest and write one line in the report — "Countdown / offer-date
+> check: not requested (optional)". The tile's normal checks (labels, translations, price)
+> still run as usual.
+>
+> **When requested, render every time state on screen — reading the code is not a verdict.** Anything on the
 > tile that depends on today's date (an offer end date, a live countdown, a "New" label with a
 > day window, a "last days" splash) changes with the calendar, so a single visit sees one state
 > only. Move the **test browser's own clock** forward instead of waiting: Playwright
