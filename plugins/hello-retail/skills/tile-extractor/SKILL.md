@@ -144,6 +144,8 @@ run returns nothing.
 
 10. **Return the response in the RESPONSE FORMAT** — every section, exact headings.
 
+11. **Close the browser** — run on its own, call `browser_close` on every `playwright*` server used, also when the extraction stopped midway; invoked from a `*-developer` skill, leave the browser to that skill, which closes it at the end of its run. → `references/browser.md`
+
 ---
 
 ## RESPONSE FORMAT — the contract the shell skills consume

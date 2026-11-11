@@ -93,7 +93,8 @@ Pick the route:
   logged in (leave immediately — that is the only sanctioned my.helloretail.com navigation, and
   nothing under `/company/…` or `/supervisor/…` is ever read or screenshotted). Now
   `browser_close` on `playwright-profile` to release the profile, and run `refresh-hr-auth`
-  (step 2). If `browser_navigate` fails with "Browser is already in use", another session holds
+  (step 2). Never close that window while the operator is still logging in — only after this
+  check has shown the login, and always before leaving this step, also when the login failed. If `browser_navigate` fails with "Browser is already in use", another session holds
   the profile — use the terminal route instead.
 - **Fresh machine, or the servers are not connected** — the operator runs the setup in their
   own terminal (a browser started from Claude's sandboxed shell on macOS has no network):
@@ -127,6 +128,10 @@ means logged in; `signin.html` means not. Leave immediately, and on the Playwrig
 delete unread the `page-*.yml` snapshot and `session-*/` log that navigation wrote under the
 worker's `QA/screenshots/…` folder. Then resume the task that triggered this skill exactly
 where it stopped.
+
+Run on its own, with no task to resume, call `browser_close` on the worker the check used and
+on `playwright-profile` if it is still open — no window stays behind
+(`${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*).
 
 ## When to re-run
 
