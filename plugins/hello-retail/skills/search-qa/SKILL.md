@@ -85,6 +85,9 @@ first; create the folder only if that search comes back empty.
   `#desktopSearchInModal`). If not supplied, inspect the page DOM to find it.
 - Optionally: the **QA target** — LIVE published design (default) or a REVIEW draft.
 - Optionally: specific areas to focus on
+- Optionally: **"include the countdown check"** — for an onboarding whose tiles show an offer
+  end date or a countdown; runs the optional Time-dependent elements block
+  (`../qa-checklists/references/product-tile.md`). Not part of a default run
 
 **Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of
 sensible options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's
@@ -905,10 +908,11 @@ These are the most important checks — get these right.
       as still broken or fixed, never carried over untested
 - [ ] **Expected but missing** — something the card, an earlier manual QA or a sibling domain
       expects that isn't there is a finding; checks on something absent are N/A, never PASS
-- [ ] **Offer dates and countdowns rendered** — every time state of the tile's date elements
-      is shown on screen with the test browser's clock moved forward
-      (`../qa-checklists/references/product-tile.md` → Time-dependent elements), in desktop
-      search, mobile search and the recom inside search
+- [ ] **Offer dates and countdowns (optional — only when the operator asks)** — every time
+      state of the tile's date elements is shown on screen with the test browser's clock moved
+      forward (`../qa-checklists/references/product-tile.md` → Time-dependent elements), in
+      desktop search, mobile search and the recom inside search; when not requested, one line
+      "not requested (optional)" in the report
 
 ### Dashboard — OPERATOR (manual)
 
