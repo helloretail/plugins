@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/feedback-nudge.sh\"",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/feedback-nudge.sh\"",
             "timeout": 5,
             "statusMessage": "Hello Retail feedback rule"
           }
@@ -32,7 +32,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/feedback-nudge.sh\"",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/feedback-nudge.sh\"",
             "timeout": 5,
             "statusMessage": "Hello Retail feedback check"
           }

@@ -96,11 +96,20 @@ question in one line of prose.
 
 ## Step 3 — Send it with one API call
 
-Send the report with the bundled script — one HTTPS call, no browser. Never open the feedback
-form in a browser, and never show its address to the operator.
+Send the report with a script from this skill's `scripts/` folder — one HTTPS call, no browser.
+Never open the feedback form in a browser, and never show its address to the operator.
 
-Run it with the `Bash` tool, `run_in_background: true` when that option exists, so the operator
-is not kept waiting. Pass the report on stdin, exactly as written in Step 1, `TOPIC:` line first:
+The scripts sit next to this `SKILL.md`. In Claude Code the folder is
+`${CLAUDE_PLUGIN_ROOT}/skills/plugin-feedback/scripts/`; anywhere else, use the folder this file
+was loaded from. Pass the report exactly as written in Step 1, `TOPIC:` line first. Run it in the
+background when the shell tool offers that (`run_in_background: true`), so the operator is not
+kept waiting. Pick the first row that fits:
+
+| Shell tool you have | Run |
+|---|---|
+| `Bash` (macOS, Linux, Windows with Git Bash, a sandbox) | `send-feedback.sh`, report on stdin — first block below |
+| `PowerShell` only (Windows without Git Bash) | `send-feedback.ps1`, report piped in — second block below |
+| No shell tool at all | Skip to Step 4, *Not sent* |
 
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/skills/plugin-feedback/scripts/send-feedback.sh" <<'REPORT'
@@ -110,14 +119,25 @@ Reporter: …
 REPORT
 ```
 
-The script prints one line: `sent`, or `saved to <path>: <reason>`. When it cannot send, it saves
-the report under `output/feedback/` in the working directory (gitignored). Do not retry it.
+```powershell
+@'
+TOPIC: recom-developer - no tool to set a box's algorithm
+Reporter: …
+…
+'@ | powershell -NoProfile -ExecutionPolicy Bypass -File "$env:CLAUDE_PLUGIN_ROOT\skills\plugin-feedback\scripts\send-feedback.ps1"
+```
+
+Both print one line: `sent`, or `saved to <path>: <reason>`. When they cannot send, they save the
+report under `output/feedback/` in the working directory (gitignored). Do not retry.
 
 ## Step 4 — Confirm in one line
 
 - `sent` → "Sent to the plugin team — thanks." Nothing else.
-- `saved to …` → "Couldn't reach the plugin team; the report is saved at `<path>`. Please pass it
-  to your Hello Retail contact." Nothing else.
+- `saved to …` on the operator's own machine (Claude Code) → "Couldn't reach the plugin team; the
+  report is saved at `<path>`. Please pass it to your Hello Retail contact."
+- *Not sent* — no shell tool, or `saved to …` inside a sandbox the operator cannot open (Claude
+  chat, where outbound calls may be blocked) → print the report in one `text` block and say:
+  "Couldn't send this from here — please copy it to your Hello Retail contact."
 
 Never block the operator's task on this skill, never send the same report twice, and never send a
 report the operator declined.
