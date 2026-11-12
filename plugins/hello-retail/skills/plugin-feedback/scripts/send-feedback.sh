@@ -52,8 +52,51 @@ case "$api_base" in
   *) api_base=$DEFAULT_API_BASE ;;
 esac
 
-payload=$(printf '{"customFields":[],"timezone":"UTC","assignees":[],"group_assignees":[],"name":"%s","content":{"ops":[{"insert":"%s\\n"}]}}' \
-  "$(json_escape "$topic")" "$(json_escape "$body")")
+# Turn the body into rich-text ops the form's editor understands:
+#   "Label: value" lines (Reporter, Customer, …) -> bold label, plain value
+#   GOAL / WHAT WENT WRONG / WHAT WAS TRIED / SUGGESTED FIX -> a blank line, a bold heading
+#   on its own line, then the text below it
+#   any other line -> plain text
+body_ops() {
+  printf '%s\n' "$1" |
+    sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\t/\\t/g' -e 's/\r//g' |
+    tr -d '\000-\010\013\014\016-\037' |
+    awk '
+      function op(text, bold) {
+        if (bold) printf "%s{\"insert\":\"%s\",\"attributes\":{\"bold\":true}}", sep, text
+        else printf "%s{\"insert\":\"%s\"}", sep, text
+        sep = ","
+      }
+      function title(key) {
+        if (key == "GOAL") return "What the operator was trying to do"
+        if (key == "WHAT WENT WRONG") return "What went wrong"
+        if (key == "WHAT WAS TRIED") return "What was tried"
+        if (key == "SUGGESTED FIX") return "Suggested fix"
+        return ""
+      }
+      {
+        line = $0
+        if (match(line, /^[A-Z][A-Za-z ]*:/) && RLENGTH <= 32) {
+          key = substr(line, 1, RLENGTH - 1)
+          rest = substr(line, RLENGTH + 1)
+          sub(/^ +/, "", rest)
+          if (title(key) != "") {
+            op("\\n", 0)
+            op(title(key), 1)
+            op("\\n", 0)
+            if (rest != "") op(rest "\\n", 0)
+            next
+          }
+          op(key ":", 1)
+          op(" " rest "\\n", 0)
+          next
+        }
+        op(line "\\n", 0)
+      }'
+}
+
+payload=$(printf '{"customFields":[],"timezone":"UTC","assignees":[],"group_assignees":[],"name":"%s","content":{"ops":[%s]}}' \
+  "$(json_escape "$topic")" "$(body_ops "$body")")
 
 if [ "${DRY_RUN:-}" = "1" ]; then
   printf '%s\n' "$payload"
