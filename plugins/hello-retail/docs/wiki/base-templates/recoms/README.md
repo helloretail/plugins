@@ -47,7 +47,7 @@ Each variant folder contains: `recom.liquid`, `recom.css`.
 {% endfor %}
 ```
 
-`recom.css` contains one slot: `{{ CUSTOM_STYLING_BLOCK }}`, placed **above** the base scaffold styles, for the per-customer tile overrides (image ratio, title clamp, sale/old price, swatches, ATC button). Scope every rule to `#hello-retail-{{ key }}`.
+`recom.css` contains one slot: `{{ CUSTOM_STYLING_BLOCK }}`, placed **above** the base scaffold styles. It **stays empty**: a recom box is injected into the live storefront, so the shop's own theme CSS styles the copied tile, and no tile CSS is written. The two narrow exceptions — a theme rule that cannot reach the box, restated word for word and scoped to `#hello-retail-{{ key }}`, and scaffold cleanup for a complete native card — are in the `recom-developer` skill's hard rules.
 
 **Those two slots are the only places per-customer markup/CSS goes.** Everything else — the banner branch, the `swiper-wrapper` / `swiper-slide` structure, the prev/next buttons, the swiper init `<script>`, and the base scaffold CSS — stays untouched across customers.
 
@@ -89,7 +89,7 @@ The first argument pins the Swiper version (the base ships `"11.2.8"`) — bump 
 2. Replace `BANNER_SIZE_NAME_PLACEHOLDER` with the banner size name created for the design.
 3. Survey the customer's category-page tile to identify variations (sale, sold-out, badges, swatches, brand, ATC).
 4. Replace `{{ TILE_BODY }}` with the customer's tile, swapping static content for `{{ product.* }}` HR feed references.
-5. Replace `{{ CUSTOM_STYLING_BLOCK }}` with the tile overrides scoped to `#hello-retail-{{ key }}`.
+5. Leave `{{ CUSTOM_STYLING_BLOCK }}` empty — the shop's theme CSS styles the copied tile (see *The slot model*).
 6. Paste the modified Liquid + CSS into the HR dashboard HTML + CSS sections for the design.
 
 The `recom-developer` skill (`${CLAUDE_PLUGIN_ROOT}/skills/recom-developer/`) automates steps 3–5.
@@ -104,4 +104,5 @@ The `recom-developer` skill (`${CLAUDE_PLUGIN_ROOT}/skills/recom-developer/`) au
 ---
 
 ## Timeline
+- 2026-11-12: `{{ CUSTOM_STYLING_BLOCK }}` is described as staying empty, in line with the `recom-developer` and `tile-extractor` skills (no tile CSS is written).
 - 2026-06-02: Recoms base templates seeded. `slider/` variant created from the team's canonical recom Liquid + CSS. v0 scope: single slider variant, Liquid + CSS only.

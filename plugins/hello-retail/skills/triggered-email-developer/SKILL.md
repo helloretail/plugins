@@ -132,11 +132,16 @@ Deeper references are in this skill's `references/` folder — read the one you 
   what to avoid). Read before writing any markup.
 - `references/two-up-grid.md` — how to render 2 products per row with one Liquid
   loop (the `modulo` row-chunking pattern) and the odd-count trailing cell.
-- `references/hr-feed-fields.md` — HR feed fields + the Liquid price/sale/badge
+- `references/hr-feed-fields.md` — HR feed fields + the sale, sold-out and brand
   patterns.
-- `references/inspection-and-verification.md` — how to read the live tile and how
-  to prove the render before delivering.
-- `references/tile_inspect.js` — paste-in browser snippet for dumping tile tokens.
+
+Shared with `newsletter-developer`, in the plugin's `docs/` folder:
+
+- `${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspection.md` — how to read the live tile (popup sweep, computed-style dump, zoomed
+  screenshot, the CTA's real colour and label, the on-sale tile) and how to check the
+  render in a browser before delivering. Its script is `${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspect.js`.
+- `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/liquid/price-formatting.md` — every price
+  rule, with the email exception.
 
 ## The workflow
 
@@ -179,45 +184,31 @@ restructure.
 
 ### 3. Pull the customer's Search tile (the authoritative field map)
 
-If given a website UUID + Search key, fetch the live Search design via the
-hello-retail MCP `search_getDesign`. In the returned `resultTemplate`, find the
-**first** element whose class starts with `hr-search-overlay-product`
-(`[class^="hr-search-overlay-product"]`) and read the markup **inside** it. That
-inner markup is the source of truth for:
-
-- Which HR feed fields carry the title, price, brand, image, etc.
-- The exact price formatting (e.g. `{{ product.price | priceWithCurrency:product.currency | replace: 'kr.', 'kr' }}`).
-- The tile's structure (centered vs left, where the badge/old price sit).
-- Sale handling (`isOnSale`, `oldPrice`, the discount-% math) and sold-out copy.
-
-Reuse those bindings rather than guessing. (`search_getDesign` can be large — if it
-exceeds the tool limit, extract the tile in a subagent and have it return just the
-inner markup + field list.) See `references/hr-feed-fields.md`.
+If given a website UUID + Search key, read the customer's Search tile as
+`${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspection.md` → *Before the live tile — the field map from the customer's Hello Retail tile* describes
+(`search_getDesign`, the first `[class^="hr-search-overlay-product"]` element, the markup inside
+it). That markup is the source of truth for the field bindings, the exact price formatting
+(e.g. `{{ product.price | priceWithCurrency:product.currency | replace: 'kr.', 'kr' }}` —
+`${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/liquid/price-formatting.md` → *Email tiles copy the shop's price markup*), the tile's structure, the sale handling
+(`isOnSale`, `oldPrice`, the discount-% math) and the sold-out copy — reuse it rather than
+guessing. See `references/hr-feed-fields.md`.
 
 ### 4. Inspect the live storefront tile
 
-Open the category page with the Playwright MCP (Claude in Chrome is the fallback when it isn't available) and read the **real** tile
-for brand tokens: font family + web-safe fallback, colours (hex), price format,
-title/vendor casing and letter-spacing, and what stacks vs shares a row. Use
-`references/tile_inspect.js` and a zoomed screenshot. Details in
-`references/inspection-and-verification.md`. Two things to capture exactly,
-because they are easy to get wrong by assumption:
+Open the category page in a real browser and read the **real** tile for brand tokens: font
+family + web-safe fallback, colours (hex), price format, title/vendor casing and
+letter-spacing, and what stacks vs shares a row. **Follow `${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspection.md` → *1. Read the live tile*** —
+the popup sweep, the computed-style dump with `${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspect.js`, the zoomed screenshot and the on-sale
+tile. Two things from it are easy to get wrong by assumption, so capture them exactly:
 
-- **The real CTA button colour.** Don't assume the brand accent / secondary colour
-  is the button colour — they're often different. Read the *computed* background of
-  the storefront's add-to-cart button, and resolve any CSS variable or `::before`
-  pseudo-element that actually paints it (storefront buttons frequently colour a
-  `::before` layer, so the element's own `background-color` can read transparent).
-  Use that exact hex for the email's buttons.
-- **The CTA label text — and whether a CTA exists at all.** Many storefront tiles
-  only reveal the add-to-cart on hover; if the tile shows **no** visible CTA, the
-  email tile has **no button** (don't invent one; the image and title link to the
-  product). If a CTA **is** visible, take its label from the storefront, in this
-  order: (a) a product-level "view product"-style link if the site has one; (b)
-  otherwise the storefront's **add-to-cart** label (e.g. "In winkelwagen", "Add to
-  cart", "Læg i kurv"). **Never invent generic copy** like "View product". Note the
-  visible CTA is often an icon-only add-to-cart — in email you can't add to cart, so
-  reuse its text label and link the button to `product.url`.
+- **The real CTA button colour** — the computed background of the storefront's add-to-cart
+  button (resolved through any CSS variable or `::before` layer), not the brand accent. That
+  hex colours the email's buttons.
+- **The CTA label — and whether a CTA exists at all.** No CTA visible without hover → the
+  email tile has **no button**; the image and title link to the product. A visible CTA →
+  its label comes from the storefront (a "view product" link if the tile has one, otherwise
+  the add-to-cart label), never invented copy. In an email nothing can be added to a cart,
+  so the button reuses that label and links to `product.url`.
 
 ### 5. Build the content block(s)
 
@@ -264,8 +255,9 @@ Resolve the Liquid with a real sample product (use values from the live page —
 include one on-sale item to exercise the sale branch), inject the HTML into a blank
 browser tab, and screenshot. Compare side-by-side with the storefront tile and fix
 any drift (fonts, colours, **CTA colour + label**, alignment, price format, the
-2-up grid, the odd-item trailing cell, and that image cells share one height
-without cropping/stretching). See `references/inspection-and-verification.md`.
+sale and sold-out treatment, the 2-up grid, the odd-item trailing cell, and that image cells share one height
+without cropping/stretching). The steps: `${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspection.md` → *2. Check the render in a browser*; render
+enough products to show the 2-up grid plus an odd trailing cell.
 
 ### 7. Deliver
 
@@ -273,8 +265,8 @@ Show each template inline for review and save the `.liquid` to the output folder
 operator to paste each one into its design in the My Hello Retail dashboard and set up the
 triggers there — the MCP cannot do either (see *No MCP for Triggered Emails*).
 Per-customer outputs do **not** go into the wiki — the wiki holds the shared
-defaults, not individual customer builds. Then run `customer-handoff` (`../customer-handoff/SKILL.md`; record mode, stage `triggered-emails`; mandatory — do not ask whether to, do not skip) so the flows delivered and any
-customer-specific decision are recorded in the customer's living hand-off document under `output/handoffs/` (local for now).
+defaults, not individual customer builds. Then run `customer-handoff` in record mode, stage `triggered-emails` — mandatory, as `${CLAUDE_PLUGIN_ROOT}/docs/hand-off.md` → *The record — `customer-handoff`* says — so the flows delivered and any
+customer-specific decision are in the customer's hand-off document.
 
 Last, close the browser: call `browser_close` on every `playwright*` server the inspection and
 the rendered check used — also when the build stopped midway

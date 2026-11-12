@@ -4,39 +4,13 @@ This is the structural shell the tile body slots into. The product card itself c
 
 ## The variant
 
-v0 ships a single variant, in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/recoms/slider/`:
-
-| Variant | Folder | When to use |
-|---|---|---|
-| **slider** | `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/recoms/slider/` | Horizontal swiper slider of product tiles with prev/next arrows, responsive (2 / 3 / 4 per view). The default for "Others also bought", "Recently viewed", front-page / category recom boxes. |
+v0 ships a single variant, **slider**, in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/recoms/slider/` — described in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/recoms/README.md` → *Variants*.
 
 The folder has two files: `recom.liquid` (→ MCP `templateCode`) and `recom.css` (→ MCP `templateStyles`). There is **no `recom.js`** — the only JS is the inline swiper init inside `recom.liquid`, plus any per-customer ATC/swatch script you add there.
 
 ## Edit scope — what you actually change
 
-`recom.liquid` has this structure inside `{% for product in products %}` (the loop variable is **`products`**, not Search's `product_list`):
-
-```liquid
-{% for product in products %}
-  {% assign banner_size_recom = product.bannerImages.BANNER_SIZE_NAME_PLACEHOLDER.url %}
-  {# … skip-empty-product guards (continue) … #}
-  <div class="swiper-slide">
-    {% if product.isBanner == true %}
-      {# === BANNER BRANCH — leave untouched === #}
-      <div class="hr-product">
-        <a href="{{ product.url }}" class="hr-b-container">
-          <img class="hr-b-image" src="{{ banner_size_recom }}">
-        </a>
-      </div>
-    {% else %}
-      {# === NON-BANNER BRANCH — this is where TILE_BODY goes === #}
-      <div class="hr-product">
-        {{ TILE_BODY }}
-      </div>
-    {% endif %}
-  </div>
-{% endfor %}
-```
+`recom.liquid`'s structure inside `{% for product in products %}` (the loop variable is **`products`**, not Search's `product_list`) is shown in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/recoms/README.md` → *The slot model*: each `.swiper-slide` holds a banner branch (`{% if product.isBanner == true %}`, left untouched) and an `{% else %}` branch whose `<div class="hr-product">` wraps the `{{ TILE_BODY }}` slot.
 
 **Your work is exclusively inside the `{% else %}` branch — the `{{ TILE_BODY }}` slot, wrapped by the base's existing `<div class="hr-product">`.** Drop in the tile body's *contents*; don't add a second `.hr-product` wrapper. The tile contents come from the tile skill (Step 3) — you don't author them here.
 

@@ -1,83 +1,36 @@
 # Add-to-cart JS wiring — make the slider's ATC form work, per platform
 
-The tile skill emits the ATC **form markup** inside `{{ TILE_BODY }}` (only when the customer's tile already has one). That markup is inert until JS binds it to the platform's cart. This is the recom shell's job, and it's clone-aware: the recom slider runs `loop: true`, so binding happens via the swiper **`on: { afterInit }`** hook and/or **delegated** handlers — never per-element listeners bound at load. The mechanics of the hook and why clones force delegation are in `references/slider-structure.md`; this file is the per-platform cart functions.
+The tile skill emits the ATC **form markup** inside `{{ TILE_BODY }}` (only when the customer's tile already has one). That markup is inert until JS binds it to the platform's cart. This is the recom shell's job, and it's clone-aware: the recom slider runs `loop: true`, so binding happens via the swiper **`on: { afterInit }`** hook and/or **delegated** handlers — never per-element listeners bound at load. The mechanics of the hook and why clones force delegation are in `references/slider-structure.md`.
 
 Recom has **no `fix_links`** — that's Search's render hook. The recom render hook is Swiper's `afterInit`, which fires once every slide (clones included) exists.
 
-## Platform inference (storefront-side — never feed shape)
+## What is shared, and where it lives
 
-You don't ask the operator for `platform`. Infer it from the surveyed storefront, in order of reliability:
+Everything about add-to-cart that is the same on every surface is in one wiki page, **`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/add-to-cart.md`**. Read these sections there; they are not repeated here:
 
-| Signal | Platform |
+| Section in that page | What you take from it |
 |---|---|
-| Storefront host or image URLs match `cdn.shopify.com` / `*.myshopify.com` | Shopify |
-| Image URLs match `/media/catalog/product/cache/` | Magento |
-| Surveyed tile has `<li class="grid__item">` + `.card-wrapper` + `.card__media` | Shopify (Dawn / Dawn fork) |
-| Surveyed tile has `<li class="item product product-item">` + `.product-item-photo` + `.price-box` | Magento |
-| Tile's ATC `<form action>` is `/cart/add` (or `/<locale>/cart/add`) | Shopify |
-| Tile's ATC `<form action>` contains `/checkout/cart/add/uenc/` | Magento |
-| `Shopify` global / `cdn.shopify.com` script in `<head>` | Shopify |
-| `mage/cookies.js`, `requirejs-config.js`, `Magento_*` in `<head>` | Magento |
-| `form.buy-widget[data-add-to-cart]`, `PluginManager` global | Shopware |
-| `window.quickShop` global | Starweb |
+| *Platform inference* | The platform, from the surveyed storefront. You never ask the operator for it, and never read it from the feed's shape. |
+| *Before binding — check whether it already works* | The real click on a rendered slide's buy button before any cart code; never a fallback for an unconfirmed global. |
+| *Per-platform pages* | Which platforms are documented, and each one's page. |
+| *Binding per surface* → Recom slider | Hook `afterInit` and/or delegation, scope `#hello-retail-{{ key }}`, idempotent. |
+| *Click tracking on the buy button* | `trackClick` on every buy button and only there — confirm the tile skill's button carries it. |
+| *A platform with no page* | Leave the form unbound and add the `ATC JS not wired — …` MISSING DATA line. Never invent a binding. |
 
-**Do not use feed shape as a platform signal** — it reflects HR feed configuration, not the e-commerce platform.
+## Per platform — which block, and how it binds in a slider
 
-Per-platform runtime detail lives in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/<platform>/add-to-cart.md`.
+The cart code is the **Recom slider** block of the platform's page, `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/<platform>/add-to-cart.md`. What stays your call in the recom shell is *how* it binds:
 
-The per-platform `add_to_cart()` bodies live under `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/<platform>/add-to-cart.md`
-— each file has both the **Recom slider** block (use this) and the Search variant. What stays your
-call in the recom shell is *how* it binds (delegated vs `afterInit`), captured below.
+| Platform | Block to use | Binds how |
+|---|---|---|
+| Shopify | `shopify/add-to-cart.md` → *Binding the copied theme form*; its *Notes* for the drawer event | The copied theme form often needs nothing (`<product-form>` upgrades itself in clones too). If the real click fails: the **delegated** `submit` IIFE, selector scoped to `#hello-retail-{{ key }} form.js-product-form`. |
+| Magento | `magento/add-to-cart.md` → *Step 2*, the *Recom slider* block (Luma or Hyvä per its *Step 0*) | `uenc` + `form_key` injection mutates each form, so it runs in **`afterInit`**, idempotently. Leave `awuenc` / `uenc` as placeholders in the Liquid. Swatches and size filters stay **delegated** — a separate concern from ATC. |
+| Shopware | `shopware/add-to-cart.md` → *Recom slider* | PluginManager re-init in **`afterInit`**. |
+| Starweb | `starweb/add-to-cart.md` → *Recom slider* | `quickShop.init()` in **`afterInit`**; it re-scans the DOM, so no guard is needed. Shares `afterInit` with the price handler when the shop uses one. |
+| BigCommerce | `bigcommerce/add-to-cart.md` → *Recom slider* | The page's binding over the slides in **`afterInit`**, with its `data-*` guard. |
+| Viskan | `viskan/add-to-cart.md` → *Recom slider* | The page's **delegated** click handler unchanged; its state sweep from **`afterInit`**. |
 
-## Shopify — the copied theme form, delegated `submit` → `/cart/add.js`
-
-The tile carries the theme's own `<product-form>` / `form.js-product-form` — never a Hello Retail
-`.hr-form` (retired 2026-09-23, tile-extractor Output Rule 15). Real click first: `<product-form>`
-upgrades itself when the slider inserts the tile (clones included), so on many Dawn-family themes
-nothing needs binding. If it does not add to cart, use the **delegated** IIFE in
-`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md` → *Binding the copied theme form* — delegation is
-clone-safe by nature; scope its selector to `#hello-retail-{{ key }} form.js-product-form`. Confirm the
-drawer event per theme — `upcart:cart:change` (UpCart), `theme:cart:change` (Dawn-style),
-`cart:refresh` (Sense/custom).
-
-## Magento — `uenc` + `form_key` injection in `afterInit`
-
-Form-level mutation can't be done by click delegation — it must run against the real forms after
-clones exist, so it goes in `afterInit`, idempotently. Code in
-`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/magento/add-to-cart.md` → *Recom slider* block.
-
-- `.mage('catalogAddToCart')` needs `mage/mage` loaded. If the theme doesn't expose it globally, wrap the bind in `require(['jquery','mage/mage'], function ($) { … })`, or register the form via the `x-magento-init` block in the Liquid (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/magento/add-to-cart.md` Step 3) instead.
-- Leave `awuenc` / `uenc` as placeholders in the Liquid — the function fills them at runtime.
-- Swatches / size filters stay as **delegated** handlers — ATC and swatches are separate concerns.
-
-## Shopware — PluginManager re-init in `afterInit`
-
-Code in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopware/add-to-cart.md` → *Recom slider* block.
-
-## Starweb — quickShop in `afterInit`
-
-Code in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/add-to-cart.md` → *Recom slider* block. `quickShop.init()`
-re-scans the DOM, so it's naturally idempotent.
-
-## Tracking — always on the ATC button, and only there
-
-Every ATC button **must** carry the tracking call (the tile skill emits the button markup; confirm it's present):
-
-```liquid
-onclick="hrq.push(['trackClick','{{ product.trackingCode }}'])"
-```
-
-**Only buy/ATC actions get `trackClick`.** Variant CTAs ("SE VARIANTER" / "Choose variant"), view CTAs ("Se mer"), and sold-out CTAs navigate to the PDP — `fix_links` (`#aw_source=`) attributes those clicks; do not add `trackClick` to them (QA team).
-
-## Platform not one of these four
-
-`woocommerce`, `dandomain`, `prestashop` aren't captured yet. Leave the tile skill's ATC form markup as-is, **don't bind it**, and add a MISSING DATA line:
-
-```
-ATC JS not wired — <platform> cart binding not documented; needs operator-supplied snippet.
-```
-
-Don't invent a binding.
+DanDomain / Lightspeed and Wikinggruppen need nothing from this surface: a plain form POST, or (newest Wikinggruppen theme) the theme's own handler — `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/add-to-cart.md` → *Per-platform pages*. Never bind a second handler there; an older Wikinggruppen theme is the exception, in `wikinggruppen/README.md` → *Caveats for older themes*.
 
 ## Where this JS lives
 

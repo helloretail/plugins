@@ -147,37 +147,21 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Adding
    customer-specific inputs*.
 3. **Tile body.** Comes from `tile-extractor`, started as a background subagent with
-   `target surface = pages`; read its RESPONSE FORMAT sections by name (`../tile-extractor/SKILL.md`):
-   **FIDELITY** (every state PASS or fully classified before the splice — a shell-side item becomes
-   a NOTES line or a sanctioned edit, a markup item goes back to the tile skill, never into CSS),
-   **PARENT HOOKS** (container hooks for step 4; cell-level hooks onto the design's own product
-   wrapper, scope classes only), **BINDINGS** and **PARITY TABLE** (build record), **MISSING DATA**
-   and **OPEN QUESTIONS**; TEXT INPUTS is `none` for Pages — fixed texts are copied as they are.
-   Its Output Rules and `../tile-extractor/references/liquid-rules.md` are binding here too — do not
-   restate or improvise them. Splice the
+   `target surface = pages` — **read `${CLAUDE_PLUGIN_ROOT}/docs/tile-delegation.md` and follow it**: how to invoke the tile skill, the
+   recom-tile reuse check and its `Tile source` question, what to do with each section it
+   returns (FIDELITY, PARENT HOOKS, BINDINGS, PARITY TABLE, MISSING DATA, OPEN QUESTIONS), and
+   what the shell never does. For Pages: container hooks go to step 4, cell-level hooks onto the
+   design's own product wrapper (scope classes only), and TEXT INPUTS is `none` — fixed texts
+   are copied as they are. Splice the
    converted tile into the per-product slot of `templateHtml` only; keep the design's
    own product-loop wrapper element the way recom keeps `.hr-product` — that wrapper is the cell,
    so the customer's grid cell is never copied.
 
-   **Reuse a finished recom tile first.** Before starting `tile-extractor`, check
-   `recoms_list` + `recoms_listDesigns` for an editable company design that a LIVE box renders
-   with (or a REVIEW draft whose latest `recom-qa` report says ready to publish) and whose tile is
-   the customer's card. Found → ask the operator with `AskUserQuestion` (header `Tile source`:
-   *Extract from the category page (Recommended)* / *Reuse the tile from <recom design name>*).
-   The new survey is the default: no answer, or anything but a named recom design, means extract.
-   Reuse → start `tile-extractor` with `reuse: recom design <design-key>`; it confirms the tile
-   still matches the category tile or falls back to full extraction
-   (`../tile-extractor/references/reuse-recom-tile.md`). The native reference for every Pages check
-   stays the shop's own product grid — never a tile inside a Hello Retail box.
-
    **Starweb shops:** once the platform is known to be Starweb (tile-extractor's
-   PLATFORM section), ask the operator with `AskUserQuestion` (header *Prices*,
-   `multiSelect: true`): *None of these* / *Customer-unique prices* / *Several currencies* /
-   *Another price quirk* (*Other* says which) — don't assume the answer. Yes → the
-   tile's price block uses the markup in
-   `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/dynamic-price-handler.md` and the
-   design JS calls the handler once products have rendered (*Search and Pages* on that
-   page). No → prices as usual, no handler.
+   PLATFORM section), ask the *Prices* question —
+   `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/dynamic-price-handler.md` → *When to use it* has the question, its options and what each answer means. Don't
+   assume the answer. Yes → the design JS calls the handler once products have rendered
+   (*Search and Pages* on that page).
 
    **SEO microdata is part of the foundation — never remove it.** The default tile
    wrapper (`aw-infinite-search-results__item hr-product`, `itemscope`
@@ -769,16 +753,15 @@ image (`img[alt="loading"]`) must be hidden at every step — idle, during a cli
      that shows 0 products with this div in place is a `data-filters` question (the keys
      and values it filters on), not a design fault.
 7. **Tile fidelity, by eye.** Where a native reference exists, put a rendered HR tile next to
-   the native tile of the same state at 1440 and 375 px (the FIDELITY CHECK harness in
-   `../tile-extractor/references/survey-snippets.md` works on the live page). Same → done.
-   Different → a tile problem goes back to `tile-extractor`, a hook is mirrored (step 4), a theme
-   rule that cannot reach the design is restated verbatim and rescoped — never a rule that
-   re-creates the tile's look. Then **QA.** Run the `pages-qa` skill with the checklist catalogue
+   the native tile of the same state at 1440 and 375 px and classify any difference, as
+   `${CLAUDE_PLUGIN_ROOT}/docs/tile-delegation.md` → *After the push — the same check again* says (for Pages a hook is mirrored in
+   step 4). Then **QA.** Run the `pages-qa` skill with the checklist catalogue
    (`../qa-checklists/references/pages.md`): native-reference survey first, the
    test-div browser probe from the pages cheat sheet, four widths (1440/1024/820/375),
    worst-case tiles, measured verdicts. A FAIL verdict is a successful QA run.
 8. **Hand-off record.** Run `customer-handoff` (`../customer-handoff/SKILL.md`; record mode, stage `pages`; mandatory — do not ask whether to, do not skip) so the design keys, filters/sorting decisions and any
-   workaround land in the customer's living hand-off document under `output/handoffs/` (local for now).
+   workaround land in the customer's living hand-off document under `output/handoffs/` (local for now;
+   `${CLAUDE_PLUGIN_ROOT}/docs/hand-off.md` → *The record — `customer-handoff`*).
 
 ## API (JSON) workflow
 
@@ -843,25 +826,22 @@ bootstrap) are in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/pages/general.md
 - Extend, never rewrite: foundation survives byte-identical outside sanctioned edits.
 - Comments you add: one short line, only where the code isn't obvious ("doing X because Y").
   `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Comments in the code you add*.
-- Read-back verify every write; 3 strikes → NOT applied.
+- Read-back verify every write; 3 strikes → NOT applied. The shared write rules (read first,
+  the spilled payload, changed fields only, raw fields, whole lists sent back in full):
+  `${CLAUDE_PLUGIN_ROOT}/docs/design-writes.md` — its diff and `Push` gate are not part of the Pages flow.
 - Tile body verbatim from the tile skill; no invented classes; no Hello Retail class inside
   the tile; no `hr-product` boilerplate where the design's own wrapper differs. A difference
   after the push is a tile fix, a hook or a restated theme rule — never CSS that re-creates the look.
-- Liquid you write or edit yourself follows `../tile-extractor/references/liquid-rules.md`:
-  every block tag on its own line (→ *Formatting*). Every variant branch is gated on
-  `extraData.hasVariants`, confirmed in `productData_get` first. When the field is missing,
-  stop and ask the operator to map it or name another field, and never fall back to
-  `variantProductNumbers.size` (→ *Variant conditions*).
-- Banner branch untouched, except to remove a stray `</img>` (`<img>` is void, and the closing
-  tag breaks HTML formatters).
-- CSS authoring: extend a rule that already exists before adding a second one for the same
-  selector, never re-declare a value that already holds, and put a new rule in the section that
-  already styles that element.
-  → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Writing the CSS itself*
+- Tile rules — body from the tile skill, the Liquid rules for what you write yourself (block
+  tags on their own line, the `extraData.hasVariants` gate, never `variantProductNumbers.size`),
+  prices: `${CLAUDE_PLUGIN_ROOT}/docs/tile-delegation.md` → *What the shell never does*.
+- Banner branch untouched (the one exception, a stray `</img>`: `${CLAUDE_PLUGIN_ROOT}/docs/tile-delegation.md` → *What the shell never
+  does*).
+- CSS authoring (one rule per selector, no re-declared values, the rule in the section that
+  already styles the element): `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Writing the CSS itself*
 - Settings from real fields + live tool schema — never from memory.
-- Close the browser last: when the build is handed off — and when it stops midway — call
-  `browser_close` on every `playwright*` server the build used, subagent workers included.
-  → `${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*
+- Close the browser last, also when the build stops midway: `${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when
+  the work is done*
 - Integration mode first (Step 0). API-JSON: no template edits, no product conditions
   unless the operator confirms the caller always sends that field. Both asked with the
   `AskUserQuestion` picker when the prompt, the card or the widget hasn't settled them.

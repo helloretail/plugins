@@ -539,7 +539,7 @@ wrappers (`.catalog-category-view … .card`). Copied verbatim, the tile renders
 overlay even though the markup is byte-perfect. Detect this during every survey and report the
 missing ancestors as **PARENT HOOKS** — the calling shell skill mirrors them onto its products
 container (`hr-products-container` for Search; see
-`../search-developer/references/shell-structure.md` for the application rules and the `body.`/`#id` limits).
+`../../search-developer/references/shell-structure.md` for the application rules and the `body.`/`#id` limits).
 
 **When the ancestor is an element, not a class, hooks cannot help.** Many classic themes scope the card
 to a literal list: `ul.products li.product …`, `.woocommerce ul.products li …`, or a page-builder

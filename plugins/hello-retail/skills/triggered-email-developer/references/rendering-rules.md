@@ -57,21 +57,15 @@ not a guarantee.
 ## CTA buttons — colour and label come from the storefront
 
 Don't style or label the per-product / cart button from a guess. Both are read off
-the live storefront during inspection (see `inspection-and-verification.md`):
+the live storefront during inspection (`${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspection.md` → *1. Read the live tile*, steps 4 and 5):
 
-- **Colour = the real CTA button background**, not the brand accent. They are often
-  different (e.g. a teal accent but a green add-to-cart button). Resolve any CSS
-  variable and any `::before` pseudo-element that actually paints the button — the
-  element's own `background-color` frequently reads `transparent` because the colour
-  lives on a `::before` layer. Apply the resolved hex with both `bgcolor` and
+- **Colour = the real CTA button background**, not the brand accent — resolved as that
+  file's step 5 describes. Apply the resolved hex with both `bgcolor` and
   `style="background-color:…"`.
-- **Label = the storefront's real text**, in order: (1) a product-level
-  "view product"-style link if the site has one; (2) otherwise the **add-to-cart**
-  label (e.g. "In winkelwagen", "Add to cart", "Læg i kurv"). Never invent generic
-  copy such as "View product". The visible storefront CTA is often an icon-only
-  add-to-cart — email can't add to cart, so reuse its text label and point the
-  button at `product.url`.
-- **No button at all** if the storefront only reveals its CTA on hover — the image
+- **Label = the storefront's real text** (step 5: a "view product" link if the tile has one,
+  otherwise the add-to-cart label; never invented copy). Email can't add to cart, so the
+  button reuses that label and points at `product.url`.
+- **No button at all** if the storefront only reveals its CTA on hover (step 4) — the image
   and title link to the product instead.
 
 ## Images
@@ -124,11 +118,10 @@ Why this works:
 - **No flexbox / grid / `position` / `calc()` / `var()` / `clamp()` /
   `object-fit` / `aspect-ratio` / transforms.** Stick to table layout, plain block
   flow, and basic CSS2.
-- **No SVG, icon fonts, or emoji glyphs** — render inconsistently or not at all.
-  CTAs are text buttons; storefront cart icons become a text label or are omitted.
-- **No JavaScript** — JS widgets (Lipscore and other review widgets) never run. Use
-  only real HR feed data; show a numeric rating only if it's a feed field.
-- **Web fonts may not load** — always include a web-safe fallback stack, e.g.
+- **No SVG, icon fonts, emoji glyphs or JavaScript, and no web font without a web-safe
+  fallback** — the limits every email tile shares: `${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspection.md` → *What no email tile can show*.
+  Here: CTAs are text buttons; storefront cart icons become a text label or are omitted; a
+  numeric rating only if it's a feed field; a fallback stack such as
   `'Instrument Sans', Arial, Helvetica, sans-serif`.
 - **SVG logos** (common on Shopify storefronts) fail in Gmail/Outlook/Yahoo. For
   the base design's `header_image_url`, recommend a PNG/JPG.

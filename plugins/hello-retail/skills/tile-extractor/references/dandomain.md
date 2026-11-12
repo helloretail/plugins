@@ -3,13 +3,8 @@
 DanDomain and Lightspeed (WebshopApp) commonly share the **dmws_perfect** plugin and the
 **rateit** rating widget, so they share this reference.
 
-**Detection:**
-
-| Signal | Platform |
-| --- | --- |
-| `meta[name="generator"] = DanDomain` | **DanDomain** |
-| `cdn.webshopapp.com`, `lightspeed.multisafepay.com` | **Lightspeed** (WebshopApp) |
-| `.dmws_perfect-*` classes | **Lightspeed** dmws_perfect plugin (on either platform) |
+**Detection:** the DanDomain and Lightspeed rows of `platform-detection.md` → *Signals*.
+`.dmws_perfect-*` classes mean the Lightspeed dmws_perfect plugin, on either platform.
 
 Decide which ATC form to use by what's actually in the DOM: if you see `.dmws_perfect-*`
 classes, use the dmws_perfect form; otherwise use the DanDomain standard form.

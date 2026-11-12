@@ -55,6 +55,42 @@ Both Search and Recom need the platform to pick the cart binding. Infer it from 
 | `window.viskan.cart` global (Streamline also has `window._streamline` / `window.v12`, `#Streamline` root element) | Viskan (Streamline / NG) |
 | Assets on `cdn11.bigcommerce.com/s-.../stencil/`, `csrf-protection-header-*.js` in `<head>` | BigCommerce Stencil |
 
+## Before binding — check whether it already works
+
+**Click the tile's buy button for real before writing any cart code.** A copied form often works with no JavaScript from Hello Retail, for one of two reasons — you do not need to know which before testing:
+
+- **Custom elements upgrade themselves.** Shopify's `<product-form>`, `is="product-form"` on a form or `is="custom-button"` on its button are upgraded by the browser wherever and whenever the markup is inserted.
+- **The theme rebinds on its own.** Commonly a `MutationObserver` (sometimes a periodic re-scan) that binds each new matching element and marks it with a `data-*` attribute, such as `data-quick-add-listener-added`, so it is not bound twice.
+
+How to check: once the tile renders in the design, click its buy button with a real click (Playwright `browser_click`, or the Chrome `computer` tool — never `.click()` or a dispatched event, which are unreliable here) and see whether the cart updates.
+
+- **The cart updates** → write no cart code, and add nothing at the surface's hook. Note in the build report that it worked natively, and by which of the two mechanisms when you can tell. A binding added anyway is dead code at best and a double add-to-cart at worst.
+- **It does not** → bind it, from the platform's page above and at the surface's hook below.
+
+**Never write a fallback for a mechanism you have not confirmed on this shop.** In
+
+```js
+if (window.QuickAddModal && typeof window.QuickAddModal.open === "function") {
+    window.QuickAddModal.open(url);
+} else {
+    window.location.href = url;
+}
+```
+
+the `else` runs on **every** click when `window.QuickAddModal` does not exist on this storefront, and it overrides whatever the theme's own handler would have done — worse than writing nothing. Before any condition on a global, a function or a class hook, confirm it in the live page (`typeof window.TheGlobal` in the browser, or the real mechanism in the DOM: a marker attribute, a custom-element tag, a delegated listener). A name remembered from another shop's build is not confirmation.
+
+**The mechanism cannot be identified** → leave the control unbound and report it as missing data. Never ship a guess as an `else` branch.
+
+## A platform with no page
+
+The platforms in [Per-platform pages](#per-platform-pages) are the documented ones. For any other platform (WooCommerce and PrestaShop, for example) keep the shop's form markup as the tile skill copied it, **do not bind it**, and report:
+
+```
+ATC JS not wired — <platform> cart binding not documented; needs operator-supplied snippet.
+```
+
+Never invent a binding.
+
 ## Binding per surface
 
 The per-platform cart **call** is the same regardless of surface. What differs is **when** you bind and **what you scope to**, because Search re-renders a grid and Recom runs a looped slider with DOM clones:
@@ -81,8 +117,7 @@ document.querySelectorAll(".hr-overlay-search form.js-product-form").forEach(fun
 $(document).on("submit", "#hello-retail-{{ key }} form.js-product-form", onSubmit);
 ```
 
-Before binding anything, click a rendered tile's button for real: custom elements (`<product-form>`,
-`is="…"`) and themes with their own rebind logic often work with no code from us.
+Bind only after the check in [Before binding](#before-binding--check-whether-it-already-works) says the button does not work on its own.
 
 ## Click tracking on the buy button
 
@@ -112,4 +147,5 @@ Without the call, add-to-cart clicks from Hello Retail tiles are never attribute
 - 2026-09-14: Moved here from `cheat-sheets/add-to-cart/README.md` to sit with the platform pages; the per-platform cheat-sheet copies were merged into `platforms/<platform>/add-to-cart.md`. Corrected the Viskan row — the recipe is a delegated click handler with a stepper, not an `.hr-form` submit binding — and added the DanDomain, BigCommerce and Wikinggruppen rows.
 - 2026-10-08: Added *Click tracking on the buy button* — the rule, the copy-verbatim trap, and where `tile-extractor` adds it.
 - 2026-09-23: The tile carries the shop's own form, never a Hello Retail one; selectors now name the copied theme form first and the legacy `.hr-form` / `.aw-buy-form` classes only for reading older designs.
+- 2026-11-12: Added *Before binding — check whether it already works* and *A platform with no page*, moved here from the Search and Recommendations developer skills so every surface and platform page reads one copy.
 - 2026-11-03: Wikinggruppen rows now point to `wikinggruppen/add-to-cart.md`: on the newest WGO theme the theme's own delegated handler covers Hello Retail tiles, so no cart JS is added.
