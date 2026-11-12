@@ -23,7 +23,7 @@ event=$(field hook_event_name)
 
 case "$event" in
   SessionStart)
-    emit SessionStart "Hello Retail plugin: when Hello Retail work hits a gap in the plugin - a step with no hello-retail MCP tool, a tool that errors or cannot do what the step needs, a task no hello-retail skill covers, or a skill instruction that turned out wrong - finish what you can, then at the end of the task offer once to send feedback with the hello-retail:plugin-feedback skill. Do not offer it for operator typos, MCP authorization, browser login, or problems on the customer's own site."
+    emit SessionStart "Hello Retail plugin: when Hello Retail work hits a gap in the plugin - a step with no hello-retail MCP tool, a tool that errors or cannot do what the step needs, a task no hello-retail skill covers, or a skill instruction that turned out wrong - say so to the operator as soon as you find it, with the manual route. If it blocks the task, offer to send feedback with the hello-retail:plugin-feedback skill right away; otherwise offer it once at the end of the task. Do not offer it for operator typos, MCP authorization, browser login, or problems on the customer's own site."
     ;;
   PostToolUseFailure)
     tool=$(field tool_name)
