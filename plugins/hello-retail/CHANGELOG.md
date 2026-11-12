@@ -8,6 +8,14 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.59.0 — 2026-11-12
+
+### Added
+
+- `feed-migration` now checks XML feeds for identifiers the parser turns into numbers: product
+  numbers, EANs and model names that lose a trailing zero. A hit confirmed in the feed editor is
+  reported as a blocker, since the transform cannot restore the value.
+
 ## 1.58.0 — 2026-11-12
 
 ### Added
