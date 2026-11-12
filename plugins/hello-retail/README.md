@@ -52,6 +52,7 @@ if you want to be explicit.
 | `support-debugging` | Triages a pasted support ticket before investigating it: confirms the website and the feature (both arrive unverified), checks the cause against the MCP capability matrix, rules out the known false positives (logged-in reporter, failing feed, content type not enabled), and widens the scope the mail understated. Ends in a hand-back, a request for what's missing, or a draft fix. |
 | `hello-retail-knowledge` | Answers any Hello Retail question from `docs/wiki/`, citing the page. |
 | `browser-login` | Gets the Playwright browsers logged in to Hello Retail: one saved login shared by every worker, so any number of sessions QA in parallel. Runs when a login check fails or on a new machine. |
+| `plugin-feedback` | Sends the plugin team a gap report (reporter, customer, goal, what failed, suggested MCP or skill fix) when a tool fails or a step has no tool or skill. Offered automatically at the end of such a task, once per session; asks one question, then sends it with one API call in the background (no browser). |
 
 Every skill states what it needs before it starts (usually a storefront URL and a `website-uuid`)
 and asks for anything missing rather than guessing.
