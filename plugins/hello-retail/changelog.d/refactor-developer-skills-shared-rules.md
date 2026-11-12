@@ -8,6 +8,7 @@
 - `search-developer` states each instruction once: its hard rules and self-check name the step or reference that holds the detail instead of repeating it, and its config, filter, content-feed and initial-content steps point to their reference for the detail.
 - `recom-developer` asks the foundation question with the same two options as `search-developer`.
 - `recom-developer`'s self-check and its box-setup step name the step or reference that holds the detail instead of repeating it.
+- `pages-developer` reads its pagination, chrome-parity and cross-design CSS recipes from reference files at the step that needs them, so a build that does not paginate or restyle the filter drawer no longer reads them. Each of those steps now says what done looks like.
 
 ### Fixed
 
