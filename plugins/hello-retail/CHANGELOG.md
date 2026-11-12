@@ -8,6 +8,13 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.58.0 — 2026-11-12
+
+### Added
+
+- `plugin-feedback` sends the plugin team a short gap report — who hit it, the customer, what they were trying to do, what failed and what to add to the MCP or skill — after one yes, and sends it in the background with one API call — no browser.
+- The plugin now offers `plugin-feedback` by itself at the end of a task when a Hello Retail tool fails or a step has no tool or skill, at most once per session.
+
 ## 1.57.0 — 2026-11-11
 
 ### Changed
