@@ -237,6 +237,20 @@ id="slider-{{ product.productNumber }}"
 {% endif %}
 ```
 
+### Swatch overflow cap — hide past N, then the counter
+
+When the theme caps the swatch strip, hide every swatch past the cap the way the theme does and
+render its counter after the loop when the list is longer than the cap.
+
+```liquid
+{% for value in product.extraDataList.color %}
+  <label class="swatch"{% if forloop.index > 4 %} hidden{% endif %} data-swatch="{{ value | downcase | escape }}">…</label>
+{% endfor %}
+{% if product.extraDataList.color.size > 4 %}
+  <span class="swatch-more">+{{ product.extraDataList.color.size | minus: 4 }}</span>
+{% endif %}
+```
+
 ### Missing feed data — NEVER skip, use static fallback + flag in response text
 
 If a tile element has no feed field, include the element with a static placeholder value and note it clearly in your response outside the code block. Never omit the element and never add a code comment.

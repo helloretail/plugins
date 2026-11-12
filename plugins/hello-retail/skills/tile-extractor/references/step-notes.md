@@ -40,7 +40,8 @@ helper missing only on the account pages gave 50 warnings and an inert heart.
   Field case store-FI-1, 2026-10: reference page 100% sale, non-sale tiles 20px shorter in the
   overlay, found four QA rounds later in a cross-category comparison.
 - **Why swatches are found by probe, not class name.** The strip may be a sibling of the link, made
-  of thumbnail images, and hidden below a breakpoint.
+  of thumbnail images, hidden below a breakpoint, and capped at a few swatches plus a "+N" counter
+  (`survey-snippets.md` → *Swatch / variant strip probe* → *Overflow cap*).
 - **Why baked-in badges are recorded.** So QA does not report the label as missing.
 
 ## Step 4g — page-type CSS
