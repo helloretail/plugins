@@ -294,6 +294,10 @@ a feed image** (`…-original.jpg` → `…-thumb.jpg`): derive it with `replace
 loading the full-size image into a 48 px box. If the strip is a sibling of the link, the tile root
 becomes the cell wrapper that holds both, and the cell's own rules go in with the copied CSS.
 
+**Overflow cap.** Check whether the theme shows only the first few swatches and puts the rest behind
+a counter such as `+3`; a tile with few values never shows it, so look at the one with the most.
+When there is a cap, the template copies it — `liquid-rules.md` → *Swatch overflow cap*.
+
 ## MULTI-TILE DIFF — DYNAMIC SPOTS AND STATE BRANCHES
 
 The template is the normal tile's copy with two kinds of change: product values swapped for feed
