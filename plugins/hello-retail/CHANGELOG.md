@@ -8,6 +8,24 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.60.0 — 2026-11-12
+
+### Added
+
+- The developer, feed, analytics, hand-off and support skills now watch for steps the Hello Retail MCP cannot do. They say so as soon as they hit one, give the manual dashboard route, and offer a `plugin-feedback` report — right away when it blocks the task, otherwise at the end.
+- `plugin-feedback` can also send its report from a Windows session that has only PowerShell and no Git Bash; until now those sessions fell back to manual entry.
+
+### Changed
+
+- When Claude tries to open the My Hello Retail dashboard in a browser, the block message now says this usually means a missing MCP tool and points it to the `plugin-feedback` report.
+- `plugin-feedback` works where it cannot send the report itself, such as Claude chat, Cowork or a session with no shell: it shows the topic and the description as two copy blocks with a link to the feedback form, so the operator can add it by hand. The automatic offer at the end of a task is Claude Code only.
+- `triggered-email-developer` now says in its first reply that the Hello Retail MCP has no Triggered Email tools yet, so the operator pastes the designs into the dashboard. It offers to send that gap to the plugin team with `plugin-feedback` in the same question as the design picker.
+
+### Fixed
+
+- `triggered-email-developer` reads its default templates from the plugin itself instead of asking the operator to paste them, which happened in Claude chat.
+- `triggered-email-developer` no longer offers to open the My Hello Retail dashboard in a browser to paste a design, including in Claude chat and Cowork where no plugin hook blocks it.
+
 ## 1.59.0 — 2026-11-12
 
 ### Added
