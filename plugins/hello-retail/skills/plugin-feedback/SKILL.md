@@ -96,11 +96,11 @@ question in one line of prose.
 
 ## Step 3 — Send it with one API call
 
-Send the report with a script from this skill's `scripts/` folder — one HTTPS call, no browser.
+Send the report with `send-feedback.sh` from this skill's `scripts/` folder — one HTTPS call, no browser.
 Never open the feedback form in a browser yourself. Show its address only in Step 4's *Not sent*
 message, when the operator has to add the report by hand.
 
-The scripts sit next to this `SKILL.md`. In Claude Code the folder is
+The script sits next to this `SKILL.md`, in `scripts/`. In Claude Code the folder is
 `${CLAUDE_PLUGIN_ROOT}/skills/plugin-feedback/scripts/`; anywhere else, use the folder this file
 was loaded from. Pass the report exactly as written in Step 1, `TOPIC:` line first. Run it in the
 background when the shell tool offers that (`run_in_background: true`), so the operator is not
@@ -108,8 +108,8 @@ kept waiting. Pick the first row that fits:
 
 | Shell tool you have | Run |
 |---|---|
-| `Bash` (macOS, Linux, Windows with Git Bash, a sandbox) | `send-feedback.sh`, report on stdin — first block below |
-| `PowerShell` only (Windows without Git Bash) | `send-feedback.ps1`, report piped in — second block below |
+| `Bash` (macOS, Linux, Windows with Git Bash, a sandbox) | `send-feedback.sh`, report on stdin — block below |
+| Only `PowerShell` (Windows without Git Bash) | Skip to Step 4, *Not sent* |
 | No shell tool at all (some Claude chat and Cowork sessions) | Skip to Step 4, *Not sent* |
 
 ```bash
@@ -120,15 +120,7 @@ Reporter: …
 REPORT
 ```
 
-```powershell
-@'
-TOPIC: recom-developer - no tool to set a box's algorithm
-Reporter: …
-…
-'@ | powershell -NoProfile -ExecutionPolicy Bypass -File "$env:CLAUDE_PLUGIN_ROOT\skills\plugin-feedback\scripts\send-feedback.ps1"
-```
-
-Both print one line: `sent`, or `saved to <path>: <reason>`. When they cannot send, they save the
+It prints one line: `sent`, or `saved to <path>: <reason>`. When it cannot send, it saves the
 report under `output/feedback/` in the working directory (gitignored). Do not retry.
 
 ## Step 4 — Confirm
