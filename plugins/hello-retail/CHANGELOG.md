@@ -8,6 +8,13 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.61.1 — 2026-11-12
+
+### Fixed
+
+- `tile-extractor` now checks whether the theme caps the swatch strip with a "+N" counter, and
+  builds the same cap into the tile instead of showing every swatch.
+
 ## 1.61.0 — 2026-11-12
 
 ### Changed
