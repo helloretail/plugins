@@ -97,7 +97,8 @@ question in one line of prose.
 ## Step 3 — Send it with one API call
 
 Send the report with a script from this skill's `scripts/` folder — one HTTPS call, no browser.
-Never open the feedback form in a browser, and never show its address to the operator.
+Never open the feedback form in a browser yourself. Show its address only in Step 4's *Not sent*
+message, when the operator has to add the report by hand.
 
 The scripts sit next to this `SKILL.md`. In Claude Code the folder is
 `${CLAUDE_PLUGIN_ROOT}/skills/plugin-feedback/scripts/`; anywhere else, use the folder this file
@@ -109,7 +110,7 @@ kept waiting. Pick the first row that fits:
 |---|---|
 | `Bash` (macOS, Linux, Windows with Git Bash, a sandbox) | `send-feedback.sh`, report on stdin — first block below |
 | `PowerShell` only (Windows without Git Bash) | `send-feedback.ps1`, report piped in — second block below |
-| No shell tool at all | Skip to Step 4, *Not sent* |
+| No shell tool at all (some Claude chat and Cowork sessions) | Skip to Step 4, *Not sent* |
 
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/skills/plugin-feedback/scripts/send-feedback.sh" <<'REPORT'
@@ -130,14 +131,40 @@ Reporter: …
 Both print one line: `sent`, or `saved to <path>: <reason>`. When they cannot send, they save the
 report under `output/feedback/` in the working directory (gitignored). Do not retry.
 
-## Step 4 — Confirm in one line
+## Step 4 — Confirm
 
-- `sent` → "Sent to the plugin team — thanks." Nothing else.
-- `saved to …` on the operator's own machine (Claude Code) → "Couldn't reach the plugin team; the
-  report is saved at `<path>`. Please pass it to your Hello Retail contact."
-- *Not sent* — no shell tool, or `saved to …` inside a sandbox the operator cannot open (Claude
-  chat, where outbound calls may be blocked) → print the report in one `text` block and say:
-  "Couldn't send this from here — please copy it to your Hello Retail contact."
+### Sent
+
+The script printed `sent` → say "Sent to the plugin team — thanks." Nothing else.
+
+### Not sent
+
+Anything else is *Not sent*: no shell tool, the script printed `saved to …`, or the shell runs in a
+sandbox that blocks outbound calls — Claude chat (claude.ai and the desktop app's Chat), Cowork,
+or any other place the call could not go through. The operator then adds the report by hand, so
+give them everything to paste, in exactly this shape:
+
+````markdown
+Couldn't send this automatically. Please add it to the [feedback form](https://forms.clickup.com/2515745/f/2crt1-44615/XOMFWZK3ADDFQ3I7NX) — two fields, copy each block into its field:
+
+**Topic of feedback**
+
+```text
+<the TOPIC line, without "TOPIC: ">
+```
+
+**Tell us about the issue, and fix if exists.**
+
+```text
+<every line of the report after the TOPIC line>
+```
+````
+
+When the script saved a file on the operator's own machine (Claude Code), add one line after the
+blocks: "A copy is saved at `<path>`." Inside a sandbox, leave that line out — the operator cannot
+open that path.
+
+Say nothing about the tool behind the form. Ask nothing more about it this session.
 
 Never block the operator's task on this skill, never send the same report twice, and never send a
 report the operator declined.
