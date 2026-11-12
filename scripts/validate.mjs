@@ -34,6 +34,16 @@ const SEMVER = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$/;
 // A skill description longer than this is truncated, taking part of the trigger text with it.
 const DESCRIPTION_MAX = 1024;
 
+// Skills that must carry the shared gap-watch block (per plugin). The QA skills are left out
+// on purpose, and so are skills only ever called by others (qa-checklists, tile-extractor).
+const GAP_WATCH_SKILLS = {
+  "hello-retail": [
+    "search-developer", "recom-developer", "pages-developer", "newsletter-developer",
+    "triggered-email-developer", "feed-setup", "feed-migration", "shopify-legacy-to-v2",
+    "customer-analytics-report", "customer-handoff", "support-debugging",
+  ],
+};
+
 // Paths that must never be tracked. Matched against `git ls-files` output.
 const FORBIDDEN_TRACKED = [
   { test: (f) => /(^|\/)\.DS_Store$/.test(f), why: "macOS Finder metadata" },
@@ -179,6 +189,25 @@ for (const name of pluginDirs) {
     if (description.length < 30) fail(`${sWhere}/SKILL.md: description is missing or too short — it is the trigger the model matches on`);
     else if (description.length > DESCRIPTION_MAX) {
       fail(`${sWhere}/SKILL.md: description is ${description.length} characters, over the ${DESCRIPTION_MAX} limit — trim it, keeping the phrases users actually say and the "not this skill, that one" clauses`);
+    }
+  }
+
+  // gap-watch: one shared block, copied word for word into the skills that use the MCP.
+  // The canonical text lives in skills/plugin-feedback/references/gap-watch.md.
+  const gapWatchSource = join(skillsDir, "plugin-feedback", "references", "gap-watch.md");
+  if (existsSync(gapWatchSource)) {
+    const block = (t) => {
+      const m = t.match(/<!-- gap-watch:start -->[\s\S]*?<!-- gap-watch:end -->/);
+      return m ? m[0].replace(/\r\n/g, "\n") : null;
+    };
+    const canonical = block(readFileSync(gapWatchSource, "utf8"));
+    if (!canonical) fail(`${rel(gapWatchSource)}: missing the <!-- gap-watch:start --> … <!-- gap-watch:end --> block`);
+    for (const skill of GAP_WATCH_SKILLS[name] ?? []) {
+      const p = join(skillsDir, skill, "SKILL.md");
+      if (!existsSync(p)) { fail(`${rel(p)}: listed in GAP_WATCH_SKILLS but does not exist`); continue; }
+      const copy = block(readFileSync(p, "utf8"));
+      if (!copy) fail(`${rel(p)}: missing the gap-watch block — copy it from ${rel(gapWatchSource)}`);
+      else if (canonical && copy !== canonical) fail(`${rel(p)}: gap-watch block differs from ${rel(gapWatchSource)} — copy it again word for word`);
     }
   }
 

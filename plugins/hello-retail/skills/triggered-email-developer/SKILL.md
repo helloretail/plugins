@@ -19,6 +19,16 @@ description: >-
 
 # Triggered Emails UI developer
 
+<!-- gap-watch:start -->
+## Gap watch — when the MCP cannot do a step
+
+While you run this skill, watch for a step the hello-retail MCP cannot do: no tool for it, a tool that errors, or a tool that does not return or change what the step needs.
+
+- Say so in your next reply, with the manual route (what the operator does in the My Hello Retail dashboard). Never work around it by driving my.helloretail.com in a browser.
+- A gap that blocks the task → offer the `plugin-feedback` report (`../plugin-feedback/SKILL.md`) right away. A gap with a workaround → offer it once, in your last message of the task.
+- One offer per gap per session. Not for typos, MCP authorization, browser login or problems on the customer's own site.
+<!-- gap-watch:end -->
+
 ## What this skill produces
 
 One or more **Liquid templates for Hello Retail Triggered Emails**. Unlike the
@@ -66,13 +76,46 @@ These structural differences are **load-bearing — preserve them**. Don't add a
 "Return to cart" CTA to Price Drop, don't add related products to Post
 Conversion, don't add the `{% break %}` where the base doesn't have it.
 
+## No MCP for Triggered Emails — say so first
+
+The hello-retail MCP has **no Triggered Email tools yet**: nothing reads, creates or updates a
+Triggered Email design or a trigger configuration. This skill builds the Liquid; the operator
+pastes it into the My Hello Retail dashboard and sets up the triggers there.
+
+Say this in your **first reply**, before any question, in one or two sentences:
+
+> Heads-up: the Hello Retail MCP has no Triggered Email tools yet, so I can't read or update the
+> designs directly. I'll build the Liquid here; you paste it into the dashboard and switch on the
+> triggers there.
+
+Then offer to report the gap — in the same `AskUserQuestion` call as the Step 1 pickers, as an
+extra question:
+
+- question: "Send the plugin team a note that Triggered Email tools are missing from the MCP?"
+- header: `Feedback`
+- options: `Send it (Recommended)` — "Sent in the background; the build carries on." ·
+  `Not now` — "Nothing is sent."
+
+On *Send it*, run `plugin-feedback` (`../plugin-feedback/SKILL.md`) with its Step 2 skipped — the
+operator already said yes. The gap is: no MCP tools to list, read or update Triggered Email
+designs or trigger configs. The suggested fix is list / get / update tools for Triggered Email
+designs and trigger configs, like the `newsletterContent_*` design tools. Skip the offer if a
+report on this was already sent this session.
+
+**Never open my.helloretail.com in a browser** (Playwright, Claude in Chrome, any other) to
+paste or save a design, not even with the operator's say-so. Dashboard work is the operator's.
+In Claude Code a plugin hook blocks it; in Claude chat and Cowork nothing does, so this rule is
+the only guard.
+
 ## Resources
 
-The base templates live in the shared wiki (ask the operator to connect it if it
-isn't mounted):
+The base templates ship with this plugin, in
+`${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/triggered-emails/` (outside Claude Code: the
+plugin's own `docs/wiki/base-templates/triggered-emails/` folder). Read them from there — never
+ask the operator to paste or upload them.
 
 ```
-base-templates/triggered-emails/
+${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/triggered-emails/
 ├── base-design.liquid        ← the shared outer shell (start here for Base Design)
 ├── abandoned-cart.liquid     ← default Abandoned Cart content block
 ├── price-drop.liquid         ← default Price Drop content block
@@ -80,7 +123,7 @@ base-templates/triggered-emails/
 └── post-conversion.liquid    ← default Post Conversion content block
 ```
 
-Always start from the relevant **default** in `base-templates/triggered-emails/`,
+Always start from the relevant **default** in that folder,
 then restyle it to the customer.
 
 Deeper references are in this skill's `references/` folder — read the one you need:
@@ -103,7 +146,10 @@ real Search tile and looked at the live storefront.
 ### 1. Gather inputs and pick the design(s)
 
 You need the customer's **category-page URL**, and ideally the **website UUID +
-Search key** (so you can pull the authoritative tile markup via MCP).
+Search key** (so you can pull the authoritative tile markup via MCP). When you ask for the Search
+key, say why in the question: the emails reuse the product tile from the customer's Search
+design; nothing in Search is changed. If the operator has no Search key, skip Step 3 and build
+the tile from the storefront (Step 4).
 
 Then ask the operator **which design(s) to build** using the question picker. The
 picker presents **every design plus an "All"** — but the question tool allows at
@@ -124,7 +170,8 @@ operator — never silently drop Back in Stock or Post Conversion.
 
 ### 2. Load the default template(s)
 
-Read the matching file(s) from `base-templates/triggered-emails/`. Keep each
+Read the matching file(s) from
+`${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/triggered-emails/`. Keep each
 file's **parameter block** (`{# text … #}`, `{# color … #}`, `{# boolean … #}`)
 and its structural skeleton (which sections exist, related-products presence, the
 `{% break %}`, the voucher and `cart_url` blocks). You restyle; you don't
@@ -222,7 +269,9 @@ without cropping/stretching). See `references/inspection-and-verification.md`.
 
 ### 7. Deliver
 
-Show each template inline for review and save the `.liquid` to the output folder.
+Show each template inline for review and save the `.liquid` to the output folder. Tell the
+operator to paste each one into its design in the My Hello Retail dashboard and set up the
+triggers there — the MCP cannot do either (see *No MCP for Triggered Emails*).
 Per-customer outputs do **not** go into the wiki — the wiki holds the shared
 defaults, not individual customer builds. Then run `customer-handoff` (`../customer-handoff/SKILL.md`; record mode, stage `triggered-emails`; mandatory — do not ask whether to, do not skip) so the flows delivered and any
 customer-specific decision are recorded in the customer's living hand-off document under `output/handoffs/` (local for now).
@@ -232,6 +281,9 @@ the rendered check used — also when the build stopped midway
 (`${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*).
 
 ## Quick reference: the rules that bite
+
+- **No MCP for Triggered Emails** → say so in the first reply, offer the `plugin-feedback`
+  report, deliver the Liquid for the operator to paste. Never drive the dashboard in a browser.
 
 - **Extend the base, don't rewrite it.** Unless the operator explicitly says otherwise,
   keep the parameter block, variable names, and section skeleton and **restyle** — never
