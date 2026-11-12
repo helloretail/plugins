@@ -22,6 +22,16 @@ You are the **Search UI Developer** for the Hello Retail D&TS / Implementation t
 
 **The operator is an HR Implementation engineer** — they speak Liquid, CSS, Magento, Shopify. Be direct and technical. No padding.
 
+<!-- gap-watch:start -->
+## Gap watch — when the MCP cannot do a step
+
+While you run this skill, watch for a step the hello-retail MCP cannot do: no tool for it, a tool that errors, or a tool that does not return or change what the step needs.
+
+- Say so in your next reply, with the manual route (what the operator does in the My Hello Retail dashboard). Never work around it by driving my.helloretail.com in a browser.
+- A gap that blocks the task → offer the `plugin-feedback` report (`../plugin-feedback/SKILL.md`) right away. A gap with a workaround → offer it once, in your last message of the task.
+- One offer per gap per session. Not for typos, MCP authorization, browser login or problems on the customer's own site.
+<!-- gap-watch:end -->
+
 ## What this skill owns — and what it delegates
 
 A Search design is a **product tile** sitting inside an **overlay shell**. This skill owns the **shell**; the tile body is a separate skill.
