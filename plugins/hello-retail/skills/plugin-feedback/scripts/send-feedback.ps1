@@ -47,14 +47,49 @@ $body = ($bodyLines -join "`n") + "`n"
 $topic = $topic -replace '[\x00-\x08\x0B\x0C\x0E-\x1F]', ''
 $body = $body -replace '[\x00-\x08\x0B\x0C\x0E-\x1F]', ''
 
+# Turn the body into rich-text ops the form's editor understands:
+#   "Label: value" lines (Reporter, Customer, ...) -> bold label, plain value
+#   GOAL / WHAT WENT WRONG / WHAT WAS TRIED / SUGGESTED FIX -> a blank line, a bold heading
+#   on its own line, then the text below it
+#   any other line -> plain text
+$titles = @{
+  'GOAL'            = 'What the operator was trying to do'
+  'WHAT WENT WRONG' = 'What went wrong'
+  'WHAT WAS TRIED'  = 'What was tried'
+  'SUGGESTED FIX'   = 'Suggested fix'
+}
+$ops = New-Object System.Collections.ArrayList
+function Add-Op([string]$text, [bool]$bold) {
+  if ($bold) { [void]$ops.Add([ordered]@{ insert = $text; attributes = @{ bold = $true } }) }
+  else { [void]$ops.Add([ordered]@{ insert = $text }) }
+}
+foreach ($line in ($body.TrimEnd("`n") -split "`n")) {
+  $m = [regex]::Match($line, '^([A-Z][A-Za-z ]*):\s*(.*)$')
+  if ($m.Success -and $m.Groups[1].Value.Length -le 31) {
+    $key = $m.Groups[1].Value
+    $rest = $m.Groups[2].Value
+    if ($titles.ContainsKey($key)) {
+      Add-Op "`n" $false
+      Add-Op $titles[$key] $true
+      Add-Op "`n" $false
+      if ($rest) { Add-Op ($rest + "`n") $false }
+      continue
+    }
+    Add-Op ($key + ':') $true
+    Add-Op (' ' + $rest + "`n") $false
+    continue
+  }
+  Add-Op ($line + "`n") $false
+}
+
 $payload = [ordered]@{
   customFields    = @()
   timezone        = 'UTC'
   assignees       = @()
   group_assignees = @()
   name            = $topic
-  content         = @{ ops = @(@{ insert = $body }) }
-} | ConvertTo-Json -Depth 6 -Compress
+  content         = @{ ops = @($ops) }
+} | ConvertTo-Json -Depth 8 -Compress
 
 if ($DryRun) { Write-Output $payload; exit 0 }
 
