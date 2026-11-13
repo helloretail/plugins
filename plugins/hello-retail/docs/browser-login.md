@@ -8,7 +8,10 @@ the login is always a person's own action in a browser window.
 
 ## Backends, in order of preference
 
-1. **Playwright** — the `playwright*` servers in this plugin's `.mcp.json`. `playwright` (the
+1. **Playwright** — only in Claude Code running on the operator's own computer. In Claude chat,
+   Cowork or a cloud session there is no Playwright backend and it cannot be set up from there
+   (the shell is a sandbox, not their computer): start at 2. The `playwright*` servers are the
+   ones in this plugin's `.mcp.json`. `playwright` (the
    default) and the workers `playwright-01` … `playwright-10` run **isolated, headed** Chrome
    sessions seeded from one saved login, `~/.hr-auth.json` (`%USERPROFILE%\.hr-auth.json` on
    Windows). Every Claude Code session gets its own browser, so any number of QA runs can go in

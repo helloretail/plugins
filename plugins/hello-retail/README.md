@@ -62,7 +62,7 @@ and asks for anything missing rather than guessing.
 | | Required for |
 |---|---|
 | The `hello-retail` MCP, authorized via `/mcp` | Everything that reads or writes a design or feed |
-| A browser with a Hello Retail login | Storefront surveys, draft previews, the rendered QA passes — the `browser-login` skill sets it up; see [`docs/browser-login.md`](docs/browser-login.md) |
+| A browser with a Hello Retail login | Storefront surveys, draft previews, the rendered QA passes — the `browser-login` skill sets it up in Claude Code on your own computer (in Claude chat and Cowork it cannot: browser steps use Claude in Chrome there); see [`docs/browser-login.md`](docs/browser-login.md) |
 | Google Chrome | The Playwright servers drive the installed Chrome (Node.js and Playwright are installed by `browser-login`) |
 | Ruby | Only `newsletter-qa`'s Triggered Email render harness |
 

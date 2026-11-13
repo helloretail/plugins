@@ -17,6 +17,40 @@ description: >
 
 # Browser login — one Hello Retail login for every Playwright session
 
+## First — is this session on the operator's own computer?
+
+Everything in this skill installs programs and opens a Chrome window **on the operator's
+computer**. That works only in **Claude Code running on that computer**: the terminal CLI, the
+desktop app's Code tab on a local folder, or an IDE extension.
+
+It cannot work where your shell is a sandbox or a remote machine: **Claude chat** (claude.ai and
+the desktop app's Chat), **Cowork**, and Claude Code sessions that run in the cloud. There a
+script installs into the sandbox, not onto their computer, nothing it installs outlives the
+session, no window can open on their screen, and the `playwright*` servers never start.
+
+You are in such a session when **no `playwright*` server is listed at all** — not even as
+failed — and one of these holds: you have no shell tool, or `check-hr-auth` prints a `Machine:`
+line whose home folder is not the operator's own.
+
+Then **stop this skill and say so plainly**, for example: "I can't set up the Playwright
+browsers from here — this session runs in a sandbox, not on your computer." Do not run
+`setup-hr-browsers`, `refresh-hr-auth` or the PowerShell script, and do not ask the operator to
+run them: an install on their computer gives this session no browser. Instead:
+
+1. **Claude in Chrome is available** (`mcp__claude-in-chrome__*` tools) → use it. It drives the
+   operator's own Chrome. Run the login check from `${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md`
+   there; logged out → ask the operator to log in to my.helloretail.com in their Chrome and to
+   tell you when they are done.
+2. **No browser tool at all** → carry on with everything that needs no browser (all reads and
+   writes through the `hello-retail` MCP). For the browser steps follow
+   `${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md`: record rendered QA checks as **SKIPPED — no
+   browser in this session**, and for a storefront survey ask the operator to paste the rendered
+   tile HTML.
+3. Tell the operator once that the full path — parallel, logged-in Playwright browsers — needs
+   the same task opened in Claude Code on their own computer.
+
+Everything below assumes Claude Code on the operator's own computer.
+
 ## How the system works
 
 `.mcp.json` in this plugin defines twelve Playwright MCP servers, all launched from files the

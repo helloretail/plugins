@@ -12,6 +12,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 status=0
 
+# Where this is running. A home folder that is not the operator's own means a sandbox or a
+# remote machine (Claude chat, Cowork, a cloud session): the setup cannot work from there.
+echo "Machine:     $(uname -s) $(uname -m), home folder $HOME"
+
 if node_ok "$HR_NODE/bin/node"; then
   echo "Node:        $("$HR_NODE/bin/node" -v) at $HR_NODE/bin/node"
 else
