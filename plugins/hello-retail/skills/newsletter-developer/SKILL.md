@@ -58,23 +58,17 @@ reference, the inspection/verification guide, and the tile-inspection script are
 all embedded in the sections at the end of this file. You do not need to open any
 other file to follow the workflow.
 
-The only external resources are in the shared wiki, and they are optional
-conveniences rather than requirements:
+The only external resource is the shared default template in the wiki:
 
 ```
 base-templates/newsletters/
-├── newsletter-tile-default.liquid          ← the base template to start from
-├── examples/
-│   ├── homingxl-newsletter-tile.liquid     ← worked example (169,- shop: brand, unit, delivery, image labels)
-│   ├── aanhangwagendirect-newsletter-tile.liquid  ← worked example (€49,95 Inter shop: numeric rating, stock lines, sale badge, price range)
-│   └── 4sound-newsletter-tile.liquid       ← worked example (kr shop: centered, price + CTA on one row, sale-colour swap, no badge)
+└── newsletter-tile-default.liquid          ← the base template to start from
 ```
 
 Always start from the shared **default template**
 (`base-templates/newsletters/newsletter-tile-default.liquid`); ask the operator
-to connect the wiki if it isn't mounted. The worked examples show the full
-pattern end-to-end — read whichever is closest to the customer before writing.
-Everything else you need is embedded in the sections below.
+to connect the wiki if it isn't mounted. Everything else you need is embedded in
+the sections below.
 
 **Work fresh, not from memory.** Build every tile from (a) the embedded
 references in this file, (b) the shared default template, and (c) a fresh
@@ -336,15 +330,6 @@ maintain. The non-negotiable rules, briefly:
 The customer's tokens are exposed via the parameter block at the top (the
 `{# color ... #}`, `{# boolean ... #}` HR dashboard param syntax) with sensible
 `show_*` toggles, so the operator can tweak without editing markup.
-
-The worked examples in the wiki show the full pattern end-to-end:
-`base-templates/newsletters/examples/homingxl-newsletter-tile.liquid` (a `169,-`
-shop with brand, unit, delivery, image labels),
-`base-templates/newsletters/examples/aanhangwagendirect-newsletter-tile.liquid`
-(a `€49,95` Inter shop with numeric rating, stock lines, sale badge, price
-range), and `base-templates/newsletters/examples/4sound-newsletter-tile.liquid`
-(a `kr` shop with centered content, price + CTA on one row, and a sale-colour
-swap with no badge). Read whichever is closest to the customer before writing.
 
 Match the live tile's actual layout — alignment (centered vs left) and whether
 the price and CTA share a row — rather than defaulting to one arrangement.
