@@ -324,7 +324,7 @@ domain on multi-domain runs) with these sections, every entry citing author + da
   test — one report logged it as SKIPPED with a reason, a parallel report on the same account
   didn't mention it at all).
 - **Decisions** — explicit customer/CSM choices, especially deviations from native that are
-  by design ("mobile font 1.2rem, smaller than native — Anthony, Jul 7").
+  by design ("mobile font 1.2rem, smaller than native — CSM, Jul 7").
 - **Declined** — requested, investigated, turned down ("mobile filter dropdown — not possible
   with this overlay type — team member, Jul 7").
 - **Known open** — items the ticket already tracks as pending, with owner and ETA ("placement
@@ -1501,7 +1501,7 @@ this leaves uncovered**, enumerated: visual/tile parity, interactions (filters, 
 close, sliders), displayed-price correctness, box/config inventory-vs-rendered
 reconciliation. Never present a code-only pass as a full QA — a real code-only run missed 6
 of 6 manual findings on one card because every one was a rendered/interactive defect
-(campingsportmagenta, 2026-08-24 comparison).
+(2026-08-24 comparison).
 
 **Search for prior reports — don't assume you know the folder.** Report folders have been named
 after both the customer and the domain, so a same-domain report can sit in a sibling folder and

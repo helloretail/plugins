@@ -1,11 +1,11 @@
 {
   "name": "hello-retail-rest-api",
   "displayName": "Hello Retail (REST API)",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "Skills and reference docs that teach AI coding assistants the intricacies and edge cases of Hello Retail's public REST APIs, for building custom frontend solutions.",
   "author": {
     "name": "Hello Retail",
-    "email": "mk@helloretail.com"
+    "email": "support@helloretail.com"
   },
   "homepage": "https://developer.helloretail.com",
   "repository": "https://github.com/helloretail/plugins",
