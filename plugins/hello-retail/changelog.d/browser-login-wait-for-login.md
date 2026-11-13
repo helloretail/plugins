@@ -5,5 +5,5 @@
 
 ### Changed
 
-- `browser-login` now says so when it runs where it cannot work — Claude chat, Cowork or a cloud session — instead of asking you to run a setup that would install into a sandbox. It points you to Claude in Chrome, or to opening the task in Claude Code on your own computer.
+- `browser-login` now opens the Hello Retail login window itself on a fresh machine, instead of asking you to paste a line into Terminal. You only log in. The terminal line is still printed in the one case it is needed: when the window opens without network and the page cannot load.
 - `browser-login` installs a pinned Node (checked against its SHA-256 before unpacking) and pinned Playwright versions instead of whatever is newest. An existing install is left alone; `HR_UPDATE=1` (or `-Update` on Windows) switches it to the pinned versions.

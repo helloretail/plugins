@@ -18,6 +18,8 @@
  *   1  failed (message on stderr)
  *   2  no usable login — run `login` (or `refresh` if the profile is already logged in)
  *   3  the shared profile is open in another Chrome — close it and retry
+ *   4  the login window opened but has no network, so the page cannot load. Nothing was
+ *      changed. The operator runs this script from a terminal window of their own.
  *
  * The Hello Retail session is the `auth` cookie on `.helloretail.com`. Every other cookie on
  * that domain (_ga, _csrf, g_state, Stripe, Mixpanel) is set for logged-out visitors too, so
@@ -230,11 +232,27 @@ async function login() {
   log("  • Already logged in? It closes right away.");
   log("");
 
+  // The window is useless without network, and a shell that cannot reach the internet gives
+  // the operator a dead page to stare at. Say so once, change nothing, and exit 4 so the
+  // caller can hand over the terminal route.
   const page = ctx.pages()[0] || (await ctx.newPage());
-  await page.goto(LOGIN_URL, { waitUntil: "domcontentloaded", timeout: 30000 }).catch((e) => {
-    warn(`Could not load ${LOGIN_URL}: ${e.message}`);
-    warn("If the window shows ERR_INTERNET_DISCONNECTED it was started without network — run setup-hr-browsers from your own terminal, not through Claude's shell.");
-  });
+  let loaded = false, loadError = "";
+  for (let i = 1; i <= 2 && !loaded; i++) {
+    try {
+      await page.goto(LOGIN_URL, { waitUntil: "domcontentloaded", timeout: 30000 });
+      loaded = true;
+    } catch (e) {
+      loadError = e.message.split("\n")[0];
+      if (i === 1) { warn(`Could not load ${LOGIN_URL} (${loadError}) — retrying…`); await sleep(1500); }
+    }
+  }
+  if (!loaded) {
+    warn(`This login window has no network, so ${LOGIN_URL} cannot load (${loadError}).`);
+    warn("Nothing was changed. Run this script from a terminal window of your own:");
+    warn(`  bash ${process.argv[1]}`);
+    await ctx.close().catch(() => {});
+    return 4;
+  }
 
   // While the window is open, poll COOKIES ONLY. Never call storageState() on a live headed
   // context: it opens a tab for every visited origin without a page, which steals focus from

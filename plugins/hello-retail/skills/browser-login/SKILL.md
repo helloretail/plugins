@@ -17,40 +17,6 @@ description: >
 
 # Browser login — one Hello Retail login for every Playwright session
 
-## First — is this session on the operator's own computer?
-
-Everything in this skill installs programs and opens a Chrome window **on the operator's
-computer**. That works only in **Claude Code running on that computer**: the terminal CLI, the
-desktop app's Code tab on a local folder, or an IDE extension.
-
-It cannot work where your shell is a sandbox or a remote machine: **Claude chat** (claude.ai and
-the desktop app's Chat), **Cowork**, and Claude Code sessions that run in the cloud. There a
-script installs into the sandbox, not onto their computer, nothing it installs outlives the
-session, no window can open on their screen, and the `playwright*` servers never start.
-
-You are in such a session when **no `playwright*` server is listed at all** — not even as
-failed — and one of these holds: you have no shell tool, or `check-hr-auth` prints a `Machine:`
-line whose home folder is not the operator's own.
-
-Then **stop this skill and say so plainly**, for example: "I can't set up the Playwright
-browsers from here — this session runs in a sandbox, not on your computer." Do not run
-`setup-hr-browsers`, `refresh-hr-auth` or the PowerShell script, and do not ask the operator to
-run them: an install on their computer gives this session no browser. Instead:
-
-1. **Claude in Chrome is available** (`mcp__claude-in-chrome__*` tools) → use it. It drives the
-   operator's own Chrome. Run the login check from `${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md`
-   there; logged out → ask the operator to log in to my.helloretail.com in their Chrome and to
-   tell you when they are done.
-2. **No browser tool at all** → carry on with everything that needs no browser (all reads and
-   writes through the `hello-retail` MCP). For the browser steps follow
-   `${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md`: record rendered QA checks as **SKIPPED — no
-   browser in this session**, and for a storefront survey ask the operator to paste the rendered
-   tile HTML.
-3. Tell the operator once that the full path — parallel, logged-in Playwright browsers — needs
-   the same task opened in Claude Code on their own computer.
-
-Everything below assumes Claude Code on the operator's own computer.
-
 ## How the system works
 
 `.mcp.json` in this plugin defines twelve Playwright MCP servers, all launched from files the
@@ -84,7 +50,7 @@ Until the setup has run once, the twelve servers show as failed in `/mcp` — ex
 |---|---|---|
 | `check-hr-auth` | Claude | Reports install state, the installed Playwright versions, and whether `~/.hr-auth.json` holds a live session. No browser, no network, changes nothing. |
 | `refresh-hr-auth` | Claude | Copies the login out of the shared profile into `~/.hr-auth.json`, headless. Works without network; with network it also asks Hello Retail whether the session is still accepted. Exit 2: profile logged out, or its session was ended server-side. Exit 3: another Chrome holds the profile. |
-| `setup-hr-browsers` | **the operator, in their own terminal** (macOS/Linux/WSL) | Installs the pinned Node + Playwright if missing, opens the login window on the shared profile, saves the session. The window has **no time limit**: it stays open until Hello Retail accepts the login. `HR_UPDATE=1` reinstalls Playwright at the pinned versions (close Claude Code first). |
+| `setup-hr-browsers` | **Claude, as a background command** (macOS/Linux/WSL) | Installs the pinned Node + Playwright if missing, opens the login window on the shared profile, saves the session. The window has **no time limit**: it stays open until Hello Retail accepts the login. Exit 3: the profile is held by another Chrome. Exit 4: the window had no network — the one case the operator runs it themselves. `HR_UPDATE=1` reinstalls Playwright at the pinned versions (close Claude Code first). |
 | `setup-hr-browsers.ps1` | Claude, inline (native Windows) | Same as above for Windows; see `references/windows.md`. |
 
 All scripts are idempotent. A failed run never overwrites a valid `~/.hr-auth.json`.
@@ -114,9 +80,12 @@ bash "<skill-base-dir>/scripts/refresh-hr-auth"
 
 ### 3. Log in — the operator's own action, in a window they can see
 
+**Claude opens the window; the operator only logs in.** Never send them to a terminal as the
+first move, and never ask for or type credentials. Both routes below end in the same place: a
+headed Chrome on the shared profile, which the operator signs in to themselves.
+
 **Tell the operator first** what will happen: a Chrome window opens at my.helloretail.com, they
-log in with Google SSO themselves, in their own time, and the window closes once the login is
-confirmed. Never ask for or type credentials.
+log in with Google SSO in their own time, and the window closes once the login is confirmed.
 
 **There is no time limit on the login.** The window is never closed, reloaded or navigated
 while the operator may still be logging in — not after five seconds, not after a failed check.
@@ -132,10 +101,10 @@ the URL the page ended on — nothing else:
 Nothing under `/company/…` or `/supervisor/…` is ever read or screenshotted; this probe of the
 root URL is the only sanctioned my.helloretail.com navigation.
 
-Pick the route:
+The route depends on what is installed, not on who runs it:
 
-- **The playwright servers are already connected (installed machine)** — use the
-  `playwright-profile` server from this session.
+- **A `playwright*` server exposes tools (installed machine)** — drive `playwright-profile`
+  from this session.
   1. `browser_navigate` to `https://my.helloretail.com/`. A headed Chrome opens on the shared
      profile. Already **logged in** → go to 4.
   2. **Logged out** → ask the operator to log in in that window and to tell you when they are
@@ -150,18 +119,28 @@ Pick the route:
      `refresh-hr-auth` (step 2). Always close before leaving this step.
 
   If `browser_navigate` fails with "Browser is already in use", another session holds the
-  profile — use the terminal route instead.
-- **Fresh machine, or the servers are not connected** — the operator runs the setup in their
-  own terminal (a browser started from Claude's sandboxed shell on macOS has no network):
+  profile — use the script route below instead.
+- **No `playwright*` tools (fresh machine, or the servers never connected)** — there is no
+  server to drive yet, so **Claude runs the setup itself**, which installs what is missing and
+  then opens the same window:
 
   ```bash
   bash "<skill-base-dir>/scripts/setup-hr-browsers"
   ```
 
-  On **native Windows** Claude runs the PowerShell twin inline (the window opens on the
-  operator's desktop with network) — see `references/windows.md`. The script waits for the
-  operator with no time limit; wait for the line
-  `Saved N Hello Retail cookies to ~/.hr-auth.json — session auth cookie present`.
+  Run it as a **background** command (`run_in_background: true`): it waits for the operator
+  with no time limit, so a foreground call would time out. Say that the window is opening and
+  that they should log in there, then end your turn — the task reports back when they are done.
+  Read its exit code:
+
+  | Exit | What it means | What to do |
+  |---|---|---|
+  | 0 | `Saved N Hello Retail cookies to ~/.hr-auth.json` | Go to step 4 |
+  | 3 | Another Chrome holds the shared profile | `browser_close` on `playwright-profile` if this session holds it, or ask the operator to quit that window; re-run |
+  | 4 | The window opened but had no network, so the page never loaded. Nothing was changed | **Only now** hand the operator the line to run in a terminal window of their own — the script prints the exact one. Wait for them to say it finished, then go to step 4 |
+
+  On **native Windows** Claude runs the PowerShell twin the same way — see
+  `references/windows.md`.
 
 ### 4. Make the running sessions pick the login up
 
