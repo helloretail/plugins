@@ -70,7 +70,9 @@ settings from memory or from this file.
 ### Page configs — the individual pages
 
 A design is the template; a **page config** is one page built on it. Same draft rules:
-every write lands in DRAFT and a human publishes in My Hello Retail.
+every write lands in DRAFT and a human publishes in My Hello Retail. Same approval rule
+too: before any `pages_updateConfig*` write, show current → new and wait for the `Push`
+answer (`${CLAUDE_PLUGIN_ROOT}/docs/design-writes.md` → *Settings that are written as whole lists*).
 
 - `pages_listConfigs` / `pages_getConfig` — the website's pages and one page's core
   settings (name, design key, `showOutOfStockProducts`, `productScoreBoost`). ALWAYS
@@ -336,7 +338,9 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
     still holds; report the leaking design and its selectors in the hand-off.
 
 5. **Filters & sorting.** Read the current facets with `pages_getDesignFilters` /
-   `pages_getDesignSorting`, then write with `pages_updateDesignFilters` /
+   `pages_getDesignSorting`, show the operator current → new for each facet and wait for
+   the `Push` answer (`${CLAUDE_PLUGIN_ROOT}/docs/design-writes.md` → *Settings that are
+   written as whole lists*), then write with `pages_updateDesignFilters` /
    `pages_updateDesignSorting` — enable the flag only when configuring real settings,
    and remember the settings list is a **full replacement** (send back the complete
    set). Every filter/sorting entry maps a REAL field — verify with
@@ -387,7 +391,14 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    `active_filter` stops the design re-opening the dropdown on the next refresh. Verify it
    in the browser during step 7: open a filter, click the product grid → closed; open the
    sorting dropdown, click elsewhere → closed; clicking inside an open dropdown keeps it open.
-6. **Write EXACTLY.** `pages_updateDesign` with ONLY the template fields you changed
+6. **Show the diff, get the go-ahead, then write EXACTLY.** Before every
+   `pages_updateDesign` — the first write and every later fix round — show a diff of just
+   the regions you changed, labelled by field (`templateHtml`, `templateCss`,
+   `templateJs`), against the last verified copy, and ask the `Push` gate: *Push as
+   draft* / *Don't push*, *Other* for changes, neither recommended
+   (`${CLAUDE_PLUGIN_ROOT}/docs/design-writes.md` → *The sequence*, steps 4–5). *Don't push* ends
+   without a write; *Other* carries a change — make it, show the new diff, ask again.
+   On *Push as draft*, call `pages_updateDesign` with ONLY the template fields you changed
    (filter/sorting facets go through their own update tools per step 5). Then
    **read-back verify**: `pages_getDesign` (and the facet reads, if written) again and
    compare each written field byte-for-byte (whitespace-tolerant at most). A claimed
@@ -449,10 +460,12 @@ The caller (the customer's backend or frontend) requests `/serve/pages/{key}` wi
 2. **Index every field the caller filters or sorts on.** Design filters, sorting and the
    caller's `params.filters` only work on fields with `searchIndexed: true`
    (`dataFields_getProductFields`). Turn on every `ALLOWED` field that is needed in ONE
-   `dataFields_updateProductFieldsIndexing` call — any change schedules a full re-index.
+   `dataFields_updateProductFieldsIndexing` call — any change schedules a full re-index,
+   so list the fields you will turn on and wait for the operator's go-ahead first.
    The platform's wiki page may fix the set (e.g. a platform whose storefront maps
    numeric ids to labels: index every `*_id` field).
-3. **Filters & sorting.** Write them as in Step 5 (full replacement, read back).
+3. **Filters & sorting.** Write them as in Step 5 (current → new and the `Push` answer
+   first, full replacement, read back).
    - **Filters:** the platform convention or the operator's list — never filters of your
      own choosing. Titles follow the platform page when it sets them (the caller may key
      on the title).
@@ -460,7 +473,8 @@ The caller (the customer's backend or frontend) requests `/serve/pages/{key}` wi
      the live category page), e.g. lowest/highest price → `price`, newest/oldest → the
      feed's product date (`extraData.createdAt` or equivalent; `created` only when there
      is none — Step 5).
-4. **Page config — no product conditions by default.** A caller that scopes the page
+4. **Page config — no product conditions by default.** Show current → new and wait for the
+   `Push` answer before the config is written (*Page configs*). A caller that scopes the page
    itself sends the field it needs in `params.filters`; that works on any indexed field
    without a matching INPUT filter. So:
    - leave `productFilters` empty;
@@ -507,9 +521,10 @@ bootstrap) are in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/pages/general.md
 - Extend, never rewrite: foundation survives byte-identical outside sanctioned edits.
 - Comments you add: one short line, only where the code isn't obvious ("doing X because Y").
   `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Comments in the code you add*.
-- Read-back verify every write; 3 strikes → NOT applied. The shared write rules (read first,
-  the spilled payload, changed fields only, raw fields, whole lists sent back in full):
-  `${CLAUDE_PLUGIN_ROOT}/docs/design-writes.md` — its diff and `Push` gate are not part of the Pages flow.
+- No write without the operator's go-ahead: a diff of the changed regions before every
+  `pages_updateDesign`, current → new before every facet, config or indexing write, then the
+  `Push` answer (steps 5 and 6). Read-back verify every write; 3 strikes → NOT applied. The
+  shared sequence: `${CLAUDE_PLUGIN_ROOT}/docs/design-writes.md`.
 - Tile body verbatim from the tile skill; no invented classes; no Hello Retail class inside
   the tile; no `hr-product` boilerplate where the design's own wrapper differs. A difference
   after the push is a tile fix, a hook or a restated theme rule — never CSS that re-creates the look.

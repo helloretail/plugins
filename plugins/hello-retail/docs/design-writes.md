@@ -3,20 +3,14 @@
 **The rule: nothing reaches a customer's configuration until the operator has seen the diff and
 said yes, and what is written is always a draft that the operator publishes in the dashboard.**
 
-Shared by `search-developer` (`search_updateDesign`) and `recom-developer`
-(`recoms_updateDesign`), and by their settings writes (filters, sorting, algorithm, placement,
-crawl config). The tool names, the fields and what each product adds are in the skill's own
-steps and its `references/mcp-flow.md`.
+Shared by `search-developer` (`search_updateDesign`), `recom-developer`
+(`recoms_updateDesign`) and `pages-developer` (`pages_updateDesign`), and by their settings
+writes (filters, sorting, algorithm, placement, crawl config, page configs, field indexing). The
+tool names, the fields and what each product adds are in the skill's own steps and, where it
+has one, its `references/mcp-flow.md`.
 
-Two skills follow only part of it:
-
-- `pages-developer` (`pages_updateDesign`) writes its drafts without a diff, a `Push` gate or
-  any other go-ahead: wherever this file says to show a diff or wait for an answer, Pages
-  follows its own workflow instead. The rest applies to it: read first, the spilled payload,
-  changed fields only, raw fields, the read-back, whole lists sent back in full, and no
-  publish, archive or delete.
-- `newsletter-developer` is different altogether — an edit lands in place, with no draft — and
-  has its own write rules.
+`newsletter-developer` is different — an edit lands in place, with no draft — and has its own
+write rules.
 
 ## The sequence
 
