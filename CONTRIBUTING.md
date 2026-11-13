@@ -37,7 +37,7 @@ plugins/<plugin-name>/
   "name": "<plugin-name>",
   "version": "0.1.0",
   "description": "What it does and who it is for — at least one full sentence.",
-  "author": { "name": "Hello Retail D&TS", "email": "pa@helloretail.com" },
+  "author": { "name": "Hello Retail D&TS", "email": "support@helloretail.com" },
   "repository": "https://github.com/helloretail/plugins",
   "license": "MIT"
 }
