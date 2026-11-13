@@ -93,8 +93,8 @@ ones that apply — no `##` heading, no title, no prose outside a bullet:
 different for the person using it. Two sentences at most; add a second only when the reader has
 to do something differently.
 
-**Write for whoever installs the plugin** — a Hello Retail colleague who runs the skills, not a
-reviewer reading the diff. So:
+**Write for whoever installs the plugin** — a customer or a Hello Retail colleague who runs the
+skills, not a reviewer reading the diff. So:
 
 - Name the skill, never the file path: `search-qa`, not
   `skills/search-qa/references/pages.md`.
