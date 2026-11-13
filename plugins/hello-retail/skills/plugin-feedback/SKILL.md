@@ -112,6 +112,12 @@ kept waiting. Pick the first row that fits:
 | Only `PowerShell` (Windows without Git Bash) | `send-feedback.ps1`, report piped in — second block below |
 | No shell tool at all (some Claude chat and Cowork sessions) | Skip to Step 4, *Not sent* |
 
+**Run the script whenever one of the first two rows fits, and read its one line of output before
+you write anything in Step 4.** Only the third row reaches *Not sent* without a run. A blocked
+network, a sandbox you expect to fail, or a report you think is too long are not reasons to skip
+the call: the script decides that and says so. If you did not run it, you do not yet know the
+outcome.
+
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/skills/plugin-feedback/scripts/send-feedback.sh" <<'REPORT'
 TOPIC: recom-developer - no tool to set a box's algorithm
@@ -139,13 +145,15 @@ The script printed `sent` → say "Sent to the plugin team — thanks." Nothing 
 
 ### Not sent
 
-Anything else is *Not sent*: no shell tool, the script printed `saved to …`, or the shell runs in a
-sandbox that blocks outbound calls — Claude chat (claude.ai and the desktop app's Chat), Cowork,
-or any other place the call could not go through. The operator then adds the report by hand, so
-give them everything to paste, in exactly this shape:
+Anything else is *Not sent*: no shell tool, or the script printed `saved to …` — which is what a
+sandbox that blocks outbound calls produces, in Claude chat (claude.ai and the desktop app's Chat),
+Cowork, or anywhere else the call could not go through. The operator then adds the report by hand,
+so give them everything to paste. Write the message exactly as below — the same sentence, the two
+field names, the two boxes, nothing moved and nothing reworded. The operator copies one box at a
+time, so no box ever holds the sentence or a field name:
 
 ````markdown
-Couldn't send this automatically. Please add it to the [feedback form](https://forms.clickup.com/2515745/f/2crt1-44615/XOMFWZK3ADDFQ3I7NX) — two fields, copy each block into its field:
+Couldn't send this automatically. Please add it to the [feedback form](https://forms.clickup.com/2515745/f/2crt1-44615/XOMFWZK3ADDFQ3I7NX) — two fields. Copy each box on its own, and only what is inside it:
 
 **Topic of feedback**
 
@@ -160,9 +168,9 @@ Couldn't send this automatically. Please add it to the [feedback form](https://f
 ```
 ````
 
-When the script saved a file on the operator's own machine (Claude Code), add one line after the
-blocks: "A copy is saved at `<path>`." Inside a sandbox, leave that line out — the operator cannot
-open that path.
+When the script printed `saved to <path>`, add that one line after the blocks: "A copy is saved at
+`<path>`." Leave it out only where there is no such path: no shell tool at all, or a sandbox whose
+filesystem the operator cannot reach.
 
 Say nothing about the tool behind the form. Ask nothing more about it this session.
 
