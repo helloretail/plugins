@@ -275,8 +275,8 @@ finding — rewrite the condition locally and continue.
 ## Part D — "Similar to the customer's tile" comparison [N+T]
 
 Reference: **one native product tile from the customer's category page**, ideally the **same
-product** as a rendered fixture, captured as a real screenshot file plus `tile_inspect.js`
-tokens. The bar is *"looks like it was lifted off the category page"*, not pixel parity. Grade
+product** as a rendered fixture, captured as a real screenshot file plus the inspect script's
+tokens (`${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspect.js`). The bar is *"looks like it was lifted off the category page"*, not pixel parity. Grade
 each dimension MATCH / SIMILAR / DIFFERENT; only the **strict** rows can FAIL.
 
 | Dimension | Strict? | Grade rule |

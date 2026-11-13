@@ -37,18 +37,7 @@ For every customer, you'll do some subset of these:
 
 ## The fields you have on `product`
 
-| Field | Notes |
-| --- | --- |
-| `product.title` | Always present |
-| `product.url` | Product detail link |
-| `product.imgUrl` | Primary image |
-| `product.price`, `product.oldPrice`, `product.currency` | Format with `\| price` + `\| currencySymbol` or the one-shot `\| priceWithCurrency: product.currency` — the two are equivalent; pick whichever reproduces the customer's format. Don't hand-roll `\| replace: ",00", ""`. |
-| `product.isOnSale` | Boolean — drives the sale-price branch |
-| `product.isBanner`, `product.bannerImages.<SIZE>.url` | Retail Media slot |
-| `product.brand`, `product.productNumber`, `product.description`, `product.inStock` | Standard catalog fields |
-| `product.extraData.<key>`, `product.extraDataList.<key>` | Custom attributes from the feed — e.g. size, color, material, swatches |
-
-Full field list at [Website's Indexed product fields](https://support.helloretail.com/general-setup/websites-indexed-product-fields/). For price formatting, use an HR price filter — `{{ product.price | price }} {{ product.currency | currencySymbol }}` and `{{ product.price | priceWithCurrency: product.currency }}` are equivalent (both apply the dashboard's price format, decimals included; neither is preferred) — and don't hand-roll regex on the price string.
+The standard fields (`title`, `url`, `imgUrl`, `brand`, `price`, `oldPrice`, `currency`, `isOnSale`, `inStock`, `productNumber`, `description`, the banner fields and `extraData` / `extraDataList`) are listed once, for every template type: [Liquid — General → The standard fields on `product`](../cheat-sheets/liquid/general.md). For price formatting, use an HR price filter and don't hand-roll `replace` or regex on the price string: [Liquid — Prices](../cheat-sheets/liquid/price-formatting.md).
 
 ## Pre-launch checklist
 

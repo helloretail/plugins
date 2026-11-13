@@ -132,6 +132,8 @@ Some requests can't be done additively — the base rule is `!important`, the re
 3. **Offer the additive alternative** you'd otherwise ship, and what it compromises.
 4. **Wait for an explicit go-ahead.** No answer → ship the additive version and flag the limitation in MISSING DATA.
 
+The developer skills ask step 4 as a multiple-choice question — `AskUserQuestion`, header `Foundation`: *Use the additive alternative* / *Alter the named base rule*, neither marked as recommended, because the choice is the operator's.
+
 Edits already sanctioned by a skill (documented in its `references/`) don't need this — they *are* the approved deviations, e.g. Search's reset-block removal, TILE FILL rule, `product_tile_width` match, gutter-padding strip, `text-align` removal, fixed-column grid override, and the self-contained tile CSS block on CSS-in-JS storefronts. Everything outside those lists needs approval.
 
 ## Self-check before you show the diff

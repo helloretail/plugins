@@ -54,7 +54,41 @@ If the operator cannot log in, run the pass anyway and record every widget-gated
 Run the **first-load popup sweep** from `../skills/qa-checklists/SKILL.md`: accept the
 cookie/consent banner by clicking its real button (declining or deleting the overlay leaves Hello
 Retail blocked and looks like a broken implementation), close newsletter and discount popups
-without entering anything, and answer region pickers with the market under work.
+without entering anything, and answer region pickers with the market under work — then check the
+URL did not redirect. Prices, lazy images and Hello Retail itself are often consent-gated, so a
+banner that was swept away without an answer gives a wrong reading of the page. The `playwright`
+server and its workers run isolated sessions, so the sweep is repeated in every new session;
+only `playwright-profile` and Claude in Chrome remember the answers.
+
+## Surveying a storefront
+
+**A storefront is read in a real browser, always.** Tiles, prices, sale and stock states,
+swatches and add-to-cart forms are rendered by JavaScript that a plain HTTP fetch never runs.
+
+- **Never `WebFetch`, `curl` or any other HTTP client** for a storefront page. They return the
+  pre-render skeleton: a tile with blank prices, missing states or the wrong DOM.
+- **Backend:** Playwright first, Claude in Chrome when no `playwright*` worker exposes tools
+  (the order above). The same in every skill.
+
+| Task | Playwright | Claude in Chrome |
+|---|---|---|
+| Load a page | `browser_navigate` | `navigate` |
+| Read the rendered DOM | `browser_snapshot` | `get_page_text` / `read_page` |
+| Locate elements | `browser_snapshot` / `browser_evaluate` | `find` |
+| Run a snippet | `browser_evaluate` | `javascript_tool` (needs the `tabId`; blocks output that contains URLs) |
+| Hover | `browser_hover` | `computer` |
+| Real (trusted) click | `browser_click` | `computer` |
+| Mobile viewport | `browser_resize` to a real mobile size | ask the operator to open the device **Emulator** — never resize that browser window |
+
+- **The reference is the shop's own product grid** — the paginated category grid. Never a
+  third-party recommendation widget, and never a tile inside a Hello Retail box (`.aw-item`,
+  `[data-aw_source]`, `#aw-box-…`).
+- **Neither browser is connected** → do not fetch the page yourself. Ask the operator to enable
+  one (Playwright: the one-time `browser-login` setup; Claude in Chrome: the extension), or to
+  paste the rendered tile HTML from DevTools — one full product card, and ideally a sale and a
+  sold-out one.
+- **Only the customer's public storefront is driven.** No page under my.helloretail.com, apart
+  from the login check above.
 
 ## Close the browser when the work is done
 

@@ -70,7 +70,9 @@ settings from memory or from this file.
 ### Page configs — the individual pages
 
 A design is the template; a **page config** is one page built on it. Same draft rules:
-every write lands in DRAFT and a human publishes in My Hello Retail.
+every write lands in DRAFT and a human publishes in My Hello Retail. Same approval rule
+too: before any `pages_updateConfig*` write, show current → new and wait for the `Push`
+answer (`${CLAUDE_PLUGIN_ROOT}/docs/design-writes.md` → *Settings that are written as whole lists*).
 
 - `pages_listConfigs` / `pages_getConfig` — the website's pages and one page's core
   settings (name, design key, `showOutOfStockProducts`, `productScoreBoost`). ALWAYS
@@ -147,37 +149,21 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Adding
    customer-specific inputs*.
 3. **Tile body.** Comes from `tile-extractor`, started as a background subagent with
-   `target surface = pages`; read its RESPONSE FORMAT sections by name (`../tile-extractor/SKILL.md`):
-   **FIDELITY** (every state PASS or fully classified before the splice — a shell-side item becomes
-   a NOTES line or a sanctioned edit, a markup item goes back to the tile skill, never into CSS),
-   **PARENT HOOKS** (container hooks for step 4; cell-level hooks onto the design's own product
-   wrapper, scope classes only), **BINDINGS** and **PARITY TABLE** (build record), **MISSING DATA**
-   and **OPEN QUESTIONS**; TEXT INPUTS is `none` for Pages — fixed texts are copied as they are.
-   Its Output Rules and `../tile-extractor/references/liquid-rules.md` are binding here too — do not
-   restate or improvise them. Splice the
+   `target surface = pages` — **read `${CLAUDE_PLUGIN_ROOT}/docs/tile-delegation.md` and follow it**: how to invoke the tile skill, the
+   recom-tile reuse check and its `Tile source` question, what to do with each section it
+   returns (FIDELITY, PARENT HOOKS, BINDINGS, PARITY TABLE, MISSING DATA, OPEN QUESTIONS), and
+   what the shell never does. For Pages: container hooks go to step 4, cell-level hooks onto the
+   design's own product wrapper (scope classes only), and TEXT INPUTS is `none` — fixed texts
+   are copied as they are. Splice the
    converted tile into the per-product slot of `templateHtml` only; keep the design's
    own product-loop wrapper element the way recom keeps `.hr-product` — that wrapper is the cell,
    so the customer's grid cell is never copied.
 
-   **Reuse a finished recom tile first.** Before starting `tile-extractor`, check
-   `recoms_list` + `recoms_listDesigns` for an editable company design that a LIVE box renders
-   with (or a REVIEW draft whose latest `recom-qa` report says ready to publish) and whose tile is
-   the customer's card. Found → ask the operator with `AskUserQuestion` (header `Tile source`:
-   *Extract from the category page (Recommended)* / *Reuse the tile from <recom design name>*).
-   The new survey is the default: no answer, or anything but a named recom design, means extract.
-   Reuse → start `tile-extractor` with `reuse: recom design <design-key>`; it confirms the tile
-   still matches the category tile or falls back to full extraction
-   (`../tile-extractor/references/reuse-recom-tile.md`). The native reference for every Pages check
-   stays the shop's own product grid — never a tile inside a Hello Retail box.
-
    **Starweb shops:** once the platform is known to be Starweb (tile-extractor's
-   PLATFORM section), ask the operator with `AskUserQuestion` (header *Prices*,
-   `multiSelect: true`): *None of these* / *Customer-unique prices* / *Several currencies* /
-   *Another price quirk* (*Other* says which) — don't assume the answer. Yes → the
-   tile's price block uses the markup in
-   `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/dynamic-price-handler.md` and the
-   design JS calls the handler once products have rendered (*Search and Pages* on that
-   page). No → prices as usual, no handler.
+   PLATFORM section), ask the *Prices* question —
+   `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/dynamic-price-handler.md` → *When to use it* has the question, its options and what each answer means. Don't
+   assume the answer. Yes → the design JS calls the handler once products have rendered
+   (*Search and Pages* on that page).
 
    **SEO microdata is part of the foundation — never remove it.** The default tile
    wrapper (`aw-infinite-search-results__item hr-product`, `itemscope`
@@ -252,60 +238,14 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    (strict parity); anything the design's rules genuinely cannot express is reported
    authoring new CSS rules.
 
-4k. **Chrome parity — the sidebar, the top bar and the sort control are the shop's too.**
-   4b/4e/4f match the grid; everything around it still renders as the base design's own
-   chrome, so the page reads as Hello Retail's even with a perfect tile. Field-proven
-   2026-09-29 on a Shopify Impact theme. Give the chrome the same measure → value-swap →
-   verify treatment, at the shop's own change points (this fixture: sidebar only ≥ 1000 px):
-
-- **Left sidebar.** Measure the shop's sidebar width and its gap to the grid (fixture
-  305 px + 32 px) and swap `.hr-filters-container` flex-basis/max-width and
-  `.hr-results-container` margin-left/flex-basis to them. **Measure it in every band where
-  the sidebar shows, not only at desktop:** walk the same width ladder as 4b (1440 → the
-  sidebar breakpoint) and record width + gap at each step. A shop often narrows the
-  sidebar before it hides it (field case 2026-10, Shopify Enterprise theme: 273 px + 32 px
-  at 1024 px, wider at desktop), and a desktop-only measurement ships the desktop width
-  into that band. Each band's values go in that band's `@media` block. Then the rows: the title row
-  (`.hr-category-page-filter-title` — the shop's "Filter by:" with the result count
-  appended, `{{ totalResults }} {{ product_title_multiple }}`, and its divider), the group
-  heading (font/weight/padding — fixture 16 px/500, 16 px top and bottom — with the
-  shop's chevron as a data-URI on `span.arrow-fix:after`, rotated in the open state via
-  `.aw-filter__single-wrapper:has(> .aw-filter-dropdown-content:not(.hr-hidden))`, since
-  the base never toggles `.rotated`), the option rows (min-height and gap — fixture 27 px
-  and 8 px — with the count right after the label, `float: none`), the checkbox
-  (`span.checkbox-span`: size, border, radius, filled state, the shop's tick as a
-  data-URI on `:after`) and the range inputs. All of it inside the existing rules'
-  values; new rules only for the icons, scoped under `.hr-filters-container`.
-- **Top-bar pills.** When the shop shows one facet as pills above the grid (sizes here),
-  pull that facet out of the sidebar loop (`{% if filter[1].name != "<field>" %}` around
-  the loop body) and render it in `sorting_container` as a pill row: a heading
-  (`h4.hr-category-page-filter__heading.hr-top-filter-title`, `pointer-events: none`), an
-  empty `div.aw-filter-dropdown-content.hr-hidden` stub, then the options as
-  `label.hr-top-filter-item` with the checkbox inside. The wrapper carries
-  `class="hr-top-filter"` and `data-filter-name` — the base's `register_filter` binds
-  `input[name^=aw-filter-]` under the heading's parent and calls `hide()` on the dropdown
-  sibling, so the stub and a class starting with `aw-filter-` on the list
-  (`aw-filter-top-list`) are what keep it from throwing. Style the pills from the shop's
-  (fixture 141×48, 16 px gap, radius 32, base/hover/selected colours, `order: -1` on
-  selected), scroll them horizontally with the shop's scrollbar, and sort them in
-  `post_insert` with `localeCompare(…, "<lang>", {numeric: true})` so "140x200" precedes
-  "160x200". Above the shop's sidebar breakpoint the sorting line becomes a two-column
-  grid (heading left, sort control right, pills spanning the second row); below it, a
-  column (sort first, heading, pills) — with `min-width: 0` on the results, sorting and
-  line containers, or the pill row widens the whole column to its scroll width.
-- **Sort control and panel.** The base heading becomes the shop's: its sort icon as a
-  data-URI `::before`, the chosen option as the label (`span.hr-sort-current`, filled in
-  `post_insert` from `.aw-sorting-tag-list > label.selected`), the chevron hidden. The
-  panel (`div.aw-sorting-dropdown-content`) takes the shop's width, right alignment,
-  border, radius, shadow and offset; option rows the shop's font, the unselected ones
-  dimmed (fixture opacity .7), the selected one full with the shop's check icon on
-  `span.checkbox-span:after`.
-- **Verify by computed style, not by screenshot**, at the shop's desktop, at every width
-  where its sidebar width changes, and both sides of its sidebar breakpoint (fixture
-  1440 / 999 / 390): sidebar width and gap, title and
-  heading font, option row pitch, checkbox size, pill size and gap, sort weight and panel
-  width, and the vertical rhythm heading → pills → grid (fixture 16 px and 48 px). A 10 px
-  spacing difference is invisible by eye and obvious in numbers.
+4k. **Chrome parity — the sidebar, the top bar and the sort control are the shop's too.** 4b/4e/4f
+    match the grid; everything around it still renders as the base design's own chrome, so the page
+    reads as Hello Retail's even with a perfect tile. Read `references/chrome-parity.md` → *Chrome parity* first, then give
+    the left sidebar (in every band where it shows), the top-bar pills, and the sort control and its
+    panel the same measure → value-swap → verify treatment, at the shop's own change points.
+    **Done when** the numbers match by computed style, not by screenshot — at the shop's desktop
+    width, at every width where its sidebar width changes, and on both sides of its sidebar
+    breakpoint.
 
 4c. **Tile hover — capture the MECHANISM, never guard blindly.** Two harness-proven
    facts (fixture, 2026-08-18):
@@ -332,212 +272,29 @@ hierarchies use the `$`-separated encoding (`kids$shoes` = Kids > Shoes).
    from the measured price skeleton (`kr##.##` → "kr", before; `##,## €` → "€",
    after). A € price slider on a kr shop was an operator-reported dropdown defect.
 
-4g. **Pagination chrome parity — the base pagination is not the shop's.** Field-proven
-   2026-09-29: the default `templateCss` ships a fixed 45px button height, a blue `#337ab7`
-   active page, a 2px gap, and no rule at all for the prev/next `.direction-links` buttons,
-   which therefore render as bare browser buttons; because those two hold only a 17px SVG
-   they also come out shorter than the number buttons. Whenever the design paginates
-   (`paginated = true`, or the operator asked for numbered pages), restyle it to the shop:
+4g. **Pagination chrome parity — the base pagination is not the shop's.** Whenever the design
+    paginates (`paginated = true`, or the operator asked for numbered pages), restyle it after the
+    shop's own pagination and apply the three one-line fixes to the base pagination handlers:
+    `references/pagination.md` → *Pagination chrome parity*. **Done when** (step 7) every visible button, arrows
+    included, has the same rendered height and top edge at 1440 and 375px; the active page uses the
+    shop's active colour; the row is centred and fits a phone width; and prev, next and a reload each
+    leave exactly one active page, on the page the products show.
 
-- **Reference, in this order.** (1) The shop's own pagination on the category page —
-  measure it like any other chrome (link/active/hover/disabled colours, border, radius,
-  padding, font, gap). (2) The shop has none (single page, "load more", infinite scroll):
-  use the theme's own pagination rules instead — scan the linked stylesheets for
-  `.pagination` / `.page-link` / `.page-item` selectors, and read the framework's
-  pagination variables from a temporary `<ul class="pagination">` element the survey
-  appends and removes (Bootstrap 5 exposes `--bs-pagination-*` on it). Never keep HR's
-  defaults, never invent a palette; the design's own injected CSS is not a reference.
-- **Write.** Value-swap the base pagination block (`gap`, `height`, the `.active` colours)
-  and add the measured declarations as rules scoped to `.hr-pagination-container`, always
-  for `.page-link` **and** `.direction-links` together: padding, font, colour, background,
-  border, the joined `-1px` overlap, end radii on the first/last item, hover, focus and
-  active. Give both button kinds the same fixed `height` — the number buttons' rendered
-  height (text line + padding + border) — so the SVG-only arrows cannot end up shorter.
-- **JS — three one-line fixes to the base pagination handlers**, on every paginated build:
-  (1) the declaration becomes `var current_page = parseInt(options.get_pagination(), 10) || 1;`
-  — the page is read back from the `hr-page` URL state, and `current_page += 1` on a text
-  value concatenates (`"3"` → `"31"`); (2) the `#prev-page` handler clears `active` from the
-  page it leaves, as the `#next-page` handler already does — without it two pages show as
-  active after a prev click; (3) the `.page-link`, `#prev-page` and `#next-page` click
-  handlers each start with `if (options.loading) { return; }` — `load_more()` ignores a
-  click while a request runs, but the handler has already moved `current_page`, so two
-  quick clicks leave the active page one off from the products shown. The prev handler
-  after the edits:
+4h. **Numbered pagination with ellipsis — opt-in, when the operator asks for it** (`1 2 3 … 20`
+    instead of the base's sliding window of five neighbours). Build it from `references/pagination.md` →
+    *Numbered pagination with ellipsis*. **Done when**, by clicking on-site and not by reading the
+    code — page 1, next several times, a middle page, the last page, prev twice, back to 1 — there is
+    exactly one active page at each step, a `…` only where two or more pages are skipped, arrows
+    hidden at the ends, one row of equal-height cells at 1440 and 375 px, and a reload on a middle
+    page shows the same window.
 
-  ```javascript
-  prevPageLink.addEventListener("click", function() {
-  	if (options.loading) {
-  		return;
-  	}
-  	if (current_page > 1) {
-  		pagination_container.querySelector("#page-link-" + current_page)?.classList.remove("active");
-  		current_page -= 1
-  		options.start = (current_page - 1) * 24
-  		load_more();
-  	}
-  })
-  ```
-
-- **Verify on-site** (step 7): every visible button, arrows included, has the same
-  rendered height and top edge at 1440 and 375px; the active page uses the shop's active
-  colour; the row is centred and does not overflow a phone width. Then click: prev from
-  page 3 leaves exactly one active page; two quick clicks on next land on the page the
-  products show; a reload on page 3 keeps page 3 active and next goes to 4.
-
-4h. **Numbered pagination with ellipsis — opt-in, when the operator asks for it.** Some shops
-   want `1 2 3 … 20` instead of the base's sliding window of five neighbours. Field-proven
-   2026-09-30. The behaviour: page 1 and the last page always shown, the current page ±
-   `paginations_per_side` (the existing JS number, default 2) around it, a `…` cell only where
-   two or more pages are skipped — a single skipped page shows as its number, since the `…`
-   would take the same space (`‹ 1 2 3 4 [5]`, not `‹ 1 … 3 4 [5]`) — prev hidden on page 1
-   and next hidden on the last page — e.g. `‹ 1 … 8 9 [10] 11 12 … 20 ›`. Liquid still
-   renders every page item; the JS only toggles which are visible, so no extra requests.
-   Apply step 4g's three handler fixes first, then three edits, value- and slot-level only:
-
-- **Liquid** — the base `{% for item in (1..totalPages) %}` loop becomes exactly this
-  (1-based; keep it — a 0-based rewrite needs an off-by-one correction for exact multiples of
-  the page size). The ellipses sit **inside** the first and last `<li>`, which are always
-  visible:
-
-  ```liquid
-  {% for item in (1..totalPages) %}
-  	<li class="page-item pagination-item" name="{{item}}">
-  		{% if item == totalPages and totalPages > 1 %}<span id="end-ellipsis" class="hr-pagination-ellipsis hr-hidden" aria-hidden="true">&hellip;</span>{% endif %}
-  		<button class="page-link" id="page-link-{{item}}" value="{{item}}">
-  			{{ item }}
-  		</button>
-  		{% if item == 1 %}<span id="start-ellipsis" class="hr-pagination-ellipsis hr-hidden" aria-hidden="true">&hellip;</span>{% endif %}
-  	</li>
-  {% endfor %}
-  ```
-
-- **JS** — replace `handle_pagination_limit()` with this function and add the
-  `toggle_visible()` helper below it. It already runs after the first render and after every
-  page load:
-
-  ```javascript
-  function handle_pagination_limit() {
-  	if (!paginated || !pagination_container) {
-  		return;
-  	}
-  	var paginations = pagination_container.querySelectorAll(".pagination-item");
-  	var total_pages = paginations.length;
-  	if (total_pages === 0) {
-  		return;
-  	}
-  	// Clamp: a stale URL can name a page that no longer exists
-  	var current = Math.min(Math.max(parseInt(current_page, 10) || 1, 1), total_pages);
-  	var first = current - paginations_per_side;
-  	var last = current + paginations_per_side;
-  	// An ellipsis that would hide a single page shows that page instead
-  	if (first === 3) {
-  		first = 2;
-  	}
-  	if (last === total_pages - 2) {
-  		last = total_pages - 1;
-  	}
-  	paginations.forEach(function(element) {
-  		var page = parseInt(element.getAttribute("name"), 10);
-  		var visible = page === 1 || page === total_pages || (page >= first && page <= last);
-  		visible ? show(element) : hide(element);
-  		var link = element.querySelector(".page-link");
-  		if (link) {
-  			link.classList.toggle("active", page === current);
-  			page === current ? link.setAttribute("aria-current", "page") : link.removeAttribute("aria-current");
-  		}
-  	});
-  	toggle_visible(pagination_container.querySelector("#start-ellipsis"), first > 2);
-  	toggle_visible(pagination_container.querySelector("#end-ellipsis"), last < total_pages - 1);
-  	toggle_visible(pagination_container.querySelector("#prev-page")?.parentElement, current > 1);
-  	toggle_visible(pagination_container.querySelector("#next-page")?.parentElement, current < total_pages);
-  }
-
-  function toggle_visible(element, visible) {
-  	if (element) {
-  		visible ? show(element) : hide(element);
-  	}
-  }
-  ```
-
-  The `active` toggle is not optional: it is the one place that sets the active page, so an
-  `active` class left behind by any handler is cleared on the next load. Compare pages as
-  numbers (`current`), never `current_page` directly: when that holds text, `===` never
-  matches and `current_page + 2` concatenates, which shows every page from the current one
-  up and hides the end `…`.
-- **CSS** (scoped to `.hr-pagination-container`, values from step 4g) — the `…` cell gets the
-  page buttons' own box: same height, border, font, `-1px` overlap, not clickable; the page
-  items become `display: inline-flex` (the base `li { display: inline }` renders the
-  whitespace between the `…` and its button as a visible gap); and at the shop's mobile band
-  shrink the cells (e.g. `min-width: 30px; padding: 6px 4px`) — a middle page is 11 cells,
-  ~400 px at desktop size, which wraps on a 375 px phone. When the shop's pagination has
-  rounded ends, a hidden arrow still counts as `:first-child` / `:last-child`, so move the
-  end radius to the first/last visible button as well:
-  `.pagination > li.hr-hidden:first-child + li > .page-link` (left) and
-  `.pagination > li:has(+ li.hr-hidden:last-child) > .page-link` (right).
-
-Verify on-site by clicking, not by reading the code: page 1, next several times, a middle page,
-the last page, prev twice, back to 1 — at each step exactly one active page, a `…` only where
-two or more pages are skipped, arrows hidden at the ends, rounded ends on the outer visible
-buttons (when the shop rounds them), one row of equal-height cells at 1440 and 375 px. Then
-reload on a middle page: the same window and one active page.
-
-4i. **"Load more" button — opt-in, the third loading mode.** The base knows two: infinite
-   scroll (`paginated = false`) and numbered pages (`paginated = true`). Some shops want the
-   first page, then a button under the grid that appends the next page on each click, with a
-   "24 of 339 products" counter and no auto-loading on scroll — and the shop's own listing
-   usually already looks like that (a centred button after the grid, a counter, the button
-   gone once everything is shown). Field-proven 2026-09-30. Build it as a switch on top of
-   the infinite-scroll path so the base's request, append and reload-restore logic is reused:
-
-- **Liquid** — a new token section below the last base token,
-  `{# section Load more #}` with `{# text load_more_text = "Load more" #}` and
-  `{# text load_more_count_separator = "of" #}` (copy the shop's own words), and a new
-  capture rendered between `{{ product_container }}` and `{{ pagination_container }}` in
-  **both** `filter_position` branches:
-
-  ```liquid
-  {% capture load_more_container %}
-  	<div class="hr-load-more-container">
-  		<p class="hr-load-more-count"><span class="hr-load-more-shown">{{ count }}</span> {{ load_more_count_separator }} <span class="hr-load-more-total">{{ totalResults }}</span> {{ product_title_multiple }}</p>
-  		<button type="button" class="hr-load-more-button">{{ load_more_text }}</button>
-  	</div>
-  {% endcapture %}
-  ```
-
-- **JS** — `/* boolean */ var load_more_button = true;` next to `paginated` (which stays
-  `false`), and `var page_size = 24;` under it — the base has no page-size variable, it
-  hard-codes `24` (use the number the base you read hard-codes; without the declaration the
-  first click throws a ReferenceError). Then seven guarded edits, none of them a rewrite: (1) the scroll listeners are
-  registered only `if (!paginated && !load_more_button)`; (2) the same guard on the viewport
-  check in `load_more()`; (3) the auto-fill `if (options.hasMore) load_more()` at the end of
-  `insert_results` becomes `options.hasMore && !load_more_button`; (3b) the placeholder
-  guard at the top of `insert_results` becomes
-  `if (!options.hasMore || paginated || load_more_button) hide(options.placeholder)` — the
-  animated loader image is infinite scroll's "more is coming" cue; left in place it sits
-  under the button as a stray row of dots (operator-reported); (4) on the first batch,
-  `load_more_container = page_container.querySelector(".hr-load-more-container")` — remove it
-  when `paginated || !load_more_button` (the way the base removes the pagination container
-  in infinite mode), otherwise bind its button:
-  `options.count = page_size; load_more(true);`; (5) call `update_load_more(productsTotal)`
-  right after `post_insert(is_first_batch)`; (6) add that function: it writes
-  `Math.min(options.start, total)` into `.hr-load-more-shown`, the total into
-  `.hr-load-more-total`, and shows the container while `options.hasMore`, hides it otherwise.
-  The `options.count = page_size` on click is not optional: the base's reload-restore path
-  sets `options.count` to the restored remainder and never resets it, so without it every
-  click after a reload loads that remainder (48, 72 …) instead of one page.
-- **CSS** — scope everything to `.hr-pages-container` / `.hr-load-more-container`: the
-  container is a centred column with the shop's spacing under the grid; the counter takes
-  the shop's body text; the button is a value-copy of the shop's own listing button (its
-  primary/secondary button rules: padding, font, colour, background, border, radius, hover),
-  never HR defaults. Measure the shop's load-more button when it has one, its primary button
-  otherwise.
-
-Verify on-site by doing, at desktop and phone width: the first page renders with the counter
-and the button, scrolling to the bottom loads **nothing**, each click appends exactly one page
-and updates the counter and the `hr-page` URL state, a reload restores what was loaded and the
-next click still adds one page, no duplicate products across clicks, and on the last page the
-whole block disappears. Pagination must not render in this mode, and the base's loading
-image (`img[alt="loading"]`) must be hidden at every step — idle, during a click and after.
+4i. **"Load more" button — opt-in, the third loading mode** (the first page, then a button under
+    the grid that appends the next page on each click, with a counter and no auto-loading on scroll).
+    Build it from `references/pagination.md` → *"Load more" button*. **Done when** scrolling to the bottom loads
+    **nothing**, each click appends exactly one page and updates the counter and the `hr-page` URL
+    state, a reload restores what was loaded, no product repeats across clicks, the whole block
+    disappears on the last page, pagination does not render, and the base's loading image stays
+    hidden at every step.
 
 4j. **Equal-height tiles in a row — standard on every grid build.** Field-proven 2026-09-30.
    The base product container is a wrapping flex row, so every cell (the design's
@@ -566,118 +323,24 @@ image (`img[alt="loading"]`) must be hidden at every step — idle, during a cli
    page until a sale/badge tile shares a row): in every row, all cards have the same
    rendered height and none is taller than its cell, at 1440, 1024 and 375 px.
 
-4l. **Phone filter drawer — a bottom sheet, when the shop's is one.** Below the mobile
-   breakpoint the base slides `.hr-category-page-results__filter-wrapper` in from the left,
-   80 % wide, under a dark overlay, with a small round close button pinned to the page
-   corner. Most shops open a sheet from the bottom instead, with a title, a close icon and
-   a clear/apply footer. Field-proven 2026-09-30 (Shopify Impact). Measure the shop's drawer
-   open (sheet height and radius, title font, footer button sizes and colours) and build:
+4l. **Phone filter drawer — a bottom sheet, when the shop's is one.** Measure the shop's drawer
+    open, then build the sheet, its title and close, the footer and the scroll lock from
+    `references/chrome-parity.md` → *Phone filter drawer*, and state the known gap it names in the hand-off.
+    **Done when**, at the shop's phone size, the sheet's position, height and radius equal the
+    shop's; ×, apply and a tap outside each close the sheet and release the lock; clear returns the
+    full result count; and at desktop and just below the breakpoint the title, footer and × are
+    hidden and the sidebar matches step 4k unchanged.
 
-- **Sheet (CSS, inside the existing `@media (max-width: <mobile>)` block).** The wrapper
-  becomes `display: flex; flex-direction: column; top: auto; bottom: 0; left: 0; right: 0;
-  width: 100%; height: 75dvh !important` (with a `75vh` fallback), `box-sizing: border-box`,
-  the shop's padding and top radius (fixture `24px 16px 0` / `24px 24px 0 0`),
-  `overscroll-behavior: contain`, `transition: transform 0.3s ease`; the hidden state
-  (`.hr-slide-hidden … .hr-category-page-results__filter-wrapper`) is `left: 0;
-  transform: translateY(100%)` instead of the base's `left: -100%`. Drop the base's dark
-  overlay (`.hr-filters-container:not(.hr-slide-hidden) .hr-category-page-filters.hr-filters::after
-  { background-color: transparent }`) when the shop has none. Each
-  `.aw-filter__single-wrapper` gets `flex: 0 0 auto !important; width: 100% !important;
-  padding: 0`, so the column does not squash the groups.
-- **Title and close (JS in `post_insert`, first batch).** Prepend a `p.hr-drawer-title` to
-  the wrapper with the mobile filter button's own text (`.hr-mobile-filter-button`), styled
-  to the shop's drawer heading (fixture 18 px/600, 24 px below). Restyle the base's
-  `.hr-category-page-mobile-close` as the shop's × — a data-URI icon, no circle, placed at
-  the sheet's top-right corner (`top: calc(25dvh + <sheet padding>)`, `right: 16px`) with
-  a z-index above the sheet. Its click handler is the base's; leave it.
-- **Footer (JS + CSS).** Append a `div.hr-drawer-footer` with two buttons. The clear
-  button (`button.hr-drawer-clear`: the shop's outlined pill with its trash icon inline as
-  SVG, label from the design's `#clear-filters-button` text) forwards its click to that
-  base button — the base already clears filters and sorting and refreshes. The apply
-  button (`button.hr-drawer-apply`: the shop's filled pill, label from a new
-  `{# text apply_button_text #}` token plus a count `(n)` where n is
-  `page_container.querySelectorAll(".aw-search-overlay-selected-filter").length`)
-  calls `slide_out(filters_container)` and clears `active_filter`. The footer is
-  `display: flex; position: sticky; bottom: 0; flex: none; margin-top: auto` inside the
-  sheet, with the shop's gap and padding, so it sits at the sheet's bottom edge whether
-  the groups are collapsed or scrolling. At desktop `.hr-drawer-title` and
-  `.hr-drawer-footer` are `display: none` — the sidebar is untouched.
-- **Scroll lock.** `slide_in` adds the theme's own body-lock class on `<html>` (Impact:
-  `lock`; read it from the shop's open drawer) and `slide_out` removes it, guarded by a
-  flag so the design never strips a lock the theme set itself. Without it the page
-  scrolls behind the sheet.
-- **Row fixes that only bite in the sheet.** The base makes `.aw-filter-tag-count`
-  `position: absolute` and `span.aw-filter-tag-title` 80 % wide below the breakpoint, so
-  "Katoen (11)" splits to the two edges; reset both (`position: static`, `width: auto`)
-  when the shop keeps the count next to the label. Group headings take the shop's row
-  height through their padding (fixture 17 px → 58 px rows).
-- **Known gap to state in the hand-off.** The shop applies filters only on the apply
-  button; the design applies on every tick, and apply merely closes the sheet. Matching
-  that means rewriting the base's `register_filter` binding — do not; report it.
-- **Verify at the shop's phone size (fixture 390×844) by doing:** the sheet's position,
-  height and radius equal the shop's; title and × sit where the shop's do; the footer is
-  at the sheet's bottom edge with the shop's button sizes; a wheel on the page behind
-  moves nothing; × / apply / a tap outside each close the sheet and release the lock;
-  clear returns the full result count; then at desktop and just below the breakpoint the
-  title, footer and × are hidden and the sidebar matches step 4k unchanged.
-
-4m. **Cross-design CSS leaks — other HR designs' rules reach the Pages markup.** Search and
-   recom designs share class names with Pages (`.hr-products-container`, `.hr-filters-container`,
-   `.aw-filter-tag-list`, the range slider, the sort label), and their CSS is on every page,
-   not only where their own widget renders. An unscoped rule in one of them restyles the Pages
-   grid and drawer. Field-proven 2026-10 (Shopify Enterprise theme): a mobile overlay search
-   design's `.hr-products-container{display:grid;gap:8px}`, filter-label padding, absolute
-   filter counts, `.hr-filters-container` height/overflow, slider handle and labels, and a
-   white sort-label background broke the Pages tablet grid and mobile drawer below 1024 px;
-   desktop looked clean, so it was found only by measuring at 820. With the Pages draft
-   rendered, run this at **820 and 375** (and any other width where 4b/4k/4l look wrong) and
-   read every row:
-
-   ```js
-   {
-     var root = document.querySelector('[id^="helloretail-category-page-"]');
-     var out = [];
-     [...document.styleSheets].forEach(function (sheet, i) {
-       var rules; try { rules = sheet.cssRules; } catch (e) { return; }
-       // The Pages design's own stylesheet is the one that styles .hr-category-page-*
-       var own = [...rules].some(function (r) { return /hr-category-page/.test(r.cssText); });
-       (function walk(list, media) {
-         [...list].forEach(function (r) {
-           if (r.media && r.cssRules) { if (matchMedia(r.media.mediaText).matches) walk(r.cssRules, r.media.mediaText); return; }
-           if (!r.selectorText || !/\.(hr|aw)-/.test(r.selectorText)) return;
-           var hits; try { hits = root.querySelectorAll(r.selectorText).length; } catch (e) { return; }
-           if (hits) out.push({ sheet: i, own: own, owner: (sheet.ownerNode && (sheet.ownerNode.id || sheet.ownerNode.className)) || sheet.href || '-',
-             media: media || '-', selector: r.selectorText, css: r.style.cssText.slice(0, 120), hits: hits });
-         });
-       })(rules);
-     });
-     console.table(out);
-   }
-   ```
-
-   Each row is an `.hr-` / `.aw-` rule that matches an element inside the Pages container at
-   this width; `own: true` rows come from the Pages design's stylesheet, `own: false` rows from
-   any other (another HR design, or the theme reusing HR class names). A row is a leak when
-   its CSS is not in the design's `templateCss` — if every row says `own: true` but the layout
-   is still wrong, the designs share one stylesheet: compare each row's `css` with
-   `templateCss` instead. The block and `var` keep it re-runnable at each width. No leak at
-   either width → note it under the build summary. Otherwise:
-
-- **Fix on the Pages side, never in the other design** — it may be LIVE and belongs to
-  another feature. Raise the specificity of the Pages design's own rule for that element:
-  prefix its selector with the Pages container
-  (`[id^="helloretail-category-page-"] .hr-products-container`) so it outranks the
-  unscoped one. Where the design sets no value for a property the leaking rule sets,
-  add it to that same rule (under the leaking rule's `@media` condition when the leak is
-  band-specific) with the property's initial value — `display: flex` back from `grid`,
-  `position: static`, `background: transparent`, `height: auto`, `overflow: visible`.
-  Only the properties the leaking rule sets, per the CSS hard rule below.
-- Re-run the snippet and the 4b grid measurement at the same widths; the rows the
-  override covers must now resolve to the Pages values (`getComputedStyle`).
-- Report the leaking design and its selectors in the hand-off, so its owner can scope it.
+4m. **Cross-design CSS leaks — other HR designs' rules reach the Pages markup.** Search and recom
+    designs share class names with Pages, and their CSS is on every page. Run the leak check and fix
+    it **on the Pages side, never in the other design**: `references/cross-design-css.md`. **Done when** the rows the
+    override covers resolve to the Pages values (`getComputedStyle`) and the 4b grid measurement
+    still holds; report the leaking design and its selectors in the hand-off.
 
 5. **Filters & sorting.** Read the current facets with `pages_getDesignFilters` /
-   `pages_getDesignSorting`, then write with `pages_updateDesignFilters` /
+   `pages_getDesignSorting`, show the operator current → new for each facet and wait for
+   the `Push` answer (`${CLAUDE_PLUGIN_ROOT}/docs/design-writes.md` → *Settings that are
+   written as whole lists*), then write with `pages_updateDesignFilters` /
    `pages_updateDesignSorting` — enable the flag only when configuring real settings,
    and remember the settings list is a **full replacement** (send back the complete
    set). Every filter/sorting entry maps a REAL field — verify with
@@ -728,7 +391,14 @@ image (`img[alt="loading"]`) must be hidden at every step — idle, during a cli
    `active_filter` stops the design re-opening the dropdown on the next refresh. Verify it
    in the browser during step 7: open a filter, click the product grid → closed; open the
    sorting dropdown, click elsewhere → closed; clicking inside an open dropdown keeps it open.
-6. **Write EXACTLY.** `pages_updateDesign` with ONLY the template fields you changed
+6. **Show the diff, get the go-ahead, then write EXACTLY.** Before every
+   `pages_updateDesign` — the first write and every later fix round — show a diff of just
+   the regions you changed, labelled by field (`templateHtml`, `templateCss`,
+   `templateJs`), against the last verified copy, and ask the `Push` gate: *Push as
+   draft* / *Don't push*, *Other* for changes, neither recommended
+   (`${CLAUDE_PLUGIN_ROOT}/docs/design-writes.md` → *The sequence*, steps 4–5). *Don't push* ends
+   without a write; *Other* carries a change — make it, show the new diff, ask again.
+   On *Push as draft*, call `pages_updateDesign` with ONLY the template fields you changed
    (filter/sorting facets go through their own update tools per step 5). Then
    **read-back verify**: `pages_getDesign` (and the facet reads, if written) again and
    compare each written field byte-for-byte (whitespace-tolerant at most). A claimed
@@ -769,16 +439,15 @@ image (`img[alt="loading"]`) must be hidden at every step — idle, during a cli
      that shows 0 products with this div in place is a `data-filters` question (the keys
      and values it filters on), not a design fault.
 7. **Tile fidelity, by eye.** Where a native reference exists, put a rendered HR tile next to
-   the native tile of the same state at 1440 and 375 px (the FIDELITY CHECK harness in
-   `../tile-extractor/references/survey-snippets.md` works on the live page). Same → done.
-   Different → a tile problem goes back to `tile-extractor`, a hook is mirrored (step 4), a theme
-   rule that cannot reach the design is restated verbatim and rescoped — never a rule that
-   re-creates the tile's look. Then **QA.** Run the `pages-qa` skill with the checklist catalogue
+   the native tile of the same state at 1440 and 375 px and classify any difference, as
+   `${CLAUDE_PLUGIN_ROOT}/docs/tile-delegation.md` → *After the push — the same check again* says (for Pages a hook is mirrored in
+   step 4). Then **QA.** Run the `pages-qa` skill with the checklist catalogue
    (`../qa-checklists/references/pages.md`): native-reference survey first, the
    test-div browser probe from the pages cheat sheet, four widths (1440/1024/820/375),
    worst-case tiles, measured verdicts. A FAIL verdict is a successful QA run.
 8. **Hand-off record.** Run `customer-handoff` (`../customer-handoff/SKILL.md`; record mode, stage `pages`; mandatory — do not ask whether to, do not skip) so the design keys, filters/sorting decisions and any
-   workaround land in the customer's living hand-off document under `output/handoffs/` (local for now).
+   workaround land in the customer's living hand-off document under `output/handoffs/` (local for now;
+   `${CLAUDE_PLUGIN_ROOT}/docs/hand-off.md` → *The record — `customer-handoff`*).
 
 ## API (JSON) workflow
 
@@ -791,10 +460,12 @@ The caller (the customer's backend or frontend) requests `/serve/pages/{key}` wi
 2. **Index every field the caller filters or sorts on.** Design filters, sorting and the
    caller's `params.filters` only work on fields with `searchIndexed: true`
    (`dataFields_getProductFields`). Turn on every `ALLOWED` field that is needed in ONE
-   `dataFields_updateProductFieldsIndexing` call — any change schedules a full re-index.
+   `dataFields_updateProductFieldsIndexing` call — any change schedules a full re-index,
+   so list the fields you will turn on and wait for the operator's go-ahead first.
    The platform's wiki page may fix the set (e.g. a platform whose storefront maps
    numeric ids to labels: index every `*_id` field).
-3. **Filters & sorting.** Write them as in Step 5 (full replacement, read back).
+3. **Filters & sorting.** Write them as in Step 5 (current → new and the `Push` answer
+   first, full replacement, read back).
    - **Filters:** the platform convention or the operator's list — never filters of your
      own choosing. Titles follow the platform page when it sets them (the caller may key
      on the title).
@@ -802,7 +473,8 @@ The caller (the customer's backend or frontend) requests `/serve/pages/{key}` wi
      the live category page), e.g. lowest/highest price → `price`, newest/oldest → the
      feed's product date (`extraData.createdAt` or equivalent; `created` only when there
      is none — Step 5).
-4. **Page config — no product conditions by default.** A caller that scopes the page
+4. **Page config — no product conditions by default.** Show current → new and wait for the
+   `Push` answer before the config is written (*Page configs*). A caller that scopes the page
    itself sends the field it needs in `params.filters`; that works on any indexed field
    without a matching INPUT filter. So:
    - leave `productFilters` empty;
@@ -837,31 +509,35 @@ or JSON, over client-side Pages injected by the Hello Retail script — note the
 your report. REST request shapes and tracking events (page-view, click, `hello_retail_id`
 bootstrap) are in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/pages/general.md`.
 
+## Reference files — read at the step named
+
+- `references/chrome-parity.md` — step 4k (every build): the sidebar, top-bar pills and sort control; step 4l: the phone filter drawer as a bottom sheet.
+- `references/pagination.md` — step 4g (whenever the design paginates): the shop's pagination chrome and the base-handler fixes; steps 4h and 4i (only when the operator asks): numbered pages with an ellipsis, and the "load more" button.
+- `references/cross-design-css.md` — step 4m: rules from other Hello Retail designs that reach the Pages markup, and the Pages-side override.
+
 ## Hard rules recap
 
 - Draft-only; publishing is a human dashboard step. Never publish/archive/delete.
 - Extend, never rewrite: foundation survives byte-identical outside sanctioned edits.
 - Comments you add: one short line, only where the code isn't obvious ("doing X because Y").
   `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Comments in the code you add*.
-- Read-back verify every write; 3 strikes → NOT applied.
+- No write without the operator's go-ahead: a diff of the changed regions before every
+  `pages_updateDesign`, current → new before every facet, config or indexing write, then the
+  `Push` answer (steps 5 and 6). Read-back verify every write; 3 strikes → NOT applied. The
+  shared sequence: `${CLAUDE_PLUGIN_ROOT}/docs/design-writes.md`.
 - Tile body verbatim from the tile skill; no invented classes; no Hello Retail class inside
   the tile; no `hr-product` boilerplate where the design's own wrapper differs. A difference
   after the push is a tile fix, a hook or a restated theme rule — never CSS that re-creates the look.
-- Liquid you write or edit yourself follows `../tile-extractor/references/liquid-rules.md`:
-  every block tag on its own line (→ *Formatting*). Every variant branch is gated on
-  `extraData.hasVariants`, confirmed in `productData_get` first. When the field is missing,
-  stop and ask the operator to map it or name another field, and never fall back to
-  `variantProductNumbers.size` (→ *Variant conditions*).
-- Banner branch untouched, except to remove a stray `</img>` (`<img>` is void, and the closing
-  tag breaks HTML formatters).
-- CSS authoring: extend a rule that already exists before adding a second one for the same
-  selector, never re-declare a value that already holds, and put a new rule in the section that
-  already styles that element.
-  → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Writing the CSS itself*
+- Tile rules — body from the tile skill, the Liquid rules for what you write yourself (block
+  tags on their own line, the `extraData.hasVariants` gate, never `variantProductNumbers.size`),
+  prices: `${CLAUDE_PLUGIN_ROOT}/docs/tile-delegation.md` → *What the shell never does*.
+- Banner branch untouched (the one exception, a stray `</img>`: `${CLAUDE_PLUGIN_ROOT}/docs/tile-delegation.md` → *What the shell never
+  does*).
+- CSS authoring (one rule per selector, no re-declared values, the rule in the section that
+  already styles the element): `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Writing the CSS itself*
 - Settings from real fields + live tool schema — never from memory.
-- Close the browser last: when the build is handed off — and when it stops midway — call
-  `browser_close` on every `playwright*` server the build used, subagent workers included.
-  → `${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when the work is done*
+- Close the browser last, also when the build stops midway: `${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *Close the browser when
+  the work is done*
 - Integration mode first (Step 0). API-JSON: no template edits, no product conditions
   unless the operator confirms the caller always sends that field. Both asked with the
   `AskUserQuestion` picker when the prompt, the card or the widget hasn't settled them.

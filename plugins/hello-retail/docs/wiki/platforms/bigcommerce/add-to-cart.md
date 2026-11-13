@@ -14,8 +14,7 @@ derivatives, including BundleB2B-enabled B2B storefronts).
 
 ## Step 0 still applies
 
-Check natively first, per
-`${CLAUDE_PLUGIN_ROOT}/skills/search-developer/references/tile-interactivity-js.md` Step 0. On the one
+Check natively first, per [Before binding — check whether it already works](../add-to-cart.md#before-binding--check-whether-it-already-works). On the one
 BigCommerce site this was captured from, native ATC **did not** work out of the box — see *Root
 cause* below. Confirm with a real click before assuming either way.
 

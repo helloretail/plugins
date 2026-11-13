@@ -129,7 +129,8 @@ the hand-off.
   say), send just those with `recoms_updateAlgorithm`.
 - **Anything else** → create the box (if new) with the closest best-practice algorithm, then
   `recoms_getAlgorithm` → `recoms_updateAlgorithm` with the **whole** `steps` list in run order, the
-  **whole** `filters` list and `filterByGroupingKey`. Leave `number` out. For a step that was
+  **whole** `filters` list and `filterByGroupingKey`. Anything you leave out of a list you send is
+  deleted. Leave `number` out. For a step that was
   already there, send back `numberReceipts`, `skipReceipts` and `priceInfluence` as read.
 - **Refused** → the error names the step; fix it and write again, once. Still refused → tell the
   operator which part can't be built, and offer the nearest thing that can.

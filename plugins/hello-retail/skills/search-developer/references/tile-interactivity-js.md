@@ -4,55 +4,20 @@ The tile skill emits the **markup** for everything interactive (add-to-cart form
 
 **The pattern is identical for all of them:** tile emits markup → the shell defines a bind/re-init function → call it after **every** `fix_links` call-site → scoped to the overlay, idempotent. It has to live in the shell, not the tile, because only the shell knows HR's render lifecycle: `fix_links` fires on every search, filter change, and infinite-scroll append, and anything bound once at load dies the moment HR re-renders the grid.
 
-ATC is documented below because it's stable across the four known platforms. **Swatches / reviews / wishlist / custom are customer-specific** (3rd-party lib or bespoke) — don't guess them; see *Other interactivity* at the end.
+ATC is documented because it is stable per platform; what is common to every surface is in the wiki page **`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/add-to-cart.md`**. **Swatches / reviews / wishlist / custom are customer-specific** (3rd-party lib or bespoke) — don't guess them; see *Other interactivity* at the end.
 
 ## Platform inference (shell-side — for cart binding)
 
-The tile skill detects the platform during its own survey, but you also need it here to pick the right cart function. Use storefront-side signals, never feed shape:
-
-| Signal | Platform |
-|---|---|
-| Storefront URL host or image URLs match `cdn.shopify.com` / `*.myshopify.com` | Shopify |
-| Image URLs match `/media/catalog/product/cache/` | Magento |
-| Tile's ATC `<form action>` is `/cart/add` (or `/<locale>/cart/add`) | Shopify |
-| Tile's ATC `<form action>` contains `/checkout/cart/add/uenc/` | Magento |
-| `<script src="//cdn.shopify.com/s/files/...">` or `Shopify` global in `<head>` | Shopify |
-| `mage/cookies.js`, `requirejs-config.js`, `Magento_*` in `<head>` | Magento |
-| `form.buy-widget[data-add-to-cart]`, `PluginManager` global | Shopware |
-| `window.quickShop` global | Starweb |
-| Assets on `cdn11.bigcommerce.com/s-.../stencil/...`, `csrf-protection-header-*.js` in `<head>` | BigCommerce |
+The tile skill detects the platform during its own survey, but you also need it here to pick the right cart function. Storefront-side signals only, never feed shape: the table is `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/add-to-cart.md` → *Platform inference*.
 
 ## Step 0 — Check whether ATC already works natively before writing any binding code
 
-Before writing a cart function or any re-init call, verify whether the reproduced tile's native ATC markup **already works with no custom JS at all**. Two distinct mechanisms both lead to this outcome, and you don't need to tell them apart before testing — only after, if you're documenting the finding:
+**Read `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/add-to-cart.md` → *Before binding — check whether it already works*, and do it before writing a cart function or any re-init call.** In short:
 
-- **Native custom elements** (e.g. Shopify's `is="product-form"` on the `<form>`, `is="custom-button"` on the submit button) **auto-upgrade regardless of where or when the markup is inserted into the DOM** — the browser's own custom-element registry does this, not any theme code.
-- **A theme-side rebind mechanism** (commonly a `MutationObserver` watching for new matching elements, sometimes a periodic re-scan) that binds a listener to each new element and marks it with a `data-*` attribute (e.g. `data-quick-add-listener-added`) to avoid rebinding. This is ordinary theme JS, not a browser API — but it produces the same practical result: a dynamically-inserted clone gets bound automatically, with zero code from you.
-
-Either way, when it's the case, no `add_to_cart()` function, no addition at the `fix_links` call-sites, and no custom JS is needed at all.
-
-**Verify with a real click before writing any code:** after the tile is dropped into the shell (Step 7), click a rendered tile's ATC button (a real click via Playwright's `browser_click` or the Chrome MCP's `computer` tool — not a synthetic `dispatchEvent`/`.click()`, which is unreliable for this) and confirm whether the cart actually updates.
-
-- **It already works** → stop. Write no ATC JS. Note in the build report which of the two mechanisms above it relied on, if you were able to tell — otherwise just note it worked natively.
+- After the tile is dropped into the shell (Step 7), click a rendered tile's ATC button with a **real click** and see whether the cart updates.
+- **It already works** → stop. Write no ATC JS, add nothing at the `fix_links` call-sites, and note in the build report that it worked natively (and by which mechanism, if you could tell).
 - **It doesn't work** → only now proceed to *The pattern* below and define a platform-specific `add_to_cart()`.
-
-Don't assume ATC is broken just because the tile is dynamically inserted, and don't add a rebind function reflexively — for a theme using either mechanism above, an unnecessary binding is dead code at best and a double-bind or upgrade-interference risk at worst.
-
-**Never write an unconditional fallback for a mechanism you haven't confirmed exists.** A pattern like:
-
-```js
-if (window.QuickAddModal && typeof window.QuickAddModal.open === "function") {
-	window.QuickAddModal.open(url);
-} else {
-	window.location.href = url;
-}
-```
-
-only works if `window.QuickAddModal` (or whatever global/function you're checking) genuinely exists on **this** storefront. If it doesn't — and it usually doesn't unless you've confirmed it in the live page, not recalled it from a different customer's build — the `else` branch runs on **every single click**, unconditionally, regardless of what the theme's own handler would otherwise have done. This is worse than doing nothing: it actively overrides a correctly-working native mechanism.
-
-**Real case:** store-D (2026-08) — the tile's quick-add button opens the theme's own `<quick-add-drawer>` (a slide-in variant-picker drawer, not a modal). The button carried a `data-quick-add-listener-added` marker attribute — the signature of the second mechanism above (a rebind pattern that marks each button once bound, to avoid rebinding). A `window.QuickAddModal` check was written instead, copied from a different customer's pattern and never verified against this site's actual `typeof window.QuickAddModal` — which was `undefined` here. So the `else` — `window.location.href = url` — fired on every click, redirecting to the PDP instead of letting the theme's own drawer logic run. The fix was not a better fallback; it was **deleting the fallback entirely** and trusting the marker-attribute mechanism to bind the cloned button the same way it binds the theme's own — exactly the "don't add a rebind function reflexively" guidance above, just discovered the hard way.
-
-**Before writing any conditional on a global, checked function, or class-based hook:** confirm it in the live page (`typeof window.WhateverGlobal` via the browser MCP's JS execution, or inspect the actual DOM for the real binding mechanism — a marker attribute, a custom element tag, a delegated listener). If you can't identify what actually drives the native behavior, that's "undocumented and unclear" (see *Other interactivity* below) — leave it unbound and flag MISSING DATA. Don't ship a guess as an `else` branch.
+- **Never an `if (window.SomeGlobal) { … } else { … }` fallback for a global you have not confirmed on this storefront** — the `else` then runs on every click and overrides the theme's own handler. If you can't identify what drives the native behaviour, that's "undocumented and unclear" (see *Other interactivity* below): leave it unbound and flag MISSING DATA.
 
 ## The pattern
 
@@ -91,38 +56,22 @@ handle_live_update();
 
 Source of truth per platform: `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/<platform>/add-to-cart.md`.
 
-## Shopify — the copied theme form
+## Per platform — which block, and what Search adds
 
-The tile carries the theme's own `<product-form>` / `form.js-product-form`, never a Hello Retail `.hr-form` (that option was retired on 2026-09-23 — tile-extractor Output Rule 15). Step 0 first: `<product-form>` upgrades itself when the overlay inserts the tile, so on many Dawn-family themes a real click already adds to cart and you write nothing. If it does not, **cart function:** `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md` → *Binding the copied theme form* (a delegated `submit` on `form.js-product-form` posting to `/cart/add.js`, section refresh, quick-add dialog). The binding mechanics (scope to `.hr-overlay-search`, idempotent guard, call after each `fix_links`) are described above.
+The cart function is the **Search overlay** block of the platform's page, `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/<platform>/add-to-cart.md` (the documented platforms: `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/add-to-cart.md` → *Per-platform pages*). The binding mechanics — scope to `.hr-overlay-search`, idempotent guard, call after each `fix_links` — are *The pattern* above. What Search adds per platform:
 
-Confirm the **drawer event** against the customer's theme — `upcart:cart:change` (UpCart), `theme:cart:change` (Dawn-style), `cart:refresh` (Sense/custom). Wrong event = item adds but the drawer never refreshes.
+| Platform | Block to use | Search-specific |
+|---|---|---|
+| Shopify | `shopify/add-to-cart.md` → *Binding the copied theme form*; its *Notes* for the drawer event | The tile carries the theme's own `<product-form>` / `form.js-product-form`, never a Hello Retail `.hr-form`. Step 0 first: on many Dawn-family themes a real click already adds to cart and you write nothing. A wrong drawer event = the item adds but the drawer never refreshes. |
+| Magento | `magento/add-to-cart.md` → *Step 2*, the *Search overlay* block (Luma or Hyvä per its *Step 0*) | **Add `import "jquery";` at the very top of `search.js`** (it's not in the base imports). Leave the `awuenc` placeholder in the template — the function swaps it at runtime. `x-magento-init` (its *Step 3*) is the alternative to `.mage('catalogAddToCart')`: whichever the theme expects, not both. **Swatches / size filter for configurable products** are not plain ATC — handle them under *Other interactivity* below. |
+| Shopware | `shopware/add-to-cart.md` → *Search overlay* | — |
+| Starweb | `starweb/add-to-cart.md` → *Search overlay* | `quickShop.init()` re-scans the DOM, so no per-form guard is needed. |
+| BigCommerce (Stencil) | `bigcommerce/add-to-cart.md` → *The fix* → *Search overlay* | Cornerstone binds only the forms present at page load, so injected tiles are never picked up — still confirmed by a real click first (Step 0). CSRF headers are injected by the storefront itself; don't hand-roll token handling. |
+| Viskan | `viskan/add-to-cart.md` → *Binding in HR tiles* | The delegated click handler and the stepper-state sweep after every render. |
 
-## Magento — `uenc` + `form_key` injection, then `catalogAddToCart`
+DanDomain / Lightspeed and Wikinggruppen need nothing from this surface: a plain form POST, or (newest Wikinggruppen theme) the theme's own handler — `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/add-to-cart.md` → *Per-platform pages*. Never bind a second handler there; an older Wikinggruppen theme is the exception, in `wikinggruppen/README.md` → *Caveats for older themes*.
 
-Magento needs jQuery. **Add `import "jquery";` at the very top of `search.js`** (it's not in the base imports).
-
-**Cart function:** `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/magento/add-to-cart.md` → *Search overlay* block. Key rules that stay your responsibility in the shell:
-
-- `uenc` is the base64 URL-safe encoding of the current page (`+`→`-`, `/`→`_`, `=`→`,`). HR's Liquid ships the placeholder `awuenc` in the form action — **don't replace it in the template**, the function swaps it at runtime.
-- `form_key` is Magento's CSRF token; read once from `#maincontent` per render.
-- Alternative to `.mage('catalogAddToCart')`: the `x-magento-init` block in the Liquid (see `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/magento/add-to-cart.md` Step 3) — use whichever the theme expects, not both.
-- **Swatches/size-filter for configurable products** are not part of plain ATC — handle them under *Other interactivity* below (analyze → plan → discuss → execute → capture), not here. Wire plain ATC in this section.
-
-## Shopware — re-init the buy widget via PluginManager
-
-**Cart function:** `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopware/add-to-cart.md` → *Search overlay* block.
-
-## Starweb — quickShop handles binding internally
-
-**Cart function:** `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/add-to-cart.md` → *Search overlay* block. `quickShop.init()` re-scans the DOM, so it's naturally idempotent — no per-form guard needed.
-
-## BigCommerce (Stencil) — native binding is load-time-only, replicate the AJAX call
-
-**Cart function:** `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/bigcommerce/add-to-cart.md`. Cornerstone's own cart JS binds directly (not delegated) to `[data-cart-item-add-from-card]` forms present at page load, so it never picks up tiles the overlay injects later — confirmed by a real click before writing any code (per Step 0), don't assume it's broken. The fix POSTs a `FormData` of the tile's own form straight to `/remote/v1/cart/add`; CSRF headers are auto-injected by the storefront's own `csrf-protection-header-*.js` on every same-origin `fetch`, so don't hand-roll token handling.
-
-## Platform not one of these five
-
-`woocommerce`, `dandomain`, and `prestashop` aren't captured yet. Emit the ATC form Liquid (the tile skill does this), leave the cart unbound, and add a **MISSING DATA** line: `ATC JS not wired — <platform> cart binding not documented; needs operator-supplied snippet.` Don't invent a binding.
+**A platform with no page** (`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/add-to-cart.md` → *A platform with no page*): keep the ATC form the tile skill emitted, leave the cart unbound, and add the **MISSING DATA** line `ATC JS not wired — <platform> cart binding not documented; needs operator-supplied snippet.` Don't invent a binding.
 
 ## Other interactivity — swatches, reviews, wishlist, custom
 
@@ -139,26 +88,14 @@ If a behavior is **undocumented and the binding can't be clarified**, leave the 
 
 ## Verified JS gotchas (field-captured)
 
-- **Chrome smooth-scroll no-op on hidden-overflow strips.** A swatch/slider strip with CSS `scroll-behavior: smooth` + `overflow-x: hidden` silently ignores `scrollBy`/`scrollTo`/`scrollLeft` assignment in Chrome — arrows look wired, nothing moves, no error. Set `strip.style.scrollBehavior = "auto"` at bind time and animate with a small rAF ease (~300ms) for the native feel.
-- **The dashboard preview runs NO init JS.** CSMs review designs in a render-only preview — any element revealed exclusively by this file's JS (slider arrows, hover-gated controls) reads as "missing" there. Pair JS-revealed elements with a CSS-only default in `resultStyles` (e.g. `:has()`-based: show the forward arrow when the strip has more swatches than fit); the runtime JS then refines via inline styles, which win.
+- **Swatch / slider strips: Chrome's smooth-scroll no-op, and the dashboard preview that runs no init JS.** Both are written down once, with the fix for each (`scrollBehavior = "auto"` plus a small rAF ease; a CSS-only default for anything JS reveals), in `../../tile-extractor/references/liquid-rules.md` → *Swatch-slider strips — two verified gotchas*. In Search the CSS-only default goes in `resultStyles`; the runtime JS then refines via inline styles, which win.
 - **Current-colour swatch — mark it in JS, after `fix_links`.** Liquid `==` between a swatch URL and `product.url` can fail on identical strings, so toggle the "selected" class from the DOM once the links are final: for each cell, `link.getAttribute("href") === cell.querySelector("<product link>").getAttribute("href")` → selected class on, the other class off. Call it after **every** `fix_links` call-site (initial render and each result render) so appended "load more" tiles are marked too. Prove it on the rendered overlay: exactly one selected swatch per tile that has swatches.
 - **Swatch arrows: bind once on the overlay, capture phase.** One delegated `click` listener and one capture-phase `scroll` listener on the overlay (scroll does not bubble) survive every re-render. Set `strip.style.scrollBehavior = "auto"` in the click handler, then change `scrollLeft` and update the arrows' `hidden` state. The strip gets narrower when the previous-arrow appears, so evaluate "at the end" **after** toggling it, and test with a product that has more swatches than fit (a search for a multi-colour model), not only the initial-content tiles.
 - **Reverting hover state:** when swatch hover swaps the main image (image-swap pattern), bind the revert (`mouseleave` → restore original `src` + re-mark the first swatch selected) on the swatch *area*, and read/restore `src` via `getAttribute`/`setAttribute` so lazy-loader attribute rewrites don't fight you.
 
 ## Reference files
 
-**Add to cart** — per-platform `add_to_cart()` bodies (canonical, both Search + Recom variants):
-
-- `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md`
-- `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/magento/add-to-cart.md`
-- `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopware/add-to-cart.md`
-- `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/starweb/add-to-cart.md`
-- `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/bigcommerce/add-to-cart.md`
-
-Field-captured extras (loading states, Quick View, `swatch-renderer` / `getMatchingLabels` for configurable-product swatches):
-
-- `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md`
-- `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/magento/add-to-cart.md`
+**Add to cart** — `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/add-to-cart.md` (what is common: platform inference, the native check, binding per surface, click tracking, the list of platform pages) and `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/<platform>/add-to-cart.md` (the per-platform `add_to_cart()` bodies, Search and Recom variants; Shopify and Magento also carry loading states, Quick View and the `swatch-renderer` / `getMatchingLabels` code for configurable-product swatches).
 
 **Ratings / reviews** — per-platform widget markup + re-init:
 
@@ -167,7 +104,7 @@ Field-captured extras (loading states, Quick View, `swatch-renderer` / `getMatch
 
 **Wishlist**
 
-- **Viskan / Streamline — wishlist is NOT supported.** Don't emit the favourite star and don't wire one: the overlay sits outside `#Streamline`, so Viskan's delegated handler never fires, and guest favourite state is in-memory Redux with no API to call — any overlay star would be disconnected from the customer's real favourites. Hello Retail ships Viskan tiles without it, and QA grades the absence ACCEPTED. → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan/README.md`
+- **Viskan / Streamline — wishlist is NOT supported.** Don't emit the favourite star and don't wire one; Hello Retail ships Viskan tiles without it, and QA grades the absence ACCEPTED. Why it can't be wired: `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/viskan/README.md` → *Favourite / wishlist: NOT supported*
 - `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/lightspeed/wishlist.md` — Lightspeed wishlist + the **SKU-vs-numeric-id blocker**: confirm the feed exposes the platform's numeric id before promising wishlist, or the control ships dead
 - `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/wishlist.md` — Wishlist King app: custom-element auto-upgrade (no JS needed), and the **deterministic `wk-id`** technique — native ships a random per-render id in the `floating` position reference, which can't be copied verbatim into a Liquid loop; derive a stable one from `product.productNumber` instead
 - `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/search/lightspeed.md` — the same blocker in full search-parity context

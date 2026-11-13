@@ -9,52 +9,39 @@ ones plus the Liquid patterns that go with them.
 
 ## Core fields
 
-| Field | What it is |
-| --- | --- |
-| `product.url` | Product page URL (link target for image + title) |
-| `product.imgUrl` | Main product image |
-| `product.title` | Product title |
-| `product.brand` | Brand / vendor name |
-| `product.price` | Current price (numeric) |
-| `product.oldPrice` | Pre-sale price; present when on sale |
-| `product.isOnSale` | Boolean → drives sale price, struck old price, discount badge |
-| `product.inStock` | Boolean → drives the sold-out badge |
-| `product.currency` | Currency code; format with a price filter |
-| `product.productNumber` | Product id (used on-site for modals; rarely needed in email) |
-| `product.extraData.*` | Customer-specific extras (e.g. `brandUrl`, `altimg`) — confirm names against the Search tile |
+The standard fields — `title`, `url`, `imgUrl`, `brand`, `price`, `oldPrice`, `currency`,
+`isOnSale`, `inStock`, `productNumber` — are listed in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/liquid/general.md` → *The standard fields on
+`product`*. What a triggered-email tile does with them:
+
+- `product.url` → the link target for the image and the title.
+- `product.inStock` → drives the sold-out badge.
+- `product.productNumber` → used on-site for modals; rarely needed in email.
+- `product.extraData.*` → customer-specific extras (e.g. `brandUrl`, `altimg`); confirm the
+  names against the Search tile.
 
 ## Price formatting — copy the Search tile exactly
 
-Currency presentation is part of the brand. Reproduce whatever the Search tile
-does, for both current and old price. Common HR filter:
-
-```liquid
-{{ product.price | priceWithCurrency:product.currency | replace: 'kr.', 'kr' }}
-```
-
-(the `replace` strips the trailing period so it shows `kr` not `kr.`). Some shops
-use `{{ product.price | price }}` plus a literal currency, or a `,-` suffix. Don't
-substitute a generic symbol — match the tile.
+Reproduce whatever the Search tile does, for the current and the old price. What an email tile
+may write (a literal currency, a `replace` after the filter) and what still holds is in
+`${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/liquid/price-formatting.md` → *Email tiles copy the shop's price markup*. The discount percentage and its guard are in
+the same page → *Discount percentage*.
 
 ## Sale handling
 
-Discount percentage (matches the HR search badge math):
+Reproduce the tile's sale branch, including any prefix like "Från" / "From", the discount badge
+when the tile has one, and the struck old price colour. The price form below is the base
+template's; write the Search tile's form in its place, the same one on all three prices.
 
 ```liquid
-{% if product.isOnSale %}
-  <span style="… badge styles …">Spara {{ product.oldPrice | minus:product.price | times:100.0 | divided_by:product.oldPrice | round }}%</span>
+{% if product.isOnSale and product.oldPrice > 0 %}
+  {% assign discount_pct = product.oldPrice | minus: product.price | times: 100.0 | divided_by: product.oldPrice | round %}
+  <span style="… badge styles …">Spara {{ discount_pct }}%</span>
 {% endif %}
-```
-
-Sale vs normal price (reproduce the tile's branch, including any prefix like
-"Från"/"From" and the struck old price colour):
-
-```liquid
 {% if product.isOnSale %}
-  <span style="color:{{ text_color }};">Från {{ product.price | priceWithCurrency:product.currency | replace: 'kr.', 'kr' }}</span>
-  <span style="color:{{ old_price_color }}; text-decoration:line-through;">{{ product.oldPrice | priceWithCurrency:product.currency | replace: 'kr.', 'kr' }}</span>
+  <span style="color:{{ text_color }};">Från {{ product.price | price }} {{ product.currency }}</span>
+  <span style="color:{{ old_price_color }}; text-decoration:line-through;">{{ product.oldPrice | price }} {{ product.currency }}</span>
 {% else %}
-  <span style="color:{{ muted_color }};">{{ product.price | priceWithCurrency:product.currency | replace: 'kr.', 'kr' }}</span>
+  <span style="color:{{ muted_color }};">{{ product.price | price }} {{ product.currency }}</span>
 {% endif %}
 ```
 
