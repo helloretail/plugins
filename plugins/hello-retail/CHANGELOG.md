@@ -8,6 +8,16 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.61.2 — 2026-11-13
+
+### Changed
+
+- The plugin's contact address in Claude Code's plugin details is now support@helloretail.com.
+
+### Fixed
+
+- `newsletter-developer` no longer points to three worked-example tiles that are not in the plugin; it starts from the shared default template only.
+
 ## 1.61.1 — 2026-11-12
 
 ### Fixed
