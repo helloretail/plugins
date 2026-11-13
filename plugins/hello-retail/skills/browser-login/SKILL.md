@@ -4,11 +4,12 @@ description: >
   Get the plugin's Playwright browsers logged in to Hello Retail — one saved login
   (~/.hr-auth.json) shared by every playwright worker, so any number of Claude Code sessions
   can run storefront QA in parallel. Use whenever a QA or tile skill's login check fails on the
-  Playwright backend (my.helloretail.com redirects to signin.html, the HR widget is missing,
+  Playwright backend (my.helloretail.com lands on its sign-in page, the HR widget is missing,
   shopState.user is null, "Browser is already in use", the playwright servers fail to connect),
   or someone says "log in to Hello Retail in the browser", "set up the Playwright browsers",
-  "set up parallel browsers", "my browser sessions are logged out", "hr-auth.json is
-  missing/expired", "refresh the HR login", or asks how to QA several customers at once. Also
+  "set up parallel browsers", "my browser sessions are logged out", "the login window closed
+  before I could log in", "hr-auth.json is missing/expired", "refresh the HR login", or asks
+  how to QA several customers at once. Also
   the first-time setup on a new machine: installs Node.js and Playwright under ~/.hr-* with no
   admin rights. Never asks for or types credentials — the Google SSO login is always the
   operator's own action in the opened window.
@@ -36,8 +37,8 @@ Files on the machine (macOS/Linux `~`, Windows `%USERPROFILE%`):
 
 | Path | What |
 |---|---|
-| `.hr-node/bin/node` | Node ≥ 18 the servers launch from (symlink to an existing Node, or a portable copy) |
-| `.hr-pw/node_modules/@playwright/mcp/cli.js` | the MCP server; `.hr-pw/hr-mcp-config.json` forces headed browsers at 1440×900 |
+| `.hr-node/bin/node` | Node ≥ 18 the servers launch from (symlink to an existing Node, or a portable copy pinned by version and SHA-256) |
+| `.hr-pw/node_modules/@playwright/mcp/cli.js` | the MCP server, installed at the exact version this plugin pins; `.hr-pw/hr-mcp-config.json` forces headed browsers at 1440×900 |
 | `.hr-playwright-profile/` | the shared browser profile holding the login |
 | `.hr-auth.json` | the saved login the isolated sessions load (owner-only, Hello Retail cookies only) |
 
@@ -47,9 +48,9 @@ Until the setup has run once, the twelve servers show as failed in `/mcp` — ex
 
 | Script | Who runs it | What it does |
 |---|---|---|
-| `check-hr-auth` | Claude | Reports install state and whether `~/.hr-auth.json` holds a live session. No browser, no network, changes nothing. |
-| `refresh-hr-auth` | Claude | Copies the login out of the shared profile into `~/.hr-auth.json`, headless, no network. Exit 2: profile logged out. Exit 3: another Chrome holds the profile. |
-| `setup-hr-browsers` | **the operator, in their own terminal** (macOS/Linux/WSL) | Installs Node + Playwright if missing, opens the login window on the shared profile, saves the session. `HR_UPDATE=1` also upgrades Playwright. |
+| `check-hr-auth` | Claude | Reports install state, the installed Playwright versions, and whether `~/.hr-auth.json` holds a live session. No browser, no network, changes nothing. |
+| `refresh-hr-auth` | Claude | Copies the login out of the shared profile into `~/.hr-auth.json`, headless. Works without network; with network it also asks Hello Retail whether the session is still accepted. Exit 2: profile logged out, or its session was ended server-side. Exit 3: another Chrome holds the profile. |
+| `setup-hr-browsers` | **the operator, in their own terminal** (macOS/Linux/WSL) | Installs the pinned Node + Playwright if missing, opens the login window on the shared profile, saves the session. The window has **no time limit**: it stays open until Hello Retail accepts the login. `HR_UPDATE=1` reinstalls Playwright at the pinned versions (close Claude Code first). |
 | `setup-hr-browsers.ps1` | Claude, inline (native Windows) | Same as above for Windows; see `references/windows.md`. |
 
 All scripts are idempotent. A failed run never overwrites a valid `~/.hr-auth.json`.
@@ -72,7 +73,7 @@ bash "<skill-base-dir>/scripts/refresh-hr-auth"
 ```
 
 - **Exit 0** → done. Continue with step 4.
-- **Exit 2** ("profile is logged out") → step 3.
+- **Exit 2** ("profile is logged out", or "Hello Retail no longer accepts it") → step 3.
 - **Exit 3** ("profile is open in another Chrome") → call `browser_close` on the
   `playwright-profile` server if this session opened it; otherwise ask the operator to close the
   Chrome window that uses `~/.hr-playwright-profile`. Then re-run.
@@ -80,22 +81,42 @@ bash "<skill-base-dir>/scripts/refresh-hr-auth"
 ### 3. Log in — the operator's own action, in a window they can see
 
 **Tell the operator first** what will happen: a Chrome window opens at my.helloretail.com, they
-log in with Google SSO themselves, and the window closes on its own once the login is detected.
-Never ask for or type credentials.
+log in with Google SSO themselves, in their own time, and the window closes once the login is
+confirmed. Never ask for or type credentials.
+
+**There is no time limit on the login.** The window is never closed, reloaded or navigated
+while the operator may still be logging in — not after five seconds, not after a failed check.
+
+**Reading the login check.** After `browser_navigate` to `https://my.helloretail.com/`, look at
+the URL the page ended on — nothing else:
+
+| The page ended on | Means |
+|---|---|
+| `my.helloretail.com/auth/…` (the sign-in page, `/auth/signin`; `signin.html` on older builds) | **logged out** |
+| any other `my.helloretail.com` page — the dashboard, or `/supervisor/…` | **logged in** — leave immediately |
+
+Nothing under `/company/…` or `/supervisor/…` is ever read or screenshotted; this probe of the
+root URL is the only sanctioned my.helloretail.com navigation.
 
 Pick the route:
 
 - **The playwright servers are already connected (installed machine)** — use the
-  `playwright-profile` server from this session: `browser_navigate` to
-  `https://my.helloretail.com/`. A headed Chrome opens on the shared profile. Ask the operator
-  to log in there and tell you when done. Then `browser_navigate` the same server to
-  `https://my.helloretail.com/` once more: the dashboard, or a redirect to `/supervisor/…`, means
-  logged in (leave immediately — that is the only sanctioned my.helloretail.com navigation, and
-  nothing under `/company/…` or `/supervisor/…` is ever read or screenshotted). Now
-  `browser_close` on `playwright-profile` to release the profile, and run `refresh-hr-auth`
-  (step 2). Never close that window while the operator is still logging in — only after this
-  check has shown the login, and always before leaving this step, also when the login failed. If `browser_navigate` fails with "Browser is already in use", another session holds
-  the profile — use the terminal route instead.
+  `playwright-profile` server from this session.
+  1. `browser_navigate` to `https://my.helloretail.com/`. A headed Chrome opens on the shared
+     profile. Already **logged in** → go to 4.
+  2. **Logged out** → ask the operator to log in in that window and to tell you when they are
+     done. Then **end your turn.** Do not wait with `browser_wait_for`, do not poll, snapshot,
+     navigate or close anything while they log in: every one of those either times out after a
+     few seconds or disturbs the Google form.
+  3. When the operator says they are done → `browser_navigate` the same server to
+     `https://my.helloretail.com/` once more. Still **logged out** → say so, leave the window
+     open, and go back to 2. Close the window on a failed check only when the operator says
+     they cannot log in.
+  4. **Logged in** → `browser_close` on `playwright-profile` to release the profile, then run
+     `refresh-hr-auth` (step 2). Always close before leaving this step.
+
+  If `browser_navigate` fails with "Browser is already in use", another session holds the
+  profile — use the terminal route instead.
 - **Fresh machine, or the servers are not connected** — the operator runs the setup in their
   own terminal (a browser started from Claude's sandboxed shell on macOS has no network):
 
@@ -104,7 +125,8 @@ Pick the route:
   ```
 
   On **native Windows** Claude runs the PowerShell twin inline (the window opens on the
-  operator's desktop with network) — see `references/windows.md`. Wait for the line
+  operator's desktop with network) — see `references/windows.md`. The script waits for the
+  operator with no time limit; wait for the line
   `Saved N Hello Retail cookies to ~/.hr-auth.json — session auth cookie present`.
 
 ### 4. Make the running sessions pick the login up
@@ -124,7 +146,7 @@ The isolated servers read `~/.hr-auth.json` when they **create their browser**:
 
 Run the login check from `${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` on the worker you will
 use: `browser_navigate` to `https://my.helloretail.com/` — dashboard or `/supervisor/…` redirect
-means logged in; `signin.html` means not. Leave immediately, and on the Playwright backend
+means logged in; the sign-in page (`/auth/…`) means not. Leave immediately, and on the Playwright backend
 delete unread the `page-*.yml` snapshot and `session-*/` log that navigation wrote under the
 worker's `QA/screenshots/…` folder. Then resume the task that triggered this skill exactly
 where it stopped.
@@ -137,7 +159,7 @@ on `playwright-profile` if it is still open — no window stays behind
 
 The Hello Retail session expires like any login (about 30 days). Symptoms on a storefront: the
 HR widget (`#addwishPageAdd`) is missing, `ADDWISH_PARTNER_NS.shopState.user` is `null`, or
-my.helloretail.com redirects to `signin.html`. Run step 1; usually it is step 3.
+my.helloretail.com lands on its sign-in page (`/auth/signin`). Run step 1; usually it is step 3.
 
 ## Using the parallel sessions
 
@@ -176,6 +198,12 @@ has tools.
 `check-hr-auth`; if the file is fine, a server in this session still has its old browser open:
 `browser_close` it. If every session is fine but one storefront shows logged out, that shop
 blocks third-party cookies for the widget — record it, not a login problem.
+
+**The login window closed about five seconds after it opened, before anyone could log in** —
+the script predates the server check. It took a session cookie left in the profile for a
+finished login, although Hello Retail had ended that session, and closed the window on it.
+Update the plugin: the shipped `hr-auth.cjs` closes the window only once Hello Retail accepts
+the session, and `refresh-hr-auth` reports such a profile as logged out (exit 2).
 
 **The login window keeps reloading / cannot type into the Google form** — the script predates
 the cookie-only polling fix. Update the plugin; the shipped `hr-auth.cjs` polls

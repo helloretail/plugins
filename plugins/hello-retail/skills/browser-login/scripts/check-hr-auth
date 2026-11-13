@@ -20,7 +20,13 @@ else
 fi
 
 if [ -f "$HR_PW/node_modules/@playwright/mcp/cli.js" ]; then
-  echo "MCP server:  @playwright/mcp present at $HR_PW"
+  if have_node; then
+    echo "MCP server:  @playwright/mcp $(pw_installed_version @playwright/mcp), playwright $(pw_installed_version playwright) at $HR_PW"
+    note="$(pw_version_note)"
+    [ -z "$note" ] || echo "             $note"
+  else
+    echo "MCP server:  @playwright/mcp present at $HR_PW"
+  fi
 else
   echo "MCP server:  MISSING at $HR_PW/node_modules/@playwright/mcp — run setup-hr-browsers."
   status=2

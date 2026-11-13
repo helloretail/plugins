@@ -2,7 +2,11 @@
 # One-time (and any-time) setup for the plugin's Playwright browsers on macOS / Linux / WSL.
 #
 #   bash setup-hr-browsers            install what is missing, then open the login window
-#   HR_UPDATE=1 bash setup-hr-browsers  also upgrade Playwright + @playwright/mcp
+#   HR_UPDATE=1 bash setup-hr-browsers  also reinstall Playwright + @playwright/mcp at the
+#                                       versions this plugin pins (close Claude Code first)
+#
+# Downloads are pinned: Node by version and SHA-256, Playwright and @playwright/mcp by exact
+# version (see hr-browser-lib.sh). The login window has no time limit.
 #
 # RUN THIS IN YOUR OWN TERMINAL. A browser started from Claude's sandboxed shell on macOS has
 # no network, so the login page cannot load there. Safe to re-run; re-running refreshes the

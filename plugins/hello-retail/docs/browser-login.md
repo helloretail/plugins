@@ -30,12 +30,15 @@ does not mean the fleet is down.
 ## Login check — a precondition, run before any HR-gated browser work
 
 1. Navigate to `https://my.helloretail.com/`.
-2. The dashboard, or a redirect to `/supervisor/…` (supervisor accounts), means **logged in**.
-   A redirect to `signin.html` means **logged out**.
+2. Look only at the URL the page ended on. A redirect into `/auth/…` — the sign-in page,
+   `/auth/signin` (`signin.html` on older builds) — means **logged out**. Any other
+   my.helloretail.com page — the dashboard, or a redirect to `/supervisor/…` (supervisor
+   accounts) — means **logged in**.
 3. Logged out on the Playwright backend → stop the task and run the `browser-login` skill: it
    diagnoses (`check-hr-auth`), refreshes the saved login from the shared profile
    (`refresh-hr-auth`), or has the operator log in themselves in a window they can see. Never
-   ask for or type credentials. Logged out on Claude in Chrome → ask the operator to log in in
+   ask for or type credentials, and never put a time limit on the login: the window stays
+   open, untouched, until the operator says they are done. Logged out on Claude in Chrome → ask the operator to log in in
    their Chrome, wait for their confirmation, re-run the probe.
 4. Resume the task exactly where it stopped. On the Playwright backend, if a browser was already
    open when the login was refreshed, `browser_close` it first — the next action opens a fresh

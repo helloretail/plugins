@@ -5,10 +5,13 @@
  *   node hr-auth.cjs check     Read ~/.hr-auth.json and say whether it holds a live `auth`
  *                             session cookie. No browser, no network.
  *   node hr-auth.cjs refresh   Headless: copy the login out of the shared browser profile
- *                             (~/.hr-playwright-profile) into ~/.hr-auth.json. No network.
- *   node hr-auth.cjs login     Headed: open my.helloretail.com in the shared profile, wait for
- *                             the operator's Google SSO, close the window once the session
- *                             cookie appears, then do what `refresh` does.
+ *                             (~/.hr-playwright-profile) into ~/.hr-auth.json. Works without
+ *                             network; with network it also asks Hello Retail whether the
+ *                             session is still accepted.
+ *   node hr-auth.cjs login     Headed: open my.helloretail.com in the shared profile and wait,
+ *                             with no time limit, for the operator's Google SSO. The window
+ *                             closes only once Hello Retail accepts the session, then this does
+ *                             what `refresh` does.
  *
  * Exit codes
  *   0  done
@@ -18,8 +21,11 @@
  *
  * The Hello Retail session is the `auth` cookie on `.helloretail.com`. Every other cookie on
  * that domain (_ga, _csrf, g_state, Stripe, Mixpanel) is set for logged-out visitors too, so
- * "some helloretail cookies exist" proves nothing — only `auth` counts. Only Hello Retail
- * cookies are written to the auth file, and cookie values are never printed.
+ * "some helloretail cookies exist" proves nothing — only `auth` counts. And an `auth` cookie
+ * proves nothing either until the server accepts it: a session ended server-side leaves the
+ * cookie behind. So a login is only "detected" once a request for the login URL is no longer
+ * sent to the sign-in page. Only Hello Retail cookies are written to the auth file, and cookie
+ * values are never printed.
  *
  * Playwright is resolved from ~/.hr-pw (installed by setup-hr-browsers), falling back to a
  * globally resolvable `playwright`.
@@ -35,6 +41,7 @@ const PROFILE = process.env.HR_PROFILE || path.join(HOME, ".hr-playwright-profil
 const OUT = process.env.HR_AUTH || path.join(HOME, ".hr-auth.json");
 const HR_PW = process.env.HR_PW || path.join(HOME, ".hr-pw");
 const LOGIN_URL = "https://my.helloretail.com/";
+const LOGIN_HOST = "my.helloretail.com";
 
 const short = (p) => p.replace(HOME, "~");
 const log = (msg) => console.log(msg);
@@ -47,6 +54,24 @@ const expiryOf = (c) => (c && c.expires > 0 ? new Date(c.expires * 1000) : null)
 const expiryText = (c) => {
   const d = expiryOf(c);
   return d ? `expires ${d.toISOString().slice(0, 10)}` : "expires with the browser session";
+};
+/** The `auth` cookie, unless it is past its expiry date. */
+const liveAuthCookie = (cookies) => {
+  const c = authCookie(cookies);
+  const exp = expiryOf(c);
+  return c && !(exp && exp.getTime() < Date.now()) ? c : null;
+};
+// A logged-out request for LOGIN_URL is redirected, server-side, into the sign-in flow:
+// / -> /home.html -> /auth/signin (signin.html on older builds).
+const isSignInPath = (pathname) => /^\/(auth(\/|$)|signin|home\.html)/i.test(pathname || "");
+/** True when `url` is a my.helloretail.com page outside the sign-in flow. */
+const isSignedInUrl = (url) => {
+  try {
+    const u = new URL(url);
+    return u.hostname === LOGIN_HOST && !isSignInPath(u.pathname);
+  } catch {
+    return false;
+  }
 };
 const isLocked = (e) => /ProcessSingleton|SingletonLock|already in use|already running/i.test(e && e.message);
 
@@ -67,9 +92,29 @@ async function openProfile(headless) {
   return chromium.launchPersistentContext(PROFILE, { channel: "chrome", headless });
 }
 
-/** Write the auth file — only when the session cookie is present, so a failed run never clobbers a valid file. */
+/**
+ * Ask Hello Retail whether it accepts the session in this browser context: request the login
+ * URL with the context's cookies and look at where the redirects end. Only the final URL and
+ * the status are read, never the page. Opens no tab and takes no focus.
+ *   true   accepted — the request ended on a page outside the sign-in flow
+ *   false  refused — it ended on the sign-in page (or the server answered with an error)
+ *   null   could not tell (no network from here, a proxy, a timeout)
+ */
+async function serverAccepts(ctx, timeout = 15000) {
+  let res;
+  try {
+    res = await ctx.request.get(LOGIN_URL, { timeout, failOnStatusCode: false });
+    return res.status() < 400 && isSignedInUrl(res.url());
+  } catch {
+    return null;
+  } finally {
+    if (res) await res.dispose().catch(() => {});
+  }
+}
+
+/** Write the auth file — only when a live session cookie is present, so a failed run never clobbers a valid file. */
 function save(cookies, source) {
-  const auth = authCookie(cookies);
+  const auth = liveAuthCookie(cookies);
   if (!auth) return false;
   const hr = cookies.filter(isHr);
   fs.writeFileSync(OUT, JSON.stringify({ cookies: hr, origins: [] }, null, 2), { mode: 0o600 });
@@ -85,8 +130,10 @@ function save(cookies, source) {
 /**
  * Read the cookie jar of the shared profile by opening it headlessly and asking CDP for the
  * cookies. No page is created and nothing is navigated, so this works without network (from
- * Claude's sandboxed shell, for instance). Chrome releases the profile lock a moment after a
- * window closes, so retry briefly before giving up.
+ * Claude's sandboxed shell, for instance). When the profile holds a session cookie the server
+ * is asked whether it still accepts it; without network that answer is `null`, not a failure.
+ * Chrome releases the profile lock a moment after a window closes, so retry briefly before
+ * giving up.
  */
 async function harvest(attempts = 4) {
   let lastError;
@@ -94,7 +141,9 @@ async function harvest(attempts = 4) {
     let ctx;
     try {
       ctx = await openProfile(true);
-      return await ctx.cookies();
+      const cookies = await ctx.cookies();
+      const accepted = liveAuthCookie(cookies) ? await serverAccepts(ctx, 8000) : null;
+      return { cookies, accepted };
     } catch (e) {
       lastError = e;
       if (!isLocked(e) || i === attempts) throw e;
@@ -134,14 +183,17 @@ function check() {
   return 0;
 }
 
+const verdictText = (accepted) =>
+  accepted === true ? "accepted by Hello Retail just now" : "not checked against Hello Retail — no network from here";
+
 async function refresh() {
   if (!fs.existsSync(PROFILE)) {
     log(`No ${short(PROFILE)} — nobody has logged in on this machine yet. Run setup-hr-browsers.`);
     return 2;
   }
-  let cookies;
+  let found;
   try {
-    cookies = await harvest();
+    found = await harvest();
   } catch (e) {
     if (isLocked(e)) {
       warn(`The shared profile ${short(PROFILE)} is open in another Chrome. Close it — browser_close on the playwright-profile server, or quit that window — and retry.`);
@@ -149,7 +201,11 @@ async function refresh() {
     }
     throw e;
   }
-  if (save(cookies, "copied from the shared browser profile")) return 0;
+  if (found.accepted === false) {
+    log("The shared browser profile holds a Hello Retail session cookie, but Hello Retail no longer accepts it — the session was ended server-side. Log in again: run setup-hr-browsers, or log in through the playwright-profile browser and retry.");
+    return 2;
+  }
+  if (save(found.cookies, `copied from the shared browser profile, ${verdictText(found.accepted)}`)) return 0;
   log("The shared browser profile holds no Hello Retail session (auth cookie) — it is logged out. Run setup-hr-browsers, or log in through the playwright-profile browser and retry.");
   return 2;
 }
@@ -169,7 +225,8 @@ async function login() {
   log("");
   log("A Chrome window is opening at my.helloretail.com.");
   log("  • Log in with Google SSO in that window. Nothing here reads or types credentials.");
-  log("  • The window closes by itself a few seconds after the login is detected.");
+  log("  • Take the time you need: the window stays open until you are logged in.");
+  log("  • It closes by itself a few seconds after Hello Retail accepts the login.");
   log("  • Already logged in? It closes right away.");
   log("");
 
@@ -182,21 +239,45 @@ async function login() {
   // While the window is open, poll COOKIES ONLY. Never call storageState() on a live headed
   // context: it opens a tab for every visited origin without a page, which steals focus from
   // the Google form every tick. context.cookies() is a pure CDP read — no tab, no navigation.
+  //
+  // A session cookie alone is NOT a login: a session ended server-side leaves its cookie in
+  // the profile, and closing the window on that cookie shut it a few seconds after it opened,
+  // before anyone could log in. So the server is asked (serverAccepts) — when the cookie first
+  // shows up or changes, when a tab has left the sign-in flow, and every 10 seconds otherwise.
   let captured = null;
   let stop = false;
   const closed = new Promise((resolve) => ctx.on("close", () => resolve("closed")));
   const detected = (async () => {
+    let probedValue = null; // the cookie value the server was last asked about
+    let probedAt = 0;
+    let unverifiedTicks = 0; // consecutive ticks on a signed-in page while the server could not be asked
+    let toldStale = false;
     while (!stop) {
-      await sleep(2000);
+      await sleep(1000);
       let cookies;
       try {
         cookies = await ctx.cookies();
       } catch {
         return "closed";
       }
-      if (authCookie(cookies)) {
+      const auth = liveAuthCookie(cookies);
+      if (!auth) {
+        unverifiedTicks = 0;
+        continue;
+      }
+      const onSignedInPage = ctx.pages().some((p) => isSignedInUrl(p.url()));
+      if (auth.value === probedValue && !onSignedInPage && Date.now() - probedAt < 10000) continue;
+      probedValue = auth.value;
+      probedAt = Date.now();
+      const accepted = await serverAccepts(ctx);
+      if (accepted === true || (accepted === null && onSignedInPage && ++unverifiedTicks >= 3)) {
         captured = cookies.filter(isHr);
         return "auth";
+      }
+      if (accepted !== null) unverifiedTicks = 0;
+      if (accepted === false && !toldStale) {
+        toldStale = true;
+        log("The session saved in this browser is no longer accepted by Hello Retail — log in again in the window. It stays open until you do.");
       }
     }
     return "stopped";
@@ -214,13 +295,17 @@ async function login() {
 
   // Prefer the profile on disk (complete, flushed). The in-window snapshot is the safety net
   // for the case where the post-close re-open fails — that once lost a real login.
-  let cookies = null;
+  let found = null;
   try {
-    cookies = await harvest();
+    found = await harvest();
   } catch (e) {
     warn(`Could not re-open the profile after the window closed (${e.message}) — using the cookies captured while it was open.`);
   }
-  if (cookies && save(cookies, "harvested from the profile after the window closed")) return 0;
+  if (found && found.accepted === false && outcome !== "auth") {
+    warn("The window was closed before the login was completed: the browser holds a Hello Retail session cookie, but Hello Retail no longer accepts it. Re-run setup-hr-browsers and log in; the window stays open until you do.");
+    return 2;
+  }
+  if (found && save(found.cookies, `harvested from the profile after the window closed, ${verdictText(found.accepted)}`)) return 0;
   if (captured && save(captured, "captured while the login window was open")) return 0;
   warn("No Hello Retail session cookie (auth) captured — was the Google login completed? Re-run setup-hr-browsers.");
   return 1;
