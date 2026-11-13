@@ -1,6 +1,7 @@
 # hello-retail
 
-Hello Retail for AI agents. One plugin with three things in it:
+Hello Retail for AI agents. It is for Hello Retail customers — and the developers or agencies
+working on their shop — as well as Hello Retail's own team. One plugin with three things in it:
 
 - **Skills** that build and QA Hello Retail Search, Recommendations, Pages, newsletter and
   triggered-email designs, and set up product feeds — all through the `hello-retail` MCP, all as
