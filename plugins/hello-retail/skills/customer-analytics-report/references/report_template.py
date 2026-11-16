@@ -184,14 +184,13 @@ PA = {
     "revenue":         0.0,
     "conversions":     0,
     "rev_per_message": 0.0,   # revenue / messages_sent
-    "open_rate":       0.0,   # as decimal
     "click_rate":      0.0,   # as decimal
     "unsub_rate":      0.0,   # as decimal
 }
 
-# List of (agent_name, messages_sent, revenue, conversions, open_rate, click_rate)
+# List of (agent_name, messages_sent, revenue, conversions, click_rate)
 PA_AGENTS = [
-    ("Agent Name", 0, 0.0, 0, 0.0, 0.0),
+    ("Agent Name", 0, 0.0, 0, 0.0),
 ]
 
 HAS_PAGES = True   # set False if the customer has no LIVE Pages (drafts produce no analytics)
@@ -394,7 +393,6 @@ STRINGS = {
                         "<b>{msgs} messages</b> through the active Klaviyo channel and generating "
                         "<b>{rev}</b> in the period.",
     "kpi_msgs":         "Messages Sent",                                       # KPI label
-    "kpi_open":         "Open Rate",                                           # KPI label
     "kpi_click":        "Click Rate",                                          # KPI label
     "kpi_conversions":  "Conversions",                                         # KPI label
     "kpi_total_rev":    "Total Revenue",                                       # KPI label
@@ -402,15 +400,12 @@ STRINGS = {
     "h2_pa_agents":     "Performance by agent",
     "th_agent":         "Agent",                                               # table header
     "th_messages":      "Messages",                                            # table header
-    "th_open":          "Open Rate",                                           # table header
     "th_click":         "Click Rate",                                          # table header
     "th_rev":           "Revenue",                                             # table header
     "th_rpm":           "Rev / Msg",                                           # table header
     "callout_best_agent_title": "Highest revenue-per-message agent",
     "callout_best_agent": "<b>{name}</b> generates {rpm} per message sent — the most efficient agent in the "
                           "channel. Consider expanding its audience or send frequency.",
-    "callout_open_title": "Open rate has room to grow",
-    "callout_open":     "At {rate} overall, a subject line A/B test on {name} could meaningfully lift reach and revenue.",
     # ── pages ──
     "sec_pages":        "Pages",
     "h1_pages":         "Category pages\nthat sell",
@@ -875,7 +870,7 @@ def build_report(output_path):
         story.append(Spacer(1, 4*mm))
         story.append(kpi_row([
             (fmt_num(PA["messages_sent"]), "", T["kpi_msgs"]),
-            (fmt_pct(PA["open_rate"]),     "", T["kpi_open"]),
+            (fmt_pct(PA["conversions"] / PA["messages_sent"] if PA["messages_sent"] else 0), "", T["kpi_conv_rate"]),
             (fmt_pct(PA["click_rate"]),    "", T["kpi_click"]),
             (fmt_num(PA["conversions"]),   "", T["kpi_conversions"]),
             (fmt_rev(PA["revenue"]),       "", T["kpi_total_rev"]),
@@ -888,11 +883,11 @@ def build_report(output_path):
 
         story.append(Paragraph(T["h2_pa_agents"], styles["h2"]))
         story.append(HRFlowable(width=10*mm, thickness=2, color=PINK, spaceAfter=5, spaceBefore=0, hAlign="LEFT"))
-        ag_rows = [[name, fmt_num(msgs), fmt_pct(open_r), fmt_pct(click_r),
+        ag_rows = [[name, fmt_num(msgs), fmt_pct(convs/msgs if msgs else 0), fmt_pct(click_r),
                     fmt_rev(rev), fmt_money2(rev/msgs if msgs else 0)]
-                   for name, msgs, rev, convs, open_r, click_r in PA_AGENTS]
+                   for name, msgs, rev, convs, click_r in PA_AGENTS]
         story.append(data_table(
-            [T["th_agent"], T["th_messages"], T["th_open"], T["th_click"], T["th_rev"], T["th_rpm"]],
+            [T["th_agent"], T["th_messages"], T["th_conv_rate"], T["th_click"], T["th_rev"], T["th_rpm"]],
             ag_rows, col_widths=[0.30, 0.13, 0.12, 0.12, 0.20, 0.13], right_cols=[1, 2, 3, 4, 5]))
         story.append(Spacer(1, 6*mm))
 
@@ -905,11 +900,6 @@ def build_report(output_path):
             story.append(callout(T["callout_best_agent_title"],
                 T["callout_best_agent"].format(name=best[0], rpm=fmt_money2(best_rpm)), styles))
             story.append(Spacer(1, 4*mm))
-
-        if PA["open_rate"] < 0.35:
-            lowest_open = min(PA_AGENTS, key=lambda x: x[4])
-            story.append(callout(T["callout_open_title"],
-                T["callout_open"].format(rate=fmt_pct(PA["open_rate"]), name=lowest_open[0]), styles))
         story.append(PageBreak())
 
     # PAGE — PAGES PERFORMANCE (skipped if HAS_PAGES is False)

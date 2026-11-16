@@ -102,8 +102,8 @@ Find the ACTIVE Klaviyo channel in `channels` (`channelType: "KLAVIYO"`, `state:
 productAgents_getAnalytics(websiteUuid, channelId=CHANNEL_ID, startDate, endDate)
 ```
 
-Extract overall from `totals`: `messagesSent`, `revenue`, `conversions`, `revenuePerMessage`, `openRate`, `clickRate`, `unsubscribeRate`.
-Extract per-agent from `breakdown[]`: `(displayName, metrics.messagesSent, metrics.revenue, metrics.conversions, metrics.openRate, metrics.clickRate)`. Agent display names are often the raw message type (`Hello Retail - PRICE_DROP_ALTERNATIVE_PRODUCT`); shorten them to a readable label ("Price drop — alternative product") for the table.
+Extract overall from `totals`: `messagesSent`, `revenue`, `conversions`, `revenuePerMessage`, `clickRate`, `unsubscribeRate`.
+Extract per-agent from `breakdown[]`: `(displayName, metrics.messagesSent, metrics.revenue, metrics.conversions, metrics.clickRate)`. Agent display names are often the raw message type (`Hello Retail - PRICE_DROP_ALTERNATIVE_PRODUCT`); shorten them to a readable label ("Price drop — alternative product") for the table.
 If the response has `unavailable` set (Klaviyo rate-limited), wait `retryAfterSeconds` and call again once; if it is still unavailable, set `HAS_PA = False` and tell the operator why.
 
 ### 2g. Pages performance (HR-rendered category/brand pages)
@@ -220,7 +220,7 @@ Generate 5 prioritised action items as `(title, body)` tuples. Derive from:
 - Investigate volume change if `changePercent` is negative
 - If `HAS_RECOMS`, a Recommendations action — fix the most under-clicked high-traffic box (position, design or strategy), add a box to a placement that has none (no cart box, no category box), or retire a box with traffic and no conversions
 - Scale or A/B test the highest-RPM Product Agent (if HAS_PA)
-- A/B test subject lines on the highest-volume but lower-open-rate PA agent (if HAS_PA)
+- Improve the content or offer of the highest-volume but lower-click-rate PA agent (if HAS_PA)
 - If `HAS_PAGES`, a Pages action — replicate the top page's layout on weaker pages, or lift the lowest-converting high-traffic page
 - A general search quality recommendation (sort controls, synonyms, etc.)
 
