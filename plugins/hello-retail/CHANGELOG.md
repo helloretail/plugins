@@ -8,6 +8,12 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.63.0 — 2026-11-16
+
+### Changed
+
+- `plugin-feedback` reports say where they were written — Claude Code, Claude chat or Cowork — so the plugin team can tell which ones were added by hand. Outside Claude Code the plugin version is left out instead of being reported as unknown.
+
 ## 1.62.0 — 2026-11-16
 
 ### Changed
