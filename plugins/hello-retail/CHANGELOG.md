@@ -8,6 +8,12 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.63.1 — 2026-11-16
+
+### Fixed
+
+- `plugin-feedback` now always tries to send the report where a shell is available, instead of sometimes handing it straight over for manual entry. The manual blocks also say to copy one box at a time, so the instructions no longer end up inside the ticket.
+
 ## 1.63.0 — 2026-11-16
 
 ### Changed
