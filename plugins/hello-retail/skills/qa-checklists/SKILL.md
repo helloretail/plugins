@@ -384,7 +384,9 @@ in one `AskUserQuestion` call — only the questions that apply to the feature u
 - *Variants* (all tile features) — which sizes/variants should a tile show, and where does a
   variant click lead?
 - *Tablet grid* (all) — should tiles per row at tablet (1024 / 820) match native exactly?
-  If HR differs from native and nothing settled it, ask when you find it.
+  For Search, ask about 820 only: 1024 shows the desktop search grid, which is not compared
+  with the category page (`../search-qa/SKILL.md`). If HR differs from native and nothing
+  settled it, ask when you find it.
 - *Wheel scroll* (Recoms) — should the boxes scroll with a two-finger trackpad swipe or the
   mouse wheel?
 

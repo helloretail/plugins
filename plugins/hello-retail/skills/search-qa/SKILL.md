@@ -871,8 +871,10 @@ These are the most important checks — get these right.
 
 - [ ] **Full tablet pass at 1024 and 820** — trigger, tiles, filters, content feed and the
       keystroke checks at the same depth as desktop and mobile; anything untested on tablet
-      makes the verdict **partial**, never PASS. Tiles per row that differ from native are
-      graded against the operator's answer (`../qa-checklists/SKILL.md` Step 1.5)
+      makes the verdict **partial**, never PASS. Tiles per row at 820 that differ from native
+      are graded against the operator's answer (`../qa-checklists/SKILL.md` Step 1.5); at 1024
+      the desktop search grid renders and is not compared with the category page (see the
+      device and layout rules above)
 - [ ] Can scroll down to load more results (infinite scroll or pagination works)
 - [ ] Content feed shows all matching links, not just the first 12
 
