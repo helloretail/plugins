@@ -23,6 +23,29 @@ One line per filter; arguments, defaults and edge cases are on the developer doc
 | `setUrlParam` | Add or overwrite one query-string parameter on a URL | `{{ product.url \| setUrlParam: 'ref', 'hr' }}` |
 | `rawHtml` | Raw, unescaped value of a safe string | `{{ product.title \| rawHtml }}` |
 
+How the price filters are combined — the price forms, the sale pair, the discount percentage, ranges and the exceptions — is on its own page: [Liquid — Prices](price-formatting.md).
+
+### _The standard fields on `product`_
+Inside a template's product loop, `product` is the current item. These fields are the same in every template type; which extras exist depends on the customer's feed.
+
+| Field | What it is |
+| --- | --- |
+| `product.title` | Product title; always present |
+| `product.url` | Product page URL |
+| `product.imgUrl` | Main product image URL |
+| `product.brand` | Brand / vendor name |
+| `product.price` | Current price (numeric) |
+| `product.oldPrice` | Previous price (numeric); present when on sale |
+| `product.currency` | Currency code. Prices are written as [Liquid — Prices](price-formatting.md) says |
+| `product.isOnSale` | Boolean — the sale condition: sale price, struck old price, discount badge |
+| `product.inStock` | Boolean — stock state, sold-out badge |
+| `product.productNumber` | Product id |
+| `product.description` | Product description |
+| `product.isBanner`, `product.bannerImages.<SIZE>.url` | Retail Media banner slot (Search, Recommendations, Pages) |
+| `product.extraData.<key>`, `product.extraDataList.<key>` | Custom attributes from the feed — size, colour, material, swatches, labels. Names are defined per customer: confirm them in the feed or in the customer's existing tile, and guard each with `!= blank` |
+
+Full list: [Website's Indexed product fields](https://support.helloretail.com/general-setup/websites-indexed-product-fields/).
+
 ### _Add a parameter to product links — `setUrlParam`_
 Use when a customer wants a query parameter on HR-rendered links only — e.g. a flag that makes their mobile app's deep-link handler leave the link to the browser, or a campaign parameter. The product URL in the feed and in API responses stays unchanged; only the rendered `href` changes.
 
@@ -52,3 +75,4 @@ This holds for every filter argument written inside an attribute — `remove_fir
 
 ## Timeline
 - 2026-10-02: Created — HR custom-filter overview, `setUrlParam` on product links, attribute quote rule (source: support ticket + developer docs).
+- 2026-11-12: Linked the new price page, [Liquid — Prices](price-formatting.md). Added *The standard fields on `product`*, gathered from the search templates page and the two email skills.

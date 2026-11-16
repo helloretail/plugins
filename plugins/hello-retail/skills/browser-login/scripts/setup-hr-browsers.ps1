@@ -10,7 +10,7 @@
 # the Google SSO login. Prompts self-skip when input is redirected (Claude-driven run).
 #
 #   powershell -ExecutionPolicy Bypass -File setup-hr-browsers.ps1
-#   powershell -ExecutionPolicy Bypass -File setup-hr-browsers.ps1 -Update           # upgrade Playwright too
+#   powershell -ExecutionPolicy Bypass -File setup-hr-browsers.ps1 -Update           # reinstall Playwright at the pinned versions
 #   powershell -ExecutionPolicy Bypass -File setup-hr-browsers.ps1 -RegisterServers  # see below
 #
 # -RegisterServers additionally registers user-scope copies of the twelve playwright servers
@@ -28,7 +28,12 @@ $HrNodeBin = Join-Path $HrNode "bin"
 $HrPw      = Join-Path $env:USERPROFILE ".hr-pw"
 $Auth      = Join-Path $env:USERPROFILE ".hr-auth.json"
 $Profile   = Join-Path $env:USERPROFILE ".hr-playwright-profile"
+# Everything downloaded is pinned — keep these in step with hr-browser-lib.sh. The checksum is
+# the win-x64 line of https://nodejs.org/dist/<version>/SHASUMS256.txt.
 $NodeVersion = "v22.14.0"
+$NodeSha256  = "55b639295920b219bb2acbcfa00f90393a2789095b7323f79475c9f34795f217"
+$PlaywrightVersion    = "1.61.1"
+$PlaywrightMcpVersion = "0.0.78"
 $Interactive = -not [Console]::IsInputRedirected
 $HarvestJs = Join-Path $PSScriptRoot "hr-auth.cjs"
 
@@ -48,6 +53,12 @@ function Ensure-Node {
       $zip = Join-Path $HrNode "node.zip"
       Write-Host "Downloading portable Node $NodeVersion (~30 MB)…"
       Invoke-WebRequest "https://nodejs.org/dist/$NodeVersion/node-$NodeVersion-win-x64.zip" -OutFile $zip
+      # Checked against the pinned SHA-256 before anything is unpacked.
+      $got = (Get-FileHash -Path $zip -Algorithm SHA256).Hash.ToLower()
+      if ($got -ne $NodeSha256) {
+        Remove-Item $zip
+        throw "Node download does not match its pinned checksum - nothing was installed. Re-run; if it happens again, report it."
+      }
       Expand-Archive $zip -DestinationPath $HrNode -Force; Remove-Item $zip
     }
     $src = $extracted
@@ -110,9 +121,21 @@ if ($Update -or -not (Test-Path $cliJs) -or -not (Test-Path (Join-Path $HrPw "no
     '{ "name": "hr-pw-workspace", "private": true }' | Set-Content -Path $pkgJson -Encoding UTF8
   }
   $env:PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
-  Write-Host "Installing Playwright + @playwright/mcp into $HrPw…"
-  & npm i --prefix $HrPw playwright@1 "@playwright/mcp@latest" | Out-Null
+  Write-Host "Installing Playwright + @playwright/mcp into ${HrPw}…"
+  & npm i --prefix $HrPw --save-exact "playwright@$PlaywrightVersion" "@playwright/mcp@$PlaywrightMcpVersion" | Out-Null
   if ($LASTEXITCODE -ne 0) { throw "Playwright install failed — check your network and re-run." }
+}
+# An existing install at another version is left alone and reported: reinstalling swaps the
+# files running playwright servers were started from, so it happens only with -Update.
+function Get-PwVersion([string]$name) {
+  $pkg = Join-Path $HrPw "node_modules\$name\package.json"
+  if (Test-Path $pkg) { return (Get-Content $pkg -Raw | ConvertFrom-Json).version }
+  return ""
+}
+$pwNow = Get-PwVersion "playwright"; $mcpNow = Get-PwVersion "@playwright\mcp"
+Write-Host "playwright $pwNow, @playwright/mcp $mcpNow"
+if ($pwNow -ne $PlaywrightVersion -or $mcpNow -ne $PlaywrightMcpVersion) {
+  Write-Host "Note: this plugin is tested with playwright $PlaywrightVersion and @playwright/mcp $PlaywrightMcpVersion. To switch, close Claude Code and re-run with -Update."
 }
 $env:HR_PW = $HrPw
 

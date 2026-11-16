@@ -8,7 +8,10 @@ the login is always a person's own action in a browser window.
 
 ## Backends, in order of preference
 
-1. **Playwright** — the `playwright*` servers in this plugin's `.mcp.json`. `playwright` (the
+1. **Playwright** — only in Claude Code running on the operator's own computer. In Claude chat,
+   Cowork or a cloud session there is no Playwright backend and it cannot be set up from there
+   (the shell is a sandbox, not their computer): start at 2. The `playwright*` servers are the
+   ones in this plugin's `.mcp.json`. `playwright` (the
    default) and the workers `playwright-01` … `playwright-10` run **isolated, headed** Chrome
    sessions seeded from one saved login, `~/.hr-auth.json` (`%USERPROFILE%\.hr-auth.json` on
    Windows). Every Claude Code session gets its own browser, so any number of QA runs can go in
@@ -30,12 +33,15 @@ does not mean the fleet is down.
 ## Login check — a precondition, run before any HR-gated browser work
 
 1. Navigate to `https://my.helloretail.com/`.
-2. The dashboard, or a redirect to `/supervisor/…` (supervisor accounts), means **logged in**.
-   A redirect to `signin.html` means **logged out**.
+2. Look only at the URL the page ended on. A redirect into `/auth/…` — the sign-in page,
+   `/auth/signin` (`signin.html` on older builds) — means **logged out**. Any other
+   my.helloretail.com page — the dashboard, or a redirect to `/supervisor/…` (supervisor
+   accounts) — means **logged in**.
 3. Logged out on the Playwright backend → stop the task and run the `browser-login` skill: it
    diagnoses (`check-hr-auth`), refreshes the saved login from the shared profile
    (`refresh-hr-auth`), or has the operator log in themselves in a window they can see. Never
-   ask for or type credentials. Logged out on Claude in Chrome → ask the operator to log in in
+   ask for or type credentials, and never put a time limit on the login: the window stays
+   open, untouched, until the operator says they are done. Logged out on Claude in Chrome → ask the operator to log in in
    their Chrome, wait for their confirmation, re-run the probe.
 4. Resume the task exactly where it stopped. On the Playwright backend, if a browser was already
    open when the login was refreshed, `browser_close` it first — the next action opens a fresh
@@ -54,7 +60,41 @@ If the operator cannot log in, run the pass anyway and record every widget-gated
 Run the **first-load popup sweep** from `../skills/qa-checklists/SKILL.md`: accept the
 cookie/consent banner by clicking its real button (declining or deleting the overlay leaves Hello
 Retail blocked and looks like a broken implementation), close newsletter and discount popups
-without entering anything, and answer region pickers with the market under work.
+without entering anything, and answer region pickers with the market under work — then check the
+URL did not redirect. Prices, lazy images and Hello Retail itself are often consent-gated, so a
+banner that was swept away without an answer gives a wrong reading of the page. The `playwright`
+server and its workers run isolated sessions, so the sweep is repeated in every new session;
+only `playwright-profile` and Claude in Chrome remember the answers.
+
+## Surveying a storefront
+
+**A storefront is read in a real browser, always.** Tiles, prices, sale and stock states,
+swatches and add-to-cart forms are rendered by JavaScript that a plain HTTP fetch never runs.
+
+- **Never `WebFetch`, `curl` or any other HTTP client** for a storefront page. They return the
+  pre-render skeleton: a tile with blank prices, missing states or the wrong DOM.
+- **Backend:** Playwright first, Claude in Chrome when no `playwright*` worker exposes tools
+  (the order above). The same in every skill.
+
+| Task | Playwright | Claude in Chrome |
+|---|---|---|
+| Load a page | `browser_navigate` | `navigate` |
+| Read the rendered DOM | `browser_snapshot` | `get_page_text` / `read_page` |
+| Locate elements | `browser_snapshot` / `browser_evaluate` | `find` |
+| Run a snippet | `browser_evaluate` | `javascript_tool` (needs the `tabId`; blocks output that contains URLs) |
+| Hover | `browser_hover` | `computer` |
+| Real (trusted) click | `browser_click` | `computer` |
+| Mobile viewport | `browser_resize` to a real mobile size | ask the operator to open the device **Emulator** — never resize that browser window |
+
+- **The reference is the shop's own product grid** — the paginated category grid. Never a
+  third-party recommendation widget, and never a tile inside a Hello Retail box (`.aw-item`,
+  `[data-aw_source]`, `#aw-box-…`).
+- **Neither browser is connected** → do not fetch the page yourself. Ask the operator to enable
+  one (Playwright: the one-time `browser-login` setup; Claude in Chrome: the extension), or to
+  paste the rendered tile HTML from DevTools — one full product card, and ideally a sale and a
+  sold-out one.
+- **Only the customer's public storefront is driven.** No page under my.helloretail.com, apart
+  from the login check above.
 
 ## Close the browser when the work is done
 

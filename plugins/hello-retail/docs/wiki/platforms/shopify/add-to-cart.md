@@ -22,7 +22,7 @@ ATC `<form action>` is `/cart/add`; a `Shopify` global / `cdn.shopify.com` scrip
 The tile keeps the theme's own product-form markup — loading states, error line, quick-add dialog for
 variant products — with the variant id and product id bound to the feed. `<product-form>` and the other
 custom elements upgrade themselves when Hello Retail inserts the tile, so **test with a real click
-before adding any of the JS below** (search-developer → tile-interactivity Step 0); on many Dawn-family
+before adding any of the JS below** ([Before binding](../add-to-cart.md#before-binding--check-whether-it-already-works)); on many Dawn-family
 themes nothing more is needed.
 
 ### Form markup — simple product
@@ -141,7 +141,7 @@ the `.js-quick-add` dialog trigger. Delegated, so it survives re-renders on its 
 })();
 ```
 
-> **Confirm the quick-add global on the live storefront before shipping this.** `window.QuickAddModal` stands in for whatever the theme actually exposes — often a `<quick-add-drawer>` element or a differently named global, sometimes nothing. An unconfirmed `else` branch turns every quick-add click into a page navigation. Check with `typeof window.<Global>` in the browser first; see `${CLAUDE_PLUGIN_ROOT}/skills/search-developer/references/tile-interactivity-js.md`.
+> **Confirm the quick-add global on the live storefront before shipping this.** `window.QuickAddModal` stands in for whatever the theme actually exposes — often a `<quick-add-drawer>` element or a differently named global, sometimes nothing. An unconfirmed `else` branch turns every quick-add click into a page navigation. Check with `typeof window.<Global>` in the browser first; see [Before binding](../add-to-cart.md#before-binding--check-whether-it-already-works).
 
 ---
 

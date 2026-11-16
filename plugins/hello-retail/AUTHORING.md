@@ -78,19 +78,14 @@ header (12 characters at most), the options (a label of one to five words, the r
 first and marked "(Recommended)", `multiSelect: true` when several may apply), and which questions
 share a call.
 
-- **One call holds up to four questions, and only questions that don't depend on each other.** A
-  question whose options come from an earlier answer (which section on *that* page, which
-  algorithm for *that* page type) goes in the next call, after the answer has been used.
-- **Options come from what the skill already found** — the live page's sections, the MCP's
-  best-practice list, the shop's own slider count — never invented; *Other* covers the rest.
-- **Ask nothing twice.** An answer already in the prompt, the ClickUp card's text or an earlier
-  reply is taken, and the skill says what it took.
-- **Free text with no sensible options** (a URL, a UUID, a heading with nothing to suggest) stays
-  a prose question. An approval gate ("write these as drafts?") uses the tool but marks no option
-  as recommended — the choice is the operator's.
-- **Fallback.** No `AskUserQuestion` tool in the session (a subagent, the SDK) → the same question
-  in prose, one per message, the options as a numbered list. No operator to answer at all → don't
-  ask: take the recommended option and record the question under OPEN QUESTIONS.
+The rules the model follows when it asks — when the picker applies, how a question is written, how
+questions are batched, and what happens when the tool or the operator is missing — live in one
+file, [`docs/asking-the-operator.md`](./docs/asking-the-operator.md). A skill does not restate
+them. It carries the short paragraph the existing skills use — the core rule, the pointer
+`${CLAUDE_PLUGIN_ROOT}/docs/asking-the-operator.md`, and the section of its own output where an
+unanswered question is recorded (OPEN QUESTIONS, MISSING DATA, *Manual checks for the operator*) —
+and then its own questions with their headers and options. Change a rule in that file, never in
+one skill.
 
 The worked example is `recom-developer` → `references/box-setup.md` → *How to ask*. Adopted so far by
 `search-developer`, `recom-developer` and `pages-developer`, and by the QA skills — `search-qa`,
@@ -105,6 +100,9 @@ Keep `SKILL.md` scannable. Anything long or platform-specific — per-platform q
 ## 5. Wire it to the repo's knowledge, not to copies
 
 - Reference shared knowledge by **plugin-root path** — `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/…`, `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/…`. The wiki ships inside the plugin, so the path resolves wherever the plugin is installed; don't paste wiki content into the skill where it will rot.
+- **Rules that several skills share live in one file, and each skill points to it.** Before writing a rule into a skill, check whether it is already one of these; when a second skill needs a rule that one skill has, move it to a shared file rather than copying it. Keep one line of the rule in the skill and name the file and section to read.
+  - Product knowledge → the wiki. Prices: `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/liquid/price-formatting.md`; the base and how to extend it: `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md`.
+  - How skills behave → `${CLAUDE_PLUGIN_ROOT}/docs/`: `design-writes.md` (read → diff → `Push` gate → draft → read back), `tile-delegation.md` (using `tile-extractor` from a shell skill), `hand-off.md` (hand-off message, retro, `customer-handoff`), `browser-login.md` (which browser, surveying a storefront, closing it), `email-tile-inspection.md` with `email-tile-inspect.js` (reading a shop's tile for an email design).
 - If the skill calls an MCP (e.g. `hello-retail`), document the **preconditions** (what coordinates it needs) and the **write gate** explicitly. Default to **read → show a diff → push only as a REVIEW draft with approval**; never auto-publish.
 
 ## 6. Respect the hard rules (these gate the PR)

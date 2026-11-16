@@ -8,6 +8,71 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.64.1 — 2026-11-16
+
+Maintenance release — no user-visible changes.
+
+## 1.64.0 — 2026-11-16
+
+### Changed
+
+- `tile-extractor` now opens with its role, who reads its output and why a gap must be reported,
+  so it stays closer to the shop's own card and writes down every unseen state or missing field.
+- `tile-extractor`, `search-developer`, `recom-developer`, `pages-developer`, `newsletter-developer` and `triggered-email-developer` take their price rules from one wiki page. The discount percentage is now always guarded on an old price above zero, and what an email tile may copy from the shop's price markup is written down as the one exception.
+- `newsletter-developer` and `triggered-email-developer` read the shop's tile with the same inspection steps and one script. The script also reports the old price, a sold-out badge, text casing and whether the buy button shows without hover.
+- `search-developer`, `recom-developer` and `pages-developer` read the rules they share — draft writes and the Push question, using `tile-extractor`, the hand-off, surveying a storefront — from one file each, so a rule changed once changes in every skill.
+- `search-developer` and `recom-developer` take the add-to-cart rules that are the same on every surface — how the platform is recognised, the real-click check before any cart code, click tracking — from the wiki's add-to-cart page, and keep only what the overlay or the slider adds per platform.
+- `newsletter-developer` states each build rule once, in its rendering rules, and its build step lists which rule covers what.
+- `search-developer` states each instruction once: its hard rules and self-check name the step or reference that holds the detail instead of repeating it, and its config, filter, content-feed and initial-content steps point to their reference for the detail.
+- `recom-developer` asks the foundation question with the same two options as `search-developer`.
+- `recom-developer`'s self-check and its box-setup step name the step or reference that holds the detail instead of repeating it.
+- `pages-developer` reads its pagination, chrome-parity and cross-design CSS recipes from reference files at the step that needs them, so a build that does not paginate or restyle the filter drawer no longer reads them. Each of those steps now says what done looks like.
+- `pages-developer` now shows a diff and asks the Push question before it writes a design draft, and shows current → new before it changes filters, sorting, a page config or field indexing. Until now it wrote drafts without asking.
+
+### Fixed
+
+- `recom-developer` and `triggered-email-developer` no longer say in one place that Claude in Chrome comes before Playwright; Playwright is first everywhere.
+- `newsletter-developer` and `triggered-email-developer`: on a tile that is on sale, the inspection no longer reports the old price as the current price or the sale price as the discount badge.
+- `newsletter-developer` no longer points to worked-example files that are not part of the plugin.
+- `search-developer` and `recom-developer` no longer treat DanDomain, Lightspeed, Viskan, Wikinggruppen or (in Recommendations) BigCommerce as platforms without a documented add-to-cart; they use the platform's wiki page, and report a missing binding only for a platform that has none.
+- `search-developer` no longer says Magento's `form_key` is read from `#maincontent`; the Magento page's lookup, which also works on Hyvä, is the one to use.
+- `search-developer` no longer says in one rule never to resize the browser for mobile while its survey step uses a real mobile viewport; both now say the same.
+- `search-developer` asks for six sets of page-type measurements in the report, matching the six page types it checks, and its pointers to the variant section now name a section that exists.
+
+## 1.63.1 — 2026-11-16
+
+### Fixed
+
+- `plugin-feedback` now always tries to send the report where a shell is available, instead of sometimes handing it straight over for manual entry. The manual blocks also say to copy one box at a time, so the instructions no longer end up inside the ticket.
+
+## 1.63.0 — 2026-11-16
+
+### Changed
+
+- `plugin-feedback` reports say where they were written — Claude Code, Claude chat or Cowork — so the plugin team can tell which ones were added by hand. Outside Claude Code the plugin version is left out instead of being reported as unknown.
+
+## 1.62.0 — 2026-11-16
+
+### Changed
+
+- `browser-login` now opens the Hello Retail login window itself on a fresh machine, instead of asking you to paste a line into Terminal. You only log in. The terminal line is still printed in the one case it is needed: when the window opens without network and the page cannot load.
+- `browser-login` installs a pinned Node (checked against its SHA-256 before unpacking) and pinned Playwright versions instead of whatever is newest. An existing install is left alone; `HR_UPDATE=1` (or `-Update` on Windows) switches it to the pinned versions.
+
+### Fixed
+
+- `browser-login` no longer closes the login window about five seconds after it opens. The window now stays open, with no time limit, until Hello Retail accepts the login; before, a leftover session cookie was taken for a finished login.
+- `browser-login` recognises the current Hello Retail sign-in page (`/auth/signin`) as "logged out", and so does the login check every QA and builder skill runs first. Refreshing the saved login now reports a session Hello Retail has ended instead of saving it.
+
+## 1.61.2 — 2026-11-13
+
+### Changed
+
+- The plugin's contact address in Claude Code's plugin details is now support@helloretail.com.
+
+### Fixed
+
+- `newsletter-developer` no longer points to three worked-example tiles that are not in the plugin; it starts from the shared default template only.
+
 ## 1.61.1 — 2026-11-12
 
 ### Fixed

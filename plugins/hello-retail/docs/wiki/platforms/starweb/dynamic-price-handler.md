@@ -12,9 +12,9 @@ Starweb's dynamicPriceHandler is a global object that writes the price each shop
 When Search, Recommendations or Pages is being set up on a Starweb shop, ask whether the shop has **customer-unique prices** (prices that depend on the logged-in customer), **several currencies**, or **other price quirks**. Don't assume the answer from the storefront; a guest session doesn't show customer-unique prices.
 
 - **Yes to any of them** — use the handler. The feed holds one price per product and HR's `| price` formatting is one setting per website, so neither can follow the shopper.
-- **No** — don't use it. Format prices as usual with `| price` (see [price formatting](../../cheat-sheets/recoms/general.md)). This includes a one-currency shop with a B2C/B2B (incl./excl. VAT) toggle, which is simpler to handle the usual way.
+- **No** — don't use it. Format prices as usual with `| price` (see [Liquid — Prices](../../cheat-sheets/liquid/price-formatting.md)). This includes a one-currency shop with a B2C/B2B (incl./excl. VAT) toggle, which is simpler to handle the usual way.
 
-The developer skills ask this question themselves when they detect Starweb.
+The developer skills ask this question themselves, once, as soon as the platform is known to be Starweb (from the onboarding card, or the tile skill's PLATFORM section reporting `window.quickShop`) and before the tile goes into the design. They ask it as a multiple-choice question (`AskUserQuestion`, header *Prices*, `multiSelect: true`): *None of these* / *Customer-unique prices* / *Several currencies* / *Another price quirk* (*Other* says which). Any answer but *None of these* means yes: the tile's price block uses the markup under [Tile markup](#tile-markup), and the design calls the handler as [Recommendations](#recommendations) or [Search and Pages](#search-and-pages) describes. *None of these* means prices as usual and no handler. Never on another platform, and never assumed.
 
 ## Versions and activation
 

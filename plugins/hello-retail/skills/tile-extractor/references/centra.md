@@ -83,11 +83,9 @@ e.g. show a swatch-slider's forward arrow when the strip has 7+ swatches:
 
 ## Swatch/slider scrolling — Chrome smooth-scroll gotcha
 
-Native swatch strips are often `overflow-x: hidden` with CSS `scroll-behavior: smooth`. In
-Chrome, smooth scrolling on a hidden-overflow container is a **silent no-op** — `scrollBy`/
-`scrollTo`/`scrollLeft` assignment all do nothing while smooth is in effect. Set
-`strip.style.scrollBehavior = "auto"` at bind time and animate with a small rAF ease to keep the
-native feel.
+Native swatch strips are often `overflow-x: hidden` with CSS `scroll-behavior: smooth`, where
+Chrome silently ignores every scroll call. The cause and the fix are in `liquid-rules.md` →
+*Swatch-slider strips — two verified gotchas*.
 
 ## No canonical ATC
 

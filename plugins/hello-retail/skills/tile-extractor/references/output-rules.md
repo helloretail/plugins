@@ -1,6 +1,6 @@
 # Output rules — full text
 
-The 13 rules of `../SKILL.md` → OUTPUT RULES, with the reasons and the field cases behind each.
+The 16 rules of `../SKILL.md` → OUTPUT RULES, with the reasons and the field cases behind each.
 Read this once per build, before workflow step 8. The short form in `SKILL.md` is binding on its
 own; this file explains it and settles the edge cases.
 
@@ -13,7 +13,7 @@ own; this file explains it and settles the edge cases.
 
 3. **Never add comments** — no `{% comment %}`, no `{# #}`, no `/* */` anywhere in the output code
 
-4. **Never hardcode currency** — always use `{{ product.currency | currencySymbol }}` (or the equivalent one-shot `| priceWithCurrency: product.currency` — see the Price section of `liquid-rules.md`)
+4. **Never hardcode currency** — always use `{{ product.currency | currencySymbol }}` (or the equivalent one-shot `| priceWithCurrency: product.currency`). Every price rule is in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/liquid/price-formatting.md`
 
 5. **Never miss the form `action` attribute** — every ATC `<form>` must have `action="..."`
 

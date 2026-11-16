@@ -36,17 +36,13 @@ under `references/` — load only the ones in scope.
 If only a feature name is given, you can still print the relevant checklist for manual use —
 ask for the domain (and the card) only if the user wants you to verify items yourself.
 
-**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of
-sensible options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's
-`AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line
-description each, the recommended one first and marked "(Recommended)", `multiSelect: true`
-when several may apply; *Other* is added automatically for free text. Up to four independent
-questions per call; a question whose options depend on an earlier answer waits for the next
-call. Options come from what you already read, never from guesswork, and nothing the prompt,
-the card or an earlier answer already settled is asked again. Free text with nothing to
-suggest (a URL, a UUID) stays a prose question. No `AskUserQuestion` tool in the session → the
-same questions in prose, the options as a numbered list; no operator to answer at all → take
-the recommended option and record the question under Manual checks for the operator.
+**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of sensible
+options is asked with the `AskUserQuestion` picker, never in prose and never guessed; free text
+with nothing to suggest (a URL, a UUID) stays a prose question, and nothing already answered is
+asked again. The format, the batching rule and the fallback when the tool is missing are in
+`${CLAUDE_PLUGIN_ROOT}/docs/asking-the-operator.md` — read it before the first question. No
+operator to answer at all → take the recommended option and record the question under Manual
+checks for the operator.
 
 ## Checklist index — load per feature
 
@@ -324,7 +320,7 @@ domain on multi-domain runs) with these sections, every entry citing author + da
   test — one report logged it as SKIPPED with a reason, a parallel report on the same account
   didn't mention it at all).
 - **Decisions** — explicit customer/CSM choices, especially deviations from native that are
-  by design ("mobile font 1.2rem, smaller than native — Anthony, Jul 7").
+  by design ("mobile font 1.2rem, smaller than native — CSM, Jul 7").
 - **Declined** — requested, investigated, turned down ("mobile filter dropdown — not possible
   with this overlay type — team member, Jul 7").
 - **Known open** — items the ticket already tracks as pending, with owner and ETA ("placement
@@ -1501,7 +1497,7 @@ this leaves uncovered**, enumerated: visual/tile parity, interactions (filters, 
 close, sliders), displayed-price correctness, box/config inventory-vs-rendered
 reconciliation. Never present a code-only pass as a full QA — a real code-only run missed 6
 of 6 manual findings on one card because every one was a rendered/interactive defect
-(campingsportmagenta, 2026-08-24 comparison).
+(2026-08-24 comparison).
 
 **Search for prior reports — don't assume you know the folder.** Report folders have been named
 after both the customer and the domain, so a same-domain report can sit in a sibling folder and

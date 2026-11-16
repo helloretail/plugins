@@ -6,12 +6,17 @@ This is the structural shell the tile body slots into. The product card itself c
 
 1. **Which shell to build & where the tile goes** — picking the variant (`desktop-overlay` / `desktop-embedded` / `mobile-overlay`) and the `resultTemplate` edit-scope (the `{{ TILE_BODY }}` slot in the non-banner branch; the banner branch is off-limits).
 2. **The sanctioned `resultStyles` (CSS) edits** — the *only* CSS changes this skill makes, all here so they live in one place:
-   - **Parent scope** — mirror the tile's parent class onto `hr-products-container`.
-   - **Tile fill** — size the reproduced tile to its grid cell.
+   - **Parent scope** — mirror the tile's parent / ancestor hook classes onto `hr-products-container`, and its cell-level hook classes onto the `hr-search-overlay-product` cell (scope classes only); copy `body.`/`#id`-scoped rules a hook class can't satisfy, rescoped.
+   - **Tile fill** — size the reproduced tile to its grid cell: `flex: 1 1 0; width: 100%; height: 100%` plus the native `text-align`, on `.hr-search-overlay-product > *`, all four together; the image guard only when the rendered pair shows the image overflowing the cell.
    - **Tile width** — match `product_tile_width` to the native tile's rendered width.
-   - **Tile text-alignment** — set the native tile's surveyed alignment on the tile-fill rule when it isn't centered.
-   - **Remove the reset block** — delete the overlay's universal reset (temporary, until base removal).
+   - **Tile text-alignment** — set the native tile's surveyed alignment on the tile-fill rule when it isn't centered; never a base-rule deletion, never `.hr-search-overlay-product-link`-scoped.
+   - **Remove the reset block** — delete the overlay's universal reset (temporary, until base removal), and add its companion content-heading rule (`.hr-overlay-search .hr-results .hr-content .hr-title { margin: 0; }`) in the same edit.
    - **Gutter padding** — strip the tile root's grid-gutter padding when it isn't a real card.
+   - **Fixed-column grid override** — when the native page uses fixed column counts (products-container only).
+   - **Page-dependent restatements** — the category-page values of rules keyed on a page-type body class, and of stylesheets the category page loads but other page types do not, copied and scoped under `.hr-overlay-search` (the tile skill's `page-dependent:` lines; checked in Step 17b).
+   - **The copy of the customer's own rules** — only on a proven non-global-CSS shop, after the operator said the customer cannot make the CSS global: appended verbatim, never a reconstruction.
+   - **Open-state header rule (embedded, Step 7b)** — `body.hr-search-disable-scroll > <header wrapper> { z-index: <overlay_z_index + 1>; }`, `position: relative` only if the wrapper is static, `filter: none` only if blur is on.
+   - **Layout-option recipes** — `references/layout-options.md`: filters in the left column, sticky filter bar / column, separate column scroll, filter-chip widths, result count in the headline, "show more" for filter groups / options with inline option search, mobile buttons in the input row. Each **only when the operator asked for it**, appended additively (L1 and ML5b are the Liquid moves, approved first; L7/L8 JS is called from the single render hook after `sortFilters();`).
    - **Overlay z-index** — set `overlay_z_index` below the site header's stacking context so the header/menus stay on top.
    - **Initial-content grid override** — when the native tile is wide and initial content is set to 8 products, force 4 per row (`.hr-products.initialcontent .hr-products-container { grid-template-columns: repeat(4, minmax(0, 1fr)) }`). Details: `references/search-data-config.md` (Step 13d).
    - **Grid tracks** — when the tile has non-wrapping text, `minmax(0, 1fr)` columns and `min-width: 0` on the grid cell so the columns cannot outgrow the viewport (both desktop and mobile).
@@ -25,11 +30,7 @@ These are config tokens / CSS rules in `resultStyles`, not `search.js` wiring. F
 
 There are three Search variants. Each starts from the design the MCP attaches when the config is created — the wiki keeps no copy of any of them:
 
-| Variant | Source | When to use |
-|---|---|---|
-| **desktop-overlay** | the design `search_createConfig(target=DESKTOP, desktopDesign=OVERLAY)` attaches — read it with `search_getDesign` | Default. Full-screen overlay triggered by clicking any `input[type='search']`. Auto-deactivates below 992 px. |
-| **desktop-embedded** | the design `search_createConfig(target=DESKTOP, desktopDesign=EMBEDDED)` attaches — read it with `search_getDesign` | Results render inline inside a page container, not full-screen. |
-| **mobile-overlay** | the design `search_createConfig(target=MOBILE)` attaches — read it with `search_getDesign` | Mobile-only overlay with tabbed categories/products. The desktop JS bails at 992 px (`return;`), so mobile **always requires** its own design — pair it with whichever desktop variant is used. |
+`${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/search/README.md` → *Variants* and *Choosing a variant* has the table: **desktop-overlay** (the default; `target=DESKTOP`, `desktopDesign=OVERLAY`), **desktop-embedded** (results inline in a page container; `desktopDesign=EMBEDDED`) and **mobile-overlay** (`target=MOBILE`). The desktop JS bails at 992 px (`return;`), so mobile **always requires** its own design — pair it with whichever desktop variant is used.
 
 Every design has the same three fields — `resultTemplate` (Liquid), `resultStyles` (CSS), `initializationCode` (JS). Where this skill says `search.liquid` / `search.css` / `search.js`, it means those three fields.
 
@@ -80,7 +81,7 @@ Every variant's `resultTemplate` has the same slot structure inside `{% capture 
 {% endfor %}
 ```
 
-**Your work is exclusively inside the `{% else %}` branch, and `scripts/splice-tile.mjs` does it.** The script parses the Liquid, finds the banner check's `{% else %}` inside the product loop, and replaces the branch's whole content — the default `<a class="hr-search-overlay-product-link">…</a>` and everything inside it — with the tile body; it also puts the container hooks on every `hr-products-container` and the cell hooks on the `hr-search-overlay-product` cell. Nothing of the default tile survives in a pushed design, and the customer's root is the direct child of `.hr-search-overlay-product` (Search keeps no Hello Retail wrapper around the tile). `--show` prints the branch before anything is written; the script refuses to write while a token is unbound or the Liquid would end up unbalanced. **Never touch the banner branch** (`{% if product.isBanner … %}`).
+**Your work is exclusively inside the `{% else %}` branch, and `scripts/splice-tile.mjs` does it.** The script parses the Liquid, finds the banner check's `{% else %}` inside the product loop, and replaces the branch's whole content — the default `<a class="hr-search-overlay-product-link">…</a>` and everything inside it — with the tile body; it also puts the container hooks on every `hr-products-container` and the cell hooks on the `hr-search-overlay-product` cell. Nothing of the default tile survives in a pushed design, and the customer's root is the direct child of `.hr-search-overlay-product` (Search keeps no Hello Retail wrapper around the tile, unlike Recom and Pages). `--show` prints the branch before anything is written; the script refuses to write while a token is unbound or the Liquid would end up unbalanced. **Never touch the banner branch** (`{% if product.isBanner … %}`).
 
 A Search design has **no CSS slot** — older copies carried a `{{ CUSTOM_STYLING_BLOCK }}` token, which stays empty where it still exists. The skill does not author tile CSS (the tile's classes are preserved verbatim, so the customer's theme CSS styles it). The only CSS the skill emits is the TILE FILL rule below (and header-match overrides if the operator opted in — see `branding-and-header.md`).
 
@@ -305,11 +306,11 @@ Mirror the native column count; add one step-down breakpoint (the desktop-overla
 
 ## Self-contained tile CSS — CSS-in-JS storefronts only
 
-On shops whose CSS is not global (MUI/Emotion and other CSS-in-JS storefronts), the customer's styles are **injected per page and per rendered state** — the overlay opens from any page, so the verbatim-classes tile renders differently (or broken) depending on where it opens. The tile skill proves that with two checks, then asks the operator whether the customer can make the tile CSS global; only when the answer is *no* does it hand over a **copy of the customer's own rules** under CSS BLOCK (verbatim, rescoped under `.hr-overlay-search`, keyed on the stable label classes). **Appending that copy to `resultStyles` is a sanctioned edit** — treat it as part of the tile drop-in, place it after the TILE FILL rule, and don't edit its values here. Everything else about the no-tile-CSS rule still stands for classic themes. Details: the tile skill's `../../tile-extractor/references/centra.md`.
+On shops whose CSS is not global (MUI/Emotion and other CSS-in-JS storefronts) a tile with its classes kept does not get its styles on every page the overlay opens from. When the customer cannot make the tile CSS global, the tile skill hands over a **copy of the customer's own rules** under CSS BLOCK (verbatim, rescoped under `.hr-overlay-search`, keyed on the stable label classes) — the cause and the question to the operator are in `../../tile-extractor/references/css-ownership.md`, the two checks that prove it in `../../tile-extractor/references/centra.md` → *Prove it before treating a shop as CSS-in-JS*. **Appending that copy to `resultStyles` is a sanctioned edit** — treat it as part of the tile drop-in, place it after the TILE FILL rule, and don't edit its values here. Everything else about the no-tile-CSS rule still stands for classic themes. Details: the tile skill's `../../tile-extractor/references/centra.md`.
 
 ## Page-dependent restatements — classic themes whose CSS changes by page type
 
-A classic theme's CSS is global, yet the same tile can still render differently depending on where the overlay opens: rules keyed on a page-type body class (`.single-product .badge { top: 10px }`) match only on that page type, and some platforms load a stylesheet only on some templates (WordPress enqueues a block's CSS only where the block renders — WooCommerce's `product-image.css` is on category pages, not on product pages). The tile skill reports each case under SHELL CSS NOTES as a `page-dependent:` line with the category-page values (its step 4g).
+A classic theme's CSS is global, yet the same tile can still render differently depending on where the overlay opens — rules keyed on a page-type body class, and stylesheets a platform loads only on some templates. Why, and how each case is found: `../../tile-extractor/references/survey-snippets.md` → *PAGE-TYPE CSS*. The tile skill reports each case under SHELL CSS NOTES as a `page-dependent:` line with the category-page values (its step 4g).
 
 **Restating them is a sanctioned edit.** For each line, copy the theme's own rule — or the category-only sheet's rules that reach the tile — with the **category-page values**, scope every selector under `.hr-overlay-search`, and append the block after the TILE FILL rule with a one-line comment naming the cause. Cover the whole rule family (every badge slot, not only the one you saw move). Never reconstruct values from computed styles, and never restate rules that do not differ between page types. The scope under `.hr-overlay-search` is enough to beat a page-type rule of the same shape (`.single-product .badge:nth-last-child(1)` is 0-3-0; `.hr-overlay-search .hr-search-overlay-product .badge:nth-last-child(1)` is 0-4-0).
 
@@ -327,15 +328,17 @@ Field case (WooCommerce block theme, 2026-10):
 .hr-overlay-search .wc-block-components-product-image__inner-container { bottom: 0; display: flex; flex-direction: column; left: 0; padding: 12px; position: absolute; right: 0; top: 0; }
 ```
 
-Verify with the cross-page check in SKILL.md Step 17b: the same tile, opened from the homepage, category page, product page and cart, gives the same height, image box and badge offsets.
+Verify with the cross-page check in SKILL.md Step 17b: the same tile, opened from the homepage, category page, product page, cart, account page and a 404 URL, gives the same height, image box and badge offsets.
 
 ## Tile text alignment — match the native tile, don't inherit the base's center
 
-The base template centers text at **two** levels: the overlay root rule (`.hr-overlay-search`, all three variants) **and** the grid-cell rule (`.hr-overlay-search .hr-search-overlay-product`, desktop-overlay / desktop-embedded) both carry `text-align: center;`. `text-align` inherits, and most native product tiles never set their own (every element computes to the inherited default `start`) — so a byte-perfect tile silently renders **centered** inside HR while the storefront shows it left-aligned. This is easy to miss in a code review and only shows up in a side-by-side rendered comparison — check for it proactively rather than waiting for a "make sure they look similar" QA pass to catch it. (Field-confirmed on store-NL-1, 2026-07.)
+The base template centers text at **two** levels: the overlay root rule (`.hr-overlay-search`, all three variants) **and** the grid-cell rule (`.hr-overlay-search .hr-search-overlay-product`, desktop-overlay / desktop-embedded) both carry `text-align: center;`. Because `text-align` inherits, a tile whose elements never set their own renders **centered** inside HR while the storefront shows it left-aligned (`../../tile-extractor/references/survey-snippets.md` → *TILE CONTENT ALIGNMENT*). It only shows up in a side-by-side rendered comparison, so check for it proactively rather than waiting for QA to catch it.
 
 **Check it during the survey:** read the native tile's computed `text-align` (`getComputedStyle` on the title/price/description elements). When the tile skill built the tile, its report carries this as the **ALIGNMENT** line (see `tile-extractor` → "TILE CONTENT ALIGNMENT") — use that value.
 
 **The fix — one declaration on the tile-fill rule:** when the native alignment isn't `center`, add `text-align: <native value>` (usually `left`) to the TILE FILL rule (`.hr-overlay-search .hr-search-overlay-product > *`), as shown in the Tile fill section above. The tile's whole subtree then inherits the native alignment from its root, overriding both base ancestors at once. Elements that set their own alignment directly (e.g. a badge's `text-center` class) are unaffected — their own declaration beats inheritance, exactly as on the storefront.
+
+**Why not scope it to `.hr-search-overlay-product-link > *`?** The custom tile is a direct child of `.hr-search-overlay-product`, so that rule matches nothing.
 
 **Why not delete `text-align: center` from the base rules instead?** Deleting it from the cell rule alone is a no-op — the tile still inherits `center` from the `.hr-overlay-search` root rule. Deleting it from the root as well risks shifting HR's own chrome (anything relying on inherited centering). The tile-fill declaration fixes the tile without touching either base rule.
 
@@ -370,6 +373,7 @@ It zeroes **padding-left** and **vertical margins** on *every* descendant of the
   ```
 
 - **Re-run the chrome QA after later search-data changes.** Chrome that isn't configured yet isn't in the DOM to check — link content especially: a design QA'd before `search_updateLinkContent` never rendered the content column, so heading regressions like the one above only surface after the content feed is added. Any later change that adds new chrome (link content, redirects, initial content) re-triggers the chrome QA.
+- **Check it rendered:** with a content feed configured, the tops of "Categories" / "Brands" and "Products" measure equal on the rendered panel.
 - **Why temporary:** the goal is to have Hello Retail remove this block from the default desktop designs (product engineering owns them). Until that lands, strip it per design here. Once it is gone upstream, this step is a no-op.
 
 ## Tile gutter padding — strip it when it's grid-gutter, keep it when it's card chrome

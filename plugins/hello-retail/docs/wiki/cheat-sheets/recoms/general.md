@@ -205,44 +205,9 @@ Reference example was customer-specific (a Supervisor design link, now removed);
 
 ---
 
-### _Currency symbol_
+### _Price formatting and currency symbol_
 
-Render the right currency symbol for a product:
-
-```liquid
-{{ product.currency | currencySymbol }}
-```
-
----
-
-### _Price formatting — best practice_
-
-**Don't replace decimals with `replace: ",00" , ""`.** That works, but it's fragile and gets weird across markets. Use the website's **price formatting settings** in the dashboard instead.
-
-The `replace` trick is only justified when **the same recom design serves multiple domains** that format prices differently.
-
-**Currency symbol — pick one of these (not hardcoded `kr`):**
-
-```liquid
-{{ product.price | price }} {{ product.currency }}              {# → "999 SEK" #}
-{{ product.price | price }} {{ product.currency | currencySymbol }}   {# → "999 kr" #}
-```
-
-> ⚠️ You **must** append `| price` for the website's price-format settings to apply. Without `| price`, you get the raw number and your Supervisor formatting is silently ignored.
-
-Bad:
-
-```liquid
-{{ product.oldPrice | price | replace: ",00" , "" }} kr
-```
-
-Good:
-
-```liquid
-{{ product.oldPrice | price }} {{ product.currency | currencySymbol }}
-```
-
-Reference: Front conversation 27465945156.
+The price rules are the same in every template type and live on one page: [Liquid — Prices](../liquid/price-formatting.md). In short: the number goes through `| price`, the currency comes from `product.currency`, and `replace` on a formatted price is accepted only when the same recom design serves several domains that format prices differently.
 
 ---
 
@@ -335,3 +300,4 @@ if (grandTotalNode !== null) {
 - 2026-08-20: Added Mousewheel/touchpad-scroll section (from an onboarding): `cssMode: true` (+ `loop: false`) as the preferred native-scroll route, `mousewheel: true` + `forceToAxis` as the alternative; fractional `slidesPerView` for the native "peek" look; arrow-hiding guidance.
 - 2026-09-25: Added the team's mouse-wheel method (Swiper 11 + root class `swiper` + `mousewheel: true`), used when the customer's own slider scrolls with the wheel and the operator opts in; `cssMode` stays the route for native scroll-container carousels.
 - 2026-09-25: Corrected the Swiper 11 pin to `"11.2.8"` throughout — Hello Retail serves no `"11.2.10"`.
+- 2026-11-12: Price formatting and currency symbol moved to [Liquid — Prices](../liquid/price-formatting.md), the one page for price rules in every template type.
