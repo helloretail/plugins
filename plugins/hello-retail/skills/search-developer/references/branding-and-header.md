@@ -224,7 +224,7 @@ For a **dark** header, and only when the operator confirmed the `Foreground` pic
 
 The base already **inherits the font family** from the page (`.hr-overlay-search { font-family: inherit; }` in all three variants), but it hard-codes the **sizes and weights** of its own chrome — desktop section headings at `32px / 800`, results and content text at `14px`, mobile tab titles and the `18px / 600` tab subtitle — and a site whose heading font is applied through `h1`/`h2` selectors or a heading class never reaches those elements. So "match" is a real change and "default" is the base. This is **not** about the tile: the reproduced `{{ TILE_BODY }}` carries the customer's own classes and already matches.
 
-**The question (Q4, round 2, both devices):** *"Headings and text inside the search: match your site's fonts (family, size, weight), or keep Hello Retail's default?"* — `AskUserQuestion`, header `Typography`, *Keep the default* / *Match the site's fonts*, none recommended. Not stated → ask. "Default" → write nothing. "Match" → the three steps below, per variant in scope.
+**The question (Q4, round 2, both devices):** *"Headings and text inside the search: match your site's fonts (family, size, weight), or keep Hello Retail's default?"* — the `Typography` picker (SKILL.md → *Pickers*), none recommended. Not stated → ask. "Default" → write nothing. "Match" → the three steps below, per variant in scope.
 
 ### Step 1 — Measure on the category page, by computed style
 

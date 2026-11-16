@@ -105,6 +105,9 @@ Keep `SKILL.md` scannable. Anything long or platform-specific — per-platform q
 ## 5. Wire it to the repo's knowledge, not to copies
 
 - Reference shared knowledge by **plugin-root path** — `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/…`, `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/…`. The wiki ships inside the plugin, so the path resolves wherever the plugin is installed; don't paste wiki content into the skill where it will rot.
+- **Rules that several skills share live in one file, and each skill points to it.** Before writing a rule into a skill, check whether it is already one of these; when a second skill needs a rule that one skill has, move it to a shared file rather than copying it. Keep one line of the rule in the skill and name the file and section to read.
+  - Product knowledge → the wiki. Prices: `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/liquid/price-formatting.md`; the base and how to extend it: `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md`.
+  - How skills behave → `${CLAUDE_PLUGIN_ROOT}/docs/`: `design-writes.md` (read → diff → `Push` gate → draft → read back), `tile-delegation.md` (using `tile-extractor` from a shell skill), `hand-off.md` (hand-off message, retro, `customer-handoff`), `browser-login.md` (which browser, surveying a storefront, closing it), `email-tile-inspection.md` with `email-tile-inspect.js` (reading a shop's tile for an email design).
 - If the skill calls an MCP (e.g. `hello-retail`), document the **preconditions** (what coordinates it needs) and the **write gate** explicitly. Default to **read → show a diff → push only as a REVIEW draft with approval**; never auto-publish.
 
 ## 6. Respect the hard rules (these gate the PR)

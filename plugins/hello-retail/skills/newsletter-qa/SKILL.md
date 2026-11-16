@@ -179,8 +179,7 @@ last (repo `CLAUDE.md` → Browser automation; no HR login is needed for this st
 acceptable here if the others are down). Run the first-load popup sweep (ACCEPT the consent
 banner by its real button).
 
-1. **Tokens:** run the developer skill's `tile_inspect.js` (`../newsletter-developer/
-   SKILL.md` → Script section, or `../triggered-email-developer/references/tile_inspect.js`)
+1. **Tokens:** run the developer skills' inspect script (`${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspect.js`)
    on one tile; record font family, weights, colours (hex), alignment, price text, CTA presence
    - label + resolved button colour, badge presence.
 2. **Screenshot:** zoom-screenshot one native tile — on Playwright `browser_take_screenshot` to

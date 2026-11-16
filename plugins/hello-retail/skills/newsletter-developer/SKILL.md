@@ -53,28 +53,23 @@ customer's category page.
 
 ## Resources
 
-This SKILL.md is **self-contained**: the rendering rules, the HR feed-field
-reference, the inspection/verification guide, and the tile-inspection script are
-all embedded in the sections at the end of this file. You do not need to open any
-other file to follow the workflow.
+The rendering rules and the HR feed-field reference are embedded in the sections at the end of
+this file. Three things live outside it, shared with the other skills — read each where the
+workflow names it:
 
-The only external resource is the shared default template in the wiki:
-
-```
-base-templates/newsletters/
-└── newsletter-tile-default.liquid          ← the base template to start from
-```
-
-Always start from the shared **default template**
-(`base-templates/newsletters/newsletter-tile-default.liquid`); ask the operator
-to connect the wiki if it isn't mounted. Everything else you need is embedded in
-the sections below.
+- `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/newsletters/newsletter-tile-default.liquid` —
+  the base template every tile starts from.
+- `${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspection.md` and its script
+  `${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspect.js` — how to read the shop's live tile and how to
+  check a render in the browser (shared with `triggered-email-developer`).
+- `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/liquid/price-formatting.md` — every price rule,
+  with the email exception.
 
 **Work fresh, not from memory.** Build every tile from (a) the embedded
 references in this file, (b) the shared default template, and (c) a fresh
 inspection of the live page. Tokens, layout, feed-field names, and price formats
 differ per shop and must come from the live tile each time. If something seems
-missing, re-read the embedded references rather than filling the gap from memory.
+missing, re-read the references rather than filling the gap from memory.
 
 ## The newsletterContent MCP tools — the direct path (field-verified 2026-08-25)
 
@@ -133,9 +128,7 @@ the template until you've actually looked at the live tile.
 **Three things to get right above all:**
 
 1. **Take the styles from the customer's category page** — first sweep any
-   blocking popups (ACCEPT the cookie/consent banner via its real button — styles,
-   prices, and images are often consent-gated; close newsletter popups without
-   entering anything; see `../qa-checklists/SKILL.md` → "First-load popup sweep") —
+   blocking popups (`${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md` → *First page on each storefront domain*) —
    then read fonts, colours,
    sizes, weights, letter-spacing, alignment, spacing — and re-implement them on
    our tile, adapted so they survive the email image render (see step 5: no
@@ -203,136 +196,67 @@ In the same breath, pull the website's ground truth via the MCP:
 
 ### 3. Inspect the live tile (don't guess)
 
-Open the category page in the browser and read the **real** tile rather than
-assuming a layout. Use the Playwright MCP (`mcp__playwright__browser_*`); the Claude-in-Chrome
-MCP is the fallback when Playwright isn't available:
+Open the category page in a real browser and read the **real** tile rather than
+assuming a layout. **Follow `${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspection.md` → *1. Read the
+live tile*** — the popup sweep, the computed-style dump with
+`${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspect.js`, the zoomed screenshot, whether the tile has a
+CTA and its real colour and label, and the on-sale tile. On top of that, for a newsletter tile:
 
-- Navigate to the URL, close any cookie/cart popups.
-- Run the `tile_inspect.js` snippet (Script section at the end; paste into the
-  Chrome `javascript_tool`, or run via Playwright `browser_evaluate` on the fallback)
-  to dump computed styles — font family, size, weight, style,
-  color, alignment, line-height, background, border-radius, padding — for each
-  tile element (brand, title, price, old price, unit, rating, stock/delivery,
-  label, CTA), plus the card background and product-image dimensions.
 - **Find every badge and label slot, not just the ones on the first tile.** Read
   one product that carries many badges with `productData_get` (url) and compare
   its `extraData` keys (`badge`, `isBadge2` + `Badge2Text`, `isBadge3` +
   `Badge3Text`, …) and `extraDataList` (e.g. colour variants → "N farver") with
   what the live tiles show. Every slot the feed fills gets a conditional in the
   template, stacked the way the live tile stacks them.
-- Take a **zoomed screenshot** of one tile (`computer` action `zoom`) and look
-  at it. Computed styles lie sometimes (e.g. a brand that renders italic via a
-  class the snippet missed); the screenshot is the source of truth for
-  alignment, italics, what sits on the same row, and what stacks.
 
 Record the design tokens you find (colors as hex, px sizes, weights,
-alignment, row layout, price format). See the **Inspection & verification**
-section below for the detailed how-to and tips.
+alignment, row layout, price format).
 
 ### 3b. Pull the existing HR tile markup (when given a website UUID + key)
 
 If the operator hands you a **website UUID and a search key** (or a recom key)
 instead of — or in addition to — a live URL, pull the already-built HR design
-markup directly rather than inspecting only the storefront:
+markup rather than inspecting only the storefront:
+`${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspection.md` → *Before the live tile — the field map from the customer's Hello Retail tile*
+(`search_getDesign` and the first `[class^="hr-search-overlay-product"]` element, or
+`recoms_getDesign` and the content of `.hr-product` in the non-banner branch — only the
+markup inside it).
 
-1. Fetch the current design HTML via the hello-retail MCP — `search_getDesign`
-   for a search key, `recoms_getDesign` for a recom key — passing the
-   website UUID and the key.
-2. In the returned HTML, find the product-tile container whose class **starts
-   with `hr-search-overlay-product`** (e.g. selector
-   `[class^="hr-search-overlay-product"]`). There may be **several** divs whose
-   class begins with `hr-search-overlay-product` — take the **first** one only.
-3. Extract **only the inner HTML** of that first element — the markup *inside*
-   it. Do **not** include the wrapping `.hr-search-overlay-product` div itself,
-   just its contents.
-
-That extracted inner HTML is the authoritative product-tile markup: it shows the
-exact element structure, classes, and HR feed-field bindings this customer
-already uses. Treat it the same way you'd treat pasted on-site markup — reuse its
-field mapping and layout (see step 4) rather than guessing. Still cross-check
-against the live tile / a zoomed screenshot for visual tokens (italics, colours,
-what shares a row) per step 3.
+That markup is the authoritative product-tile markup: it shows the exact element
+structure, classes, and HR feed-field bindings this customer already uses. Treat it
+the same way you'd treat pasted on-site markup — reuse its field mapping and layout
+(see step 4) rather than guessing. Still cross-check against the live tile / a zoomed
+screenshot for visual tokens (italics, colours, what shares a row) per step 3.
 
 ### 4. Map the HR feed fields
 
 The customer's on-site tile markup (if the operator pasted it) tells you exactly
 which HR feed fields carry which data — reuse that mapping. Common fields and
-the Liquid patterns (price formatting, `extraLabel` split, `reviewScore`
-`jsonParse`, discount %) are in the **HR feed fields** section below. Only
+the Liquid patterns (`extraLabel` split, `reviewScore` `jsonParse`, stock state) are in
+the **HR feed fields** section below; the price patterns are in the wiki's price page (step 5). Only
 include elements the customer's tile actually shows.
 
 ### 5. Build the template
 
-Adapt the default into the customer's look, applying every rule in the
-**Rendering rules** section below.
+Adapt the default into the customer's look. **Every rule for this step is in the
+*Rendering rules* section below — read it before writing, and apply each part:**
 
-**Preserve the default's variables — restyle, don't rename.** Keep the default
-template's parameter block and its derived `assign` variables exactly as named
-(e.g. `font`, `margin`, `font_size`, `lines_of_text`, `title_font_color`,
-`offer_background_color`, `offer_font_color`, `button_text`,
-`button_background_color`, `badge_size_px`, and the derived `space`,
-`title_box_height`, `image_height`, the `show_*` toggles, …). Adapt to the
-customer by changing only the **design** — the HTML structure, the inlined CSS,
-and the variables' default *values* — never by renaming or deleting a variable.
-Reuse the existing slots: style the sale price with the `offer_*` colours, the
-CTA with the `button_*` variables and `button_text`, the title with
-`title_font_color`, clamp lines with `lines_of_text` / `image_height`, and so on.
-Add a *new* variable only when the customer genuinely needs something the default
-has no slot for — and even then leave all the existing ones in place. This keeps
-every customer's template consistent and predictable for the next person to
-maintain. The non-negotiable rules, briefly:
-
-- **Keep it simple — mirror the default.** Plain `<div>`s, a `<style>` block,
-  and `background-image` or a real `<img>` are the toolkit. **Avoid flexbox/grid**
-  — the renderer doesn't support them reliably (a flex row degrades to stacked
-  blocks). For elements that must share a line (e.g. price + CTA), use
-  `display:inline-block` with `vertical-align:middle`, and wrap them in a
-  `white-space:nowrap` parent so they can't drop. Don't add layout tables, MSO
-  comments, or `bgcolor` — that's email-client hardening this pipeline doesn't
-  need.
-- **No banner code.** A newsletter tile renders one product — there is no banner
-  slot. Strip the default's `product.isBanner` branch, the
-  `product.bannerImages.BANNER_SIZE_NAME_PLACEHOLDER` assignment, the `.hrBImage`
-  element/style, and any `BANNER_SIZE_NAME_PLACEHOLDER`. The container holds the
-  product tile directly, with no `isBanner` test.
-- **Only include elements the live tile actually shows.** If the storefront tile
-  has no visible add-to-cart button (e.g. a hover-only quick-add, or none), do
-  NOT add a CTA. Never invent CTA copy — use the customer's real button label, or
-  omit the button entirely.
-- **No SVG, icon fonts, emoji glyphs, or JS.** The renderer can't draw or run
-  them. Any CTA is a **text button**; ratings show as a **number** (or are
-  omitted when the rating is a JS-only widget like Lipscore with no feed field).
-- **Web-safe font fallback.** External web fonts may not load — always include a
-  fallback stack (e.g. `'PT Sans Narrow', 'Arial Narrow', Arial, sans-serif`).
-- **Match the shop's exact price markup** — copy it from the customer's tile
-  (e.g. `kr&nbsp;{{ product.price | price }}`, or
-  `{{ product.price | price | replace: ',00', ',-' }}`), not a generic
-  `currencySymbol`.
-- **Fill the canvas** — keep the default's `image_height` so the image fills the
-  tile, and/or center the content vertically so any slack is balanced rather
-  than pooling at the bottom.
-- **Keep the derived sizes derived.** `image_height`, `title_box_height` and
-  `space` must stay computed from `height`, `margin`, `font_size` and
-  `lines_of_text` — never replace one with a literal (`image_height = 170`).
-  A literal looks right in the render and breaks the moment the operator edits a
-  marker: raise `lines_of_text` and the title runs into the price. When your
-  text block differs from the default's, put its fixed part in one named assign
-  (e.g. `text_block_px`) and keep subtracting it from the canvas.
-- **Avoid a double border.** The dashboard and the campaign already draw a frame
-  around every tile, so any border painted inside the image sits next to that
-  frame and reads as two borders. Check the render with that frame in mind and
-  make sure the tile shows a single border; if the operator still wants one in
-  the image, say it will look doubled in the dashboard preview.
-- **Remove an element, remove its arithmetic.** When you drop a border, padding
-  or a row, also drop every `minus:` / `plus:` that accounted for it (a leftover
-  `minus: 2` from a removed 1px border shifts the card off-centre).
+| What you do | Rule section |
+| --- | --- |
+| Restyle; keep every variable of the default, add one only when there is no slot | *Preserve the default template's variables* |
+| Strip the banner branch | *A newsletter tile is one product — no banner branch* |
+| Block flow and `inline-block` only; no flex / grid, SVG, icon fonts, emoji, JS; a web-safe font fallback | *The renderer is limited — avoid these* |
+| Alignment and what shares a row, as the live tile has it; only the elements it shows | *Match the live tile's layout* |
+| A CTA only if the tile has one, as a text button with the shop's label | *CTA: only if the tile has one* |
+| Sale styling from a real on-sale tile | *Sale styling: copy the real on-sale tile* |
+| Fill the canvas, with every derived size still derived | *Fill the canvas* |
+| One border; no arithmetic left behind for a removed element | *Avoid a double border*, *Remove an element, remove its arithmetic* |
+| The image never stretched | *Image without stretching* |
+| The shop's exact price markup, for the current and the old price | `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/liquid/price-formatting.md` → *Email tiles copy the shop's price markup* — read it before writing the price |
 
 The customer's tokens are exposed via the parameter block at the top (the
 `{# color ... #}`, `{# boolean ... #}` HR dashboard param syntax) with sensible
 `show_*` toggles, so the operator can tweak without editing markup.
-
-Match the live tile's actual layout — alignment (centered vs left) and whether
-the price and CTA share a row — rather than defaulting to one arrangement.
 
 ### 6. Verify through HR's real renderer
 
@@ -356,8 +280,9 @@ error and per-tile image-load failures. Render **before** any save:
   layout is still derived rather than hardcoded.
 
 The browser-injection preview (resolve the Liquid with a sample product's
-values, inject into a blank tab, zoom-screenshot — details in the **Inspection &
-verification** section below) remains useful for quick side-by-side comparison
+values, inject into a blank tab, zoom-screenshot —
+`${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspection.md` → *2. Check the render in a browser*; for a newsletter tile also check that a CTA is there only
+if the shop's tile has one and is a text button, and that a rating shows as a number) remains useful for quick side-by-side comparison
 against the live tile while iterating, and is the fallback when the
 `newsletterContent_*` tools are unavailable — but it is a browser, not the
 render host: fonts and CSS support differ, so never ship on a browser preview
@@ -384,6 +309,10 @@ approval before `updateDesign` is not optional. Manual copy-paste into
 the dashboard is only the fallback when the MCP tools are unavailable. **Do not
 write into the wiki unless the operator explicitly asks** — the wiki holds the
 shared default, not per-customer outputs.
+
+Then run `customer-handoff` in record mode, stage `newsletter` — mandatory, as
+`${CLAUDE_PLUGIN_ROOT}/docs/hand-off.md` → *The record — `customer-handoff`* says — so the design key, the feed fields used and any
+customer-specific decision are in the customer's hand-off document.
 
 Last, close the browser: call `browser_close` on every `playwright*` server the
 inspection used — also when the build stopped midway
@@ -436,7 +365,7 @@ have to scroll to the reference sections to remember them:
   **number** only if it's a real feed field, otherwise omit it.
 - Web fonts may not load → always add a web-safe fallback stack.
 - Match the customer's exact price markup (`kr&nbsp;`, `€`, `,-`, `.00`) → copy
-  it from their tile, not a generic `currencySymbol`.
+  it from their tile; the rules are in the wiki's price page (step 5).
 - Sale styling differs per shop → inspect a real on-sale product and copy its
   structure; the price colour often changes (e.g. green → red) and many shops
   show no discount badge. Don't invent a badge.
@@ -484,15 +413,18 @@ directly.
 
 It is not a full interactive browser:
 
-- **No SVG, icon fonts, or emoji glyphs** — they don't render. Use a plain text
-  CTA button and CSS shapes; show ratings as a **number**, never star icons.
-- **No JavaScript** — JS widgets (Lipscore and other review widgets) never run.
-  Use only data that exists in the HR feed; omit JS-only elements.
+- **No SVG, icon fonts, emoji glyphs or JavaScript, and no web font without a web-safe
+  fallback** — the limits every email tile shares: `${CLAUDE_PLUGIN_ROOT}/docs/email-tile-inspection.md` → *What no email tile can show*.
+  Here: a plain text CTA button and CSS shapes; ratings as a **number**, never star icons;
+  JS-only elements left out; a fallback stack such as
+  `'PT Sans Narrow', 'Arial Narrow', Arial, sans-serif`.
 - **No flexbox or grid** — a `display:flex` row silently degrades to stacked
-  blocks (the CTA drops below the price). Use block flow and `inline-block`. For a
-  left/right row (price left, CTA right), use `float`: the price as `inline-block`
-  on the left, the button `float:right`, and the parent `overflow:hidden` to
-  contain the float.
+  blocks (the CTA drops below the price). Use block flow and `inline-block`. For
+  elements that must share a line (e.g. price + CTA), use `display:inline-block`
+  with `vertical-align:middle`, and wrap them in a `white-space:nowrap` parent so
+  they can't drop. For a left/right row (price left, CTA right), use `float`: the
+  price as `inline-block` on the left, the button `float:right`, and the parent
+  `overflow:hidden` to contain the float.
 - **Stick to the default's CSS palette** — `background-image`/`background-size`,
   `border-radius`, `position`, `overflow`, `display`, `background-position`/
   `repeat`, plus basic CSS2 (`inline-block`, `vertical-align`, `white-space`,
@@ -500,8 +432,6 @@ It is not a full interactive browser:
   and isn't plain CSS2, assume the renderer may not support it — avoid
   `box-sizing`, `calc()`, `var()`, `clamp()`, `object-fit`, `aspect-ratio`,
   `gap`, and transforms/transitions.
-- **Web fonts may not load** — always include a web-safe fallback stack (e.g.
-  `'PT Sans Narrow', 'Arial Narrow', Arial, sans-serif`).
 
 External images (the product `imgUrl`, label PNGs, custom badge images) DO load.
 
@@ -509,34 +439,43 @@ External images (the product `imgUrl`, label PNGs, custom badge images) DO load.
 
 Replicate the storefront tile's structure — alignment (centered vs left) and
 whether the price and CTA share a row (price left, button right is common). Copy
-what the live tile does rather than defaulting to one arrangement.
+what the live tile does rather than defaulting to one arrangement. **Only include
+elements the live tile actually shows.**
 
 ## Fill the canvas
 
 The tile renders onto a fixed width x height. Use the default's `image_height` so
-the image consumes the leftover space and the tile fills the canvas (you can't
-rely on flex centering). Keep it **computed** from the canvas and the markers —
-a literal pixel height stops responding to the dashboard's `margin`,
-`lines_of_text` and height fields.
+the image consumes the leftover space and the tile fills the canvas, and/or center
+the content vertically so any slack is balanced rather than pooling at the bottom
+(you can't rely on flex centering).
+
+**Keep the derived sizes derived.** `image_height`, `title_box_height` and `space`
+must stay computed from `height`, `margin`, `font_size` and `lines_of_text` — never
+replace one with a literal (`image_height = 170`). A literal looks right in the
+render and breaks the moment the operator edits a marker: raise `lines_of_text` and
+the title runs into the price. When your text block differs from the default's, put
+its fixed part in one named assign (e.g. `text_block_px`) and keep subtracting it
+from the canvas.
 
 ## Avoid a double border
 
 The dashboard preview and the campaign layout already frame each tile, so a
 border painted inside the image sits next to that frame and reads as a double
-border. Make sure the finished tile shows a single border.
+border. Check the render with that frame in mind and make sure the finished tile
+shows a single border; if the operator still wants one in the image, say it will
+look doubled in the dashboard preview.
+
+## Remove an element, remove its arithmetic
+
+When you drop a border, padding or a row, also drop every `minus:` / `plus:` that
+accounted for it (a leftover `minus: 2` from a removed 1px border shifts the card
+off-centre).
 
 ## Image without stretching
 
 Use the default's `background-image` with `background-size:contain` (no
 distortion), or a real `<img>` with `width:100%; height:auto`. Never force a fixed
 pixel height on a real `<img>` — it squashes the product shot.
-
-## Match the shop's exact price markup
-
-Currency presentation is part of the brand. Copy the customer's exact price
-output from their tile — e.g. a literal `kr&nbsp;{{ product.price | price }}`, or
-`{{ product.price | price | replace: ',00', ',-' }}` — not a generic
-`currencySymbol`, for both the current and old price.
 
 ## CTA: only if the tile has one — text button, never invented copy
 
@@ -556,21 +495,27 @@ badge. Copy exactly what the on-sale tile does; don't invent a badge.
 
 ## Preserve the default template's variables
 
-Keep the default's parameter block and derived `assign` variables exactly as
-named (`font`, `margin`, `font_size`, `lines_of_text`, `title_font_color`,
-`offer_*`, `button_*`, `badge_size_px`, and the derived `space`,
-`title_box_height`, `image_height`, the `show_*` toggles, ...). Change only the
-**design** — HTML, CSS, and default *values*. Reuse the existing slots (sale price
-via `offer_*`, CTA via `button_*`, clamp via `lines_of_text`/`image_height`). Add
-a new variable only when the default has no slot for it; never rename or delete
-one. (The banner branch is the one exception that is removed outright — it is not
-a parameter, and a newsletter tile has no banner slot.)
+**Restyle, don't rename.** Keep the default's parameter block and its derived
+`assign` variables exactly as named (e.g. `font`, `margin`, `font_size`,
+`lines_of_text`, `title_font_color`, `offer_background_color`, `offer_font_color`,
+`button_text`, `button_background_color`, `badge_size_px`, and the derived `space`,
+`title_box_height`, `image_height`, the `show_*` toggles, …). Adapt to the customer
+by changing only the **design** — the HTML structure, the inlined CSS, and the
+variables' default *values* — never by renaming or deleting a variable. Reuse the
+existing slots: style the sale price with the `offer_*` colours, the CTA with the
+`button_*` variables and `button_text`, the title with `title_font_color`, clamp
+lines with `lines_of_text` / `image_height`, and so on. Add a *new* variable only
+when the customer genuinely needs something the default has no slot for — and even
+then leave all the existing ones in place. This keeps every customer's template
+consistent and predictable for the next person to maintain. (The banner branch is
+the one exception that is removed outright — it is not a parameter, and a
+newsletter tile has no banner slot.)
 
 ## Keep comments minimal
 
-Add comments only where they genuinely help (a short header, a non-obvious
-branch), and keep each to one short line: "doing X because Y". Never explain what the
-markup plainly does.
+Add comments only where they genuinely help (a short header, a non-obvious branch),
+each one short line ("doing X because Y"), never an explanation of what the markup
+plainly does: `${CLAUDE_PLUGIN_ROOT}/docs/wiki/base-templates/foundation-rules.md` → *Comments in the code you add*.
 
 ---
 
@@ -584,25 +529,25 @@ fields below are the common ones and the Liquid patterns that go with them.
 
 ## Core fields
 
-| Field | What it is |
-| --- | --- |
-| `product.imgUrl` | Main product image URL → use in a real `<img>` |
-| `product.url` | Product page URL (link target; in a render-to-image tile usually not clickable, but harmless to include) |
-| `product.title` | Product title |
-| `product.brand` | Brand / merk |
-| `product.price` | Current price (numeric) |
-| `product.oldPrice` | Previous price (numeric); present when on sale |
-| `product.isOnSale` | Boolean — controls sale styling, old price, discount badge |
-| `product.inStock` | Boolean — controls stock color + which delivery text to show |
-| `product.currency` | Currency code; format with the `currencySymbol` filter |
+The standard fields — `title`, `url`, `imgUrl`, `brand`, `price`, `oldPrice`, `currency`,
+`isOnSale`, `inStock` — are listed in `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/liquid/general.md` → *The standard fields on `product`*. What a
+newsletter tile does with them:
 
-(`product.isBanner` / `product.bannerImages` exist on the product object but are
-**not used in newsletter tiles** — there is no banner slot here. Ignore them.)
+- `product.imgUrl` → use in a real `<img>` (or the default's `background-image`).
+- `product.url` → in a render-to-image tile usually not clickable, but harmless to include.
+- `product.inStock` → controls the stock colour and which delivery text to show.
+- `product.isBanner` / `product.bannerImages` exist on the product object but are **not used
+  in newsletter tiles** — there is no banner slot here. Ignore them.
 
 ## extraData (customer-specific extras)
 
 `product.extraData.*` holds fields the customer configured in their feed. Names
-vary per customer — confirm against the pasted markup. Seen in the field:
+are defined per customer — always confirm against the pasted tile. Only render the
+ones the customer's tile actually uses, and guard each with
+`{% if product.extraData.<field> != blank %}`. Seen in the field:
+
+- `product.extraData.prisSomNy` — "price as new", shown on a separate line for
+  used / B-stock items; also `productnumber`, `id`
 
 - `product.extraData.unit` — e.g. "Per set" (shown after the price)
 - `product.extraData.deliveryText` — generic delivery/stock line
@@ -627,29 +572,12 @@ vary per customer — confirm against the pasted markup. Seen in the field:
 
 ## Common Liquid patterns
 
-**Price format (match the shop exactly):**
-
-```liquid
-{# 169,- style #}
-{{ product.price | price | replace: ',00', ',-' }}
-{# €49,95 style #}
-{{ product.currency | currencySymbol }}{{ product.price | price }}
-```
-
-**Old price (strike-through, only on sale):**
-
-```liquid
-{% if product.isOnSale and product.oldPrice != blank %}
-  <span style="text-decoration:line-through; color:#8b8b8b;">{{ product.oldPrice | price }}</span>
-{% endif %}
-```
-
-**Discount percentage:**
-
-```liquid
-{% assign disc = product.oldPrice | minus: product.price | times: 100.0 | divided_by: product.oldPrice | round %}
--{{ disc }}%
-```
+**Price, old price, discount percentage, price range:** the forms and the guards are in
+`${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/liquid/price-formatting.md` — *Email tiles copy the shop's price markup* for the format, *Sale pair* and
+*Discount percentage* for a sale, *From prices and price ranges* when the variant price varies
+(e.g. `product.extraData.highestPrice`). In this template the old price is styled
+inline (`text-decoration:line-through`) and rendered only when
+`product.isOnSale and product.oldPrice != blank`.
 
 **extraLabel (color + text encoded as "bg,text"):**
 
@@ -685,33 +613,6 @@ render reliably. The number conveys the same information and never looks broken.
 <span style="color:{{ stock_color }};">{% if product.inStock %}{{ product.extraData.deliveryInStock }}{% else %}{{ product.extraData.deliveryOutOfStock }}{% endif %}</span>
 ```
 
-**Price range (when the variant price varies):**
-
-```liquid
-{% assign highest = product.extraData.highestPrice | plus: 0 %}
-{% assign current = product.price | plus: 0 %}
-{% if current != highest and highest > 0 %}
-  &nbsp;- {{ product.currency | currencySymbol }}{{ product.extraData.highestPrice | price }}
-{% endif %}
-```
-
-## Use the customer's exact price markup
-
-When the operator pastes the customer's on-site tile, copy its **exact** price
-output, not a generic one. Currency presentation is part of the brand and varies
-per shop. For example, one shop hard-codes a literal prefix with a non-breaking
-space — `kr&nbsp;{{ product.price | price }}` — rather than using
-`{{ product.currency | currencySymbol }}`. Reproduce whatever the tile does
-(prefix vs symbol, the separator, decimals), for both the current and old price.
-
-## Customer-specific extraData fields
-
-`product.extraData.*` names are defined per customer — always confirm against the
-pasted tile. Examples seen in the field: `prisSomNy` ("price as new", shown on a
-separate line for used/B-stock items), `productnumber`, `id`. Only render the
-ones the customer's tile actually uses, and guard each with
-`{% if product.extraData.<field> != blank %}`.
-
 ## Ratings: feed field vs JS widget
 
 A storefront rating may be either a real feed value or a client-side widget.
@@ -720,206 +621,3 @@ A storefront rating may be either a real feed value or a client-side widget.
   `cumulative_rating` / `total_reviews`), render it as a **number** (no stars).
 - If the rating is only a JS widget on the site (Lipscore etc.) with no feed
   field, it can't render — omit it.
-
----
-
-# Embedded reference: Inspection & verification
-
-The whole skill hinges on copying the customer's real tile, not an imagined one.
-This section covers how to look at the tile with the Playwright MCP
-(Claude in Chrome is the fallback when it isn't available) and how to prove your template matches
-before delivering.
-
-## Inspecting the live tile
-
-1. **Open the category page.** Create/Use a browser tab and navigate to the URL.
-   After navigating, wait a moment and re-check the tab context — the page title
-   confirms the load finished. Close any cookie banner or cart drawer that opens
-   (screenshot first to find the close button).
-2. **Dump computed styles.** Paste the `tile_inspect.js` snippet (Script section
-   below) into the `javascript_tool` (remember to pass the `tabId`). It locates a
-   product card and prints computed styles for the brand, title, price, old
-   price, unit/per-piece, rating, stock/delivery, label, and CTA, plus the card
-   background and the product image dimensions. If the card uses unusual class
-   names, adjust the selectors at the top of the snippet, or pass the card
-   selector the operator gave you.
-   Read colors as the `rgb(...)` values it returns and convert to hex for your
-   parameter block. Note font-family, px size, weight, font-style (italic?),
-   text-align, line-height, and any border-radius/padding on the CTA and badges.
-3. **Zoom-screenshot one tile.** Use the `computer` tool `zoom` action over a
-   single tile's bounding box. **Trust the screenshot over the computed styles
-   for anything visual** — italic vs normal, what sits on the same row as what,
-   left vs center alignment, how many lines the title clamps to. Computed styles
-   occasionally report a hidden/duplicate element; the picture doesn't lie.
-4. **Prefer an on-sale tile if you need sale styling.** Old price, discount
-   badge, and "sale" colors only appear on discounted products. If the visible
-   tiles aren't on sale, find one that is, or read the relevant CSS by creating a
-   temporary element with the sale classes and reading its computed style.
-
-## Tips
-
-- The JS tool needs the `tabId` every call — a missing `tabId` returns a "URL
-  could not be parsed" error, not a JS error.
-- Image URLs with query strings may be redacted in tool output; read
-  `new URL(img.src).origin + new URL(img.src).pathname` to get a clean URL for
-  your sample render.
-- Grab the design tokens AND one real product's values (title, price, stock,
-  rating, image) while you're on the page — you'll need them for verification.
-
-## Verifying the render
-
-**Prefer `newsletterContent_renderDesign`** — it resolves the Liquid against real
-feed products and rasterises through the actual render host, so it is the only
-preview that proves fonts, CSS support, and clipping (see step 6). The manual
-browser preview below is the quick-iteration companion and the fallback when the
-MCP tools are unavailable: you resolve the Liquid to plain HTML with a real
-product's values and view that:
-
-1. Compute the derived values yourself (font stack, line-heights, image height,
-   formatted prices) and substitute them plus the sample product into the
-   template's HTML, producing a static HTML string.
-2. Inject it into a blank page in the browser and screenshot:
-   - Navigate a tab to a simple real page (or a blank one), then set
-     `document.body.innerHTML = "<div style='padding:40px;background:#eee'>...your resolved tile...</div>"`
-     via `javascript_tool`.
-   - `zoom` over the tile.
-3. **Compare to the live tile.** Put the two side by side mentally: same fonts,
-   weights, colors, alignment, row layout, price format, CTA (only if the tile
-   has one) as a text button, rating as a number. Fix any drift in the template,
-   then re-render.
-
-This catches the things that are easy to get wrong on paper: a price row where
-the CTA should sit inline, an italic brand, a title that should clamp, a button
-that rendered as an icon instead of text.
-
-## Delivering
-
-Show the full template inline in chat for review and save the `.liquid` to the
-working/output folder — then, on the operator's explicit approval, save it
-directly to the customer's design with `newsletterContent_updateDesign` (or
-`createDesign`) and re-render the saved design to confirm (see step 7; the edit
-lands in place — no linked draft — so the approval gate is mandatory). Manual dashboard copy-paste
-is only the fallback when the MCP tools are unavailable. Do not write to the
-wiki unless explicitly asked — the wiki holds the shared default template, not
-per-customer outputs. Then run `customer-handoff` (`../customer-handoff/SKILL.md`; record mode, stage `newsletter`; mandatory — do not ask whether to, do not skip) so the design key, the feed
-fields used and any customer-specific decision are recorded in the customer's living hand-off
-document under `output/handoffs/` (local for now).
-
-## Always copy the real sale-price structure
-
-Don't invent how the sale price looks — find an actual on-sale product on the
-site (check the category page, or a deals/outlet section) and inspect its price
-block. Shops differ a lot: the regular price and the sale price are often
-**different colours** (e.g. a normal green price that turns red when discounted),
-the old price is usually struck through in grey, and many shops show **no
-discount badge at all**. Copy exactly what the on-sale tile does — structure,
-colours, and whether a badge exists — rather than adding a badge or guessing.
-
-## Only render what the image pipeline can actually show
-
-Some tile elements are powered by client-side JavaScript widgets (e.g. Lipscore
-or other review widgets) and have **no corresponding value in the HR feed**.
-These cannot be rendered server-side into the email image, so omit them — don't
-fake them with stars or placeholder text. If the data exists as a real feed
-field (a numeric rating, a review count), show it as text/number; if it only
-exists as a JS widget on the storefront, leave it out and note it to the operator.
-
----
-
-# Script: tile_inspect.js
-
-Paste into the Chrome `javascript_tool` (with the page's tabId), or run via Playwright `browser_evaluate` on the fallback, while on the customer's category page.
-
-```js
-/*
- * tile_inspect.js — Hello Retail newsletter-developer
- *
- * Paste into the Claude-in-Chrome `javascript_tool` (with the page's tabId),
- * or run via Playwright `browser_evaluate` on the fallback, while
- * on a customer's category page. Returns computed styles for the product-tile
- * elements plus card + image info, so you can extract design tokens.
- *
- * If the card uses unusual class names, tweak the selectors in `pick()` below,
- * or set CARD_SELECTOR to the operator-supplied product-card selector.
- *
- * The result is the value of the final expression (REPL semantics) — no need to
- * console.log. Convert the rgb(...) colors to hex for your parameter block, and
- * always cross-check against a zoomed screenshot.
- */
-(() => {
-  const CARD_SELECTOR =
-    'li.product-card, [class*="product-card"], [class*="productCard"], [class*="product-tile"], [class*="product"]';
-  function gcs(el) {
-    if (!el) return null;
-    const s = getComputedStyle(el);
-    const r = el.getBoundingClientRect();
-    return {
-      text: (el.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 50),
-      tag: el.tagName.toLowerCase(),
-      cls: (typeof el.className === 'string' ? el.className : '').slice(0, 55),
-      font: s.fontFamily,
-      size: s.fontSize,
-      weight: s.fontWeight,
-      fstyle: s.fontStyle,
-      color: s.color,
-      align: s.textAlign,
-      lh: s.lineHeight,
-      bg: s.backgroundColor,
-      deco: s.textDecorationLine,
-      br: s.borderRadius,
-      pad: s.padding,
-      w: Math.round(r.width),
-      h: Math.round(r.height),
-    };
-  }
-  // pick the most "tile-like" card: has an image and a price-looking string
-  const cards = [...document.querySelectorAll(CARD_SELECTOR)].filter((el) => {
-    const t = el.innerText || '';
-    return el.querySelector('img') && /\d+[.,]/.test(t) && t.length < 600;
-  });
-  cards.sort((a, b) => a.innerText.length - b.innerText.length);
-  const card = cards[0];
-  if (!card) return { error: 'No product card found — adjust CARD_SELECTOR.' };
-  const q = (sel) => card.querySelector(sel);
-  // Heuristic element finders (override per customer as needed)
-  const title =
-    q('h2 a, h3 a, [class*="title"] a, a[class*="title"], h2, h3, [class*="title"]');
-  const brand = q('[class*="brand"], [class*="merk"], [class*="fake-label"]');
-  const priceEl =
-    [...card.querySelectorAll('*')]
-      .filter((el) => /^[€$£]?\s?\d[\d.,]*(,-)?$/.test((el.textContent || '').trim()))
-      .sort((a, b) => a.textContent.length - b.textContent.length)[0] ||
-    q('[class*="price"]:not([class*="old"]):not([class*="previous"])');
-  const oldPrice = q('[class*="old-price"], [class*="previous"], [class*="oldPrice"], s, del');
-  const unit = q('[class*="unit"], [class*="per-"]');
-  const discount = q('[class*="discount"], [class*="sale"], [class*="badge"]');
-  const stock = q('[class*="stock"], [class*="delivery"], [class*="voorraad"]');
-  const rating = q('[class*="rating"], [class*="review"], [class*="r6rt"]');
-  const label = q('[class*="label"] span, [class*="s1lb"] span, [class*="badge"]');
-  const cta =
-    q('[class*="buy"], [class*="cart"], button[type="submit"], [class*="add-to-cart"]');
-  const img = card.querySelector('img');
-  return {
-    cardBg: getComputedStyle(card).backgroundColor,
-    cardFont: getComputedStyle(card).fontFamily,
-    cardW: Math.round(card.getBoundingClientRect().width),
-    image: img
-      ? {
-          w: Math.round(img.getBoundingClientRect().width),
-          h: Math.round(img.getBoundingClientRect().height),
-          objectFit: getComputedStyle(img).objectFit,
-        }
-      : null,
-    brand: gcs(brand),
-    title: gcs(title),
-    price: gcs(priceEl),
-    oldPrice: gcs(oldPrice),
-    unit: gcs(unit),
-    discount: gcs(discount),
-    stock: gcs(stock),
-    rating: gcs(rating),
-    label: gcs(label),
-    cta: gcs(cta),
-  };
-})();
-```

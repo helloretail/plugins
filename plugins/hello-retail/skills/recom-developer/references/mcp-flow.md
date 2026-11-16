@@ -16,7 +16,7 @@ A **box** (a recommendation: `FRONT_PAGE`, `PRODUCT_PAGE`, … with its strategy
 |---|---|
 | `website_getInfo(websiteUuid)` | Language + currency — confirm locale / price-format expectations instead of guessing from `<html lang>`. |
 | `recoms_listDesigns(websiteUuid)` | List every design available to the website: the company's **custom** designs (incl. archived) **and** the shared **standard** designs. Returns `key`, `title`, `archived`/`standard` flags and last-modified. **Archived and standard designs are read-only — never target them with `recoms_updateDesign`.** |
-| `recoms_getDesign(websiteUuid, key)` | Read the current design fields (`templateCode` + `templateStyles`) for the named design **regardless of state**. Read before editing so you modify the customer's real design in place. The payload can be large and **spills to a file — never ingest it whole** (see Payload spill below). |
+| `recoms_getDesign(websiteUuid, key)` | Read the current design fields (`templateCode` + `templateStyles`) for the named design **regardless of state**. Read before editing so you modify the customer's real design in place. The payload can be large and **spills to a file — never ingest it whole** (see *Reading, the spilled payload and write governance* below). |
 | `recoms_updateDesign(websiteUuid, key, templateCode?, templateStyles?)` | Write design fields. **Partial** — omit a field to leave it unchanged, but at least one of `templateCode` / `templateStyles` must be provided. Saving **auto-creates a DRAFT of every LIVE box using this design**, leaving them in DRAFT for review. **Publishing is not possible through this tool.** |
 | `recoms_copyDesign(websiteUuid, sourceKey[, title])` | Copy a design (incl. a read-only standard one) into a new editable company design. **The title is set here and only here** — see "Confirm the title first" below. |
 | `recoms_updateSelectedDesign(websiteUuid, designKey, keys[])` | Point one or more boxes at a design — all of them in **one** call. Boxes already on it report UNCHANGED. |
@@ -151,29 +151,17 @@ products → box shows; one with fewer → gone; filter applied → gone; sort a
 included) — with no empty gap left behind. The box only serves where its own strategy can return
 products, so test on a category where it actually renders.
 
-## Reads aren't gated on state
+## Reading, the spilled payload and write governance
 
-Read whatever design the operator names — LIVE, DRAFT, internal review — `recoms_getDesign` returns it regardless. Don't branch on state before reading; just read, then modify in place.
+The sequence is shared with the other developer skills: **`${CLAUDE_PLUGIN_ROOT}/docs/design-writes.md`** — read whatever the state, never read the spilled payload whole, diff, the `Push` gate, changed fields only, raw fields (never entity-escaped), read back, one report on an error. What a recom adds:
 
-## Payload spill — never ingest the whole design
-
-A real `templateCode` is tens of KB. When the tool result overflows a single response it **spills to a file** rather than into context. Do **not** read the spilled payload whole. Instead:
-
-- Extract only the regions you edit — the `{% for product in products %}` loop body (the `{{ TILE_BODY }}` slot inside `<div class="hr-product">`) and the swiper `<script>`.
-- Diff against just those regions.
-- Push back only the changed field(s).
-
-## Write governance — REVIEW draft only, with approval
-
-- **Never auto-push.** Show the diff, get an explicit "go ahead," then push.
-- `recoms_updateDesign` **cannot publish** — it only drafts. Publishing stays a human step in the dashboard. Always tell the operator they must publish there.
-- Push **only the changed fields**. If you didn't touch CSS, omit `templateStyles` so you can't clobber it.
-- **Send raw HTML/Liquid/CSS — never entity-escaped.** `&lt;div&gt;` instead of `<div>` saves without any error and then renders as literal text on the storefront. The API does no validation that would catch it.
-- **Verify every push.** `recoms_updateDesign` succeeding proves nothing about *what* was stored. Re-fetch with `recoms_getDesign`, extract the pushed field(s) (payload-spill rules apply), and `diff` against your local copy — only a trailing-newline difference is acceptable. Spot-check that a field you did NOT push is unchanged.
+- **The regions to extract** from a spilled `templateCode`: the `{% for product in products %}` loop body (the `{{ TILE_BODY }}` slot inside `<div class="hr-product">`) and the swiper `<script>`.
+- `recoms_updateDesign` **cannot publish** — it only drafts. If you didn't touch CSS, omit `templateStyles` so you can't clobber it.
+- **Read-back:** re-fetch with `recoms_getDesign` and `diff` against your local copy — here only a trailing-newline difference is acceptable.
 - **Name the boxes the push drafted.** Re-run `recoms_list` and list every box on this `designKey` that now shows a DRAFT row — those are what the operator must publish (or review) in the dashboard. More boxes than expected means the design is shared; say so.
 - **Box writes follow the same rules** — diff (current → new per field), approval, write, read back with the matching `get*`. → `box-setup.md`
 - **The external-integration rule:** `recoms_updateDesign` is a live-customer **write** path — confirm sign-off from the D&TS lead before using it in a real onboarding. Reads (`get*`, `list*`) are low-risk.
-- If a read or push **errors**, report it once and stop — don't retry-loop. Offer the inline copy-paste fallback (show the full modified files in chat) so the onboarding isn't blocked.
+- If a read or push **errors**, report it once and stop. Offer the inline copy-paste fallback (show the full modified files in chat) so the onboarding isn't blocked.
 
 ## No MCP? Inline fallback
 

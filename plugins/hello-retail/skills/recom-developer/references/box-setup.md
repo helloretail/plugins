@@ -247,19 +247,13 @@ Send only the fields that change.
 
 ## 7. Strategy — write the algorithm the operator confirmed
 
-Write exactly what was read back and confirmed in step 4 → **`algorithm-intake.md`** §5:
+Write exactly what was read back and confirmed in step 4, as **`algorithm-intake.md`** → *5. Write it*
+describes: a best-practice algorithm as it stands, or the whole `steps` and `filters` lists for
+anything else; what to do when the tool refuses or warns; and the read-back with
+`recoms_getAlgorithm`. Field names come from the read's `filterableFields` and literal values from
+`productData_getFieldValues` (the same file → *Rules the translation must keep*).
 
-- **A best-practice algorithm as it stands** → `recoms_create` with it (new box) or
-  `recoms_applyBestPracticeAlgorithm` (existing box); the steps are replaced, the box's own global
-  filters are kept — fix those separately when they differ from the confirmed plan.
-- **Anything else** → `recoms_getAlgorithm` → `recoms_updateAlgorithm` with the **whole** `steps` list
-  (and the whole `filters` list if you change it). Anything you leave out is deleted. Send back
-  `numberReceipts`, `skipReceipts` and `priceInfluence` exactly as they were read.
-- Field names from the read's `filterableFields`; literal values from `productData_getFieldValues`.
 - Talk about steps by their **dashboard `number`** — it's what the customer sees.
-- A refused input names the offending step: fix that step once, then tell the operator. Warnings
-  from the tool go to the operator as they are.
-- Read back with `recoms_getAlgorithm` and compare with the confirmed plan.
 
 ## 8. Page context — `recoms_updateContextCrawlConfig`
 

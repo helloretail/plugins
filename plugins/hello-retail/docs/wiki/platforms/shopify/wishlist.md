@@ -7,7 +7,7 @@ verified: 2026-09-15
 
 **Detection:** `<wishlist-button-collection>` custom element wrapping a `<wk-button>` / `<wk-icon>` structure on the native tile; app script loaded page-wide (already present on the storefront, no import needed).
 
-No JS to write — this is a **custom-element auto-upgrade** case (same principle as ATC Step 0): the app's own script upgrades `<wishlist-button-collection>` wherever it appears in the DOM, including inside HR's dynamically-rendered tiles, the moment it's inserted. Copy the markup verbatim (Output Rule #10) and it works without any binding code.
+No JS to write — this is a **custom-element auto-upgrade** case (same principle as the add-to-cart check, [Before binding](../add-to-cart.md#before-binding--check-whether-it-already-works)): the app's own script upgrades `<wishlist-button-collection>` wherever it appears in the DOM, including inside HR's dynamically-rendered tiles, the moment it's inserted. Copy the markup verbatim (Output Rule #10) and it works without any binding code.
 
 ## The one thing that needs adapting: the `floating` position reference
 
@@ -48,6 +48,6 @@ The native markup includes a `floating` attribute — a JSON string telling the 
 
 If a product's tile doesn't have a stable per-render anchor element to attach `wk-id` to (e.g. the tile markup genuinely has no single root link), omitting the `floating` attribute is safer than inventing a reference the app can't resolve — the button falls back to static in-flow positioning rather than silently failing to render at all. Flag this as MISSING DATA rather than shipping a guess.
 
-**Related:** ATC Step 0 (custom-element auto-upgrade) — `references/tile-interactivity-js.md` in the `search-developer` skill.
+**Related:** the add-to-cart check for custom-element auto-upgrade — [Before binding](../add-to-cart.md#before-binding--check-whether-it-already-works).
 
 **Source:** captured from a Shopify onboarding, 2026-08.

@@ -5,33 +5,20 @@ policy the `../SKILL.md` BROWSER section summarises.
 
 All live-site inspection goes through a real browser MCP. **Playwright is the default; Claude in
 Chrome is the fallback** when no `playwright*` server exposes tools. This is the team's standing
-decision and it is the same in every skill.
+decision and it is the same in every skill, so it is written down once:
+**`${CLAUDE_PLUGIN_ROOT}/docs/browser-login.md`** → *Backends, in order of preference* (the servers and the login) and *Surveying a
+storefront* (the task-to-tool table, the mobile viewport on each backend, never `WebFetch` /
+`curl`, the shop's own grid as the reference). Read both before the first navigation.
 
-- **Playwright (default)** — the plugin ships the servers in `.mcp.json`: `playwright` (use this
-  one), `playwright-01` … `playwright-10` (parallel workers) and `playwright-profile` (login only).
-  Their tools are named `mcp__plugin_hello-retail_playwright__browser_*` (workers:
-  `mcp__plugin_hello-retail_playwright-NN__browser_*`). Each runs an isolated session seeded from
-  the saved Hello Retail login; `browser_resize` gives real mobile viewports; `browser_evaluate`
-  returns URLs unrestricted. If the tools are missing or the session is logged out, ask the
+What this skill adds:
+
+- Playwright's tools are named `mcp__plugin_hello-retail_playwright__browser_*` (workers:
+  `mcp__plugin_hello-retail_playwright-NN__browser_*`); Claude in Chrome's are
+  `mcp__claude-in-chrome__*`. If the tools are missing or the session is logged out, ask the
   operator to log in in the Playwright window (the `browser-login` skill covers setup) — never
   type credentials yourself.
-- **Claude in Chrome (fallback)** — tools are named `mcp__claude-in-chrome__*`. It drives the
-  operator's own Chrome (macOS only, needs the extension). Its `javascript_tool` blocks output
-  containing URLs — the `collect()` snippet in `survey-snippets.md` already works around that.
-  Mobile: ask the operator to open the device Emulator; never resize that browser window.
-
-| Task | Playwright (default) | Claude in Chrome (fallback) |
-|---|---|---|
-| Load the homepage / category page | `browser_navigate` | `navigate` |
-| Read the rendered DOM | `browser_snapshot` | `get_page_text` / `read_page` |
-| Locate tile / element selectors | `browser_snapshot` / `browser_evaluate` | `find` |
-| Run extraction / survey / hover-CSS snippets | `browser_evaluate` | `javascript_tool` |
-| Hover a tile for hover-only elements | `browser_hover` | `computer` |
-| Real (trusted) click | `browser_click` | `computer` |
-| Mobile viewport | `browser_resize` | operator opens the device Emulator |
-
-**Never** read the storefront with WebFetch, curl, or any HTTP client — tiles are client-rendered and
-only the real browser sees the final DOM, so a static fetch returns an incomplete or empty tile.
+- Claude in Chrome's `javascript_tool` blocks output containing URLs — the `collect()` snippet in
+  `survey-snippets.md` already works around that.
 
 ## When the browser work is done
 

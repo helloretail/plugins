@@ -93,84 +93,47 @@ usual carrier.
   flag the affected attributes under OPEN QUESTIONS, and let the operator test an escape on a
   draft design if they want the live binding. Record whatever the test shows in this section.
 
-### Price — ALWAYS use one of these four (match customer's format)
+### Price — the number through `| price`, the currency from the product
 
-```liquid
-{{ product.price | price }} {{ product.currency }}
-{{ product.price | price }} {{ product.currency | currencySymbol }}
-{{ product.price | priceWithCurrencySymbol }}
-{{ product.price | priceWithCurrency: product.currency }}
-```
+**Read `${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/liquid/price-formatting.md` before writing any price markup.** It is the one place the price rules live: the
+price forms, separators and static text, the sale pair, the discount percentage, "from" prices and
+ranges, and the price elements with no standard field (VAT pair, lowest price in 30 days, unit
+price, B2B and member prices).
 
-- **NEVER** use `| money`
-- **NEVER** hardcode currency symbol (`kr`, `€`, `$`)
-- `| price` MUST be present in the first two forms — without it the dashboard's formatting is silently ignored
-- **All four are equivalent for QA purposes** — pick whichever reproduces the customer's rendered format (separators, symbol, symbol position). No form is mandatory over another, and `../search-qa/SKILL.md` grades on parity with the native tile, not on which filter was used.
-- If you use `priceWithCurrency`, **always pass `: product.currency`** — the bare `| priceWithCurrency` was pushed and had to be reverted in a real run (store-NO-1 2026-09-01)
-- **Separators and decimals come from the website's settings**, not from the template — `| price` renders them. If the native tile shows a different separator or decimal count than `| price` produces, that is a website-settings question for the operator (MISSING DATA), not a `replace` in Liquid; never `| remove: '.'` (it destroys thousands separators — a known template issue)
-- **Static text around the price is allowed when it is not a currency**: the Danish/Norwegian zero-decimal form is `{{ product.price | price }},-`; a "from" prefix is a plain translated word (see below). Only the currency itself must come from the filters
-- **Unconditional suffixes on sale pairs** — a suffix like `,-` or a currency code must appear on **both** the `<del>` and the `<ins>`/current price, or on neither; a suffix written once after the pair renders as `349,-122,-`-style garbage. QA fixture-tests this (known template issue T5)
+The rules that fail a build when missed:
 
-### Discount percentage — always dynamic, always guarded
+- `{{ product.price | price }}` plus `{{ product.currency }}` or `{{ product.currency | currencySymbol }}`,
+  `{{ product.price | priceWithCurrency: product.currency }}` (never the bare filter), or
+  `{{ product.price | priceWithCurrencySymbol }}`. Pick the form that reproduces the
+  customer's format; `../../search-qa/SKILL.md` grades on parity with the native tile, not on which
+  filter was used.
+- Never `| money`, never a hardcoded currency (`kr`, `€`, `$`), never `replace` / `remove` on a
+  formatted price. A separator or decimal count that differs from the native tile is a
+  website-settings question for the operator (MISSING DATA).
+- The discount percentage is computed and guarded: `{% if product.isOnSale and product.oldPrice > 0 %}`.
+- A "from" price or a price range uses the feed's minimum / maximum field when one exists; when it
+  does not, render `product.price` with the native prefix word and add a MISSING DATA line.
+- A price element with no feed field (→ *Price elements with no standard field*) is never invented:
+  static fallback per Rule 6 where the page allows one, and a MISSING DATA line naming the field.
 
-```liquid
-{% if product.isOnSale and product.oldPrice > 0 %}
-  {% assign discount_pct = product.oldPrice | minus: product.price | divided_by: product.oldPrice | times: 100 | round %}
-{% endif %}
-```
-
-Without the guard an empty or zero `oldPrice` divides by zero on non-sale products. For a saved
-*amount* instead of a percentage: `{{ product.oldPrice | minus: product.price | price }}` inside the
-same guard.
-
-### Variant products — "from" prices and price ranges
-
-Native tiles show `From 199,-` or `199 – 349 kr` on products with variants. The Hello Retail feed
-carries `product.price` for the master; whether a minimum/maximum exists depends on the feed
-(the team recalls `product.minPrice`, but it is not a standard field). Read one variant product's
-`productData_get` row: if a min/max pair exists, use it; if not, render `product.price` with the
-native prefix word and add a MISSING DATA line asking the feed team for min/max. The prefix word is
-static text in the customer's language (`Fra`, `Från`, `Ab`, `Vanaf`, `From`), taken from the
-native tile — never a currency.
-
-```liquid
-{% if product.extraData.hasVariants == "true" and product.minPrice %}
-  <span>Fra {{ product.minPrice | price }} {{ product.currency | currencySymbol }}</span>
-{% else %}
-  <span>{{ product.price | price }} {{ product.currency | currencySymbol }}</span>
-{% endif %}
-```
-
-### Other price and availability elements — customer-specific fields
+### Availability elements — customer-specific fields
 
 None of these has a standard feed field. For each one the native tile shows: look for a matching
 `extraData.*` key in the `productData_get` rows first; bind it if present; otherwise render the
 element with a static fallback (Rule 6) and add a MISSING DATA line naming the field the feed team
-should add. Never invent the value.
+should add. Never invent the value. The price elements of this kind (VAT pair, lowest price in
+30 days, unit price, B2B and member prices) are in the price page above.
 
 | Native element | Where the value usually is | Fallback / note |
 | --- | --- | --- |
-| Incl./excl. VAT pair (B2B shops, Magento) | `product.priceExVat` (the team adds it to the feed) | Render the incl. price only + MISSING DATA. Never compute VAT in Liquid (`\| times: 0.8`) — the rate differs per product |
-| Lowest price in the last 30 days (EU Omnibus, shown on sale tiles) | `extraData.<lowestPrice>` — name varies per customer | Omit the line + MISSING DATA (a wrong "lowest price" is a legal problem, so no static fallback) |
-| Unit price (€/kg, €/l, per piece) | `extraData.<unitPrice>` / `extraDataList.size` | Static fallback text + MISSING DATA |
 | Delivery / availability text ("1–3 dage", "In stock in 3 stores") | `extraData.<deliveryTime>` / `<stockStatus>` — normally in the feed | Static text copied from the most common native value + MISSING DATA; QA compares it character-exact |
 | Low-stock count, pre-order, backorder | `extraData.*` flags, if any | Render only the states you can drive; list the rest under MISSING DATA |
-| B2B / login-gated prices | The feed carries the non-B2B (public) price | Render the public price; nothing to gate |
-| Member / loyalty price | `extraData.*` if the customer exports it | Omit + MISSING DATA |
 
 ### Sale block
 
-```liquid
-{% if product.isOnSale %}
-  <s>{{ product.oldPrice | price }} {{ product.currency | currencySymbol }}</s>
-  <span>{{ product.price | price }} {{ product.currency | currencySymbol }}</span>
-{% else %}
-  <span>{{ product.price | price }} {{ product.currency | currencySymbol }}</span>
-{% endif %}
-```
-
-The condition that gates this block, and what to do when no sale product is live on the survey
-day, are in *`isOnSale` drives the sale badge* below.
+The sale pair — old price and current price in the same form, gated on `product.isOnSale` — is in
+`${CLAUDE_PLUGIN_ROOT}/docs/wiki/cheat-sheets/liquid/price-formatting.md` → *Sale pair*. The condition that gates it, and what to do when no sale product is live
+on the survey day, are in *`isOnSale` drives the sale badge* below.
 
 ### Stock
 

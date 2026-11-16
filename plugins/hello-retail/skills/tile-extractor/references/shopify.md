@@ -15,12 +15,11 @@ markup exactly as the category page has it — custom elements upgrade themselve
 much of it works without any binding — with the variant id bound to `{{ product.extraData.id }}`
 (never `variantProductNumbers`; see the cart-id section of the page below) and the tracking call
 of Output Rule 11 on the submit button. The binding, when one is needed, is the shell's job:
-`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md` → **Approach B** (AJAX add +
+`${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md` → *Binding the copied theme form* (AJAX add +
 cart-section refresh + quick-add dialog).
 
-That page's **Approach A** (Hello Retail's own `.hr-form` inside the tile) is retired: Output Rule 15
-forbids any Hello Retail element or class inside the tile. Do not use it even while the page still
-lists it.
+Hello Retail's own `.hr-form` inside the tile (the page's former "Approach A") is retired: Output
+Rule 15 forbids any Hello Retail element or class inside the tile.
 
 ---
 

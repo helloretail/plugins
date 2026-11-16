@@ -34,7 +34,7 @@ cheat-sheets/
 
 | Category | Use it when… |
 | --- | --- |
-| **liquid** | Liquid rule or HR custom filter that applies to every template type (Search, Recoms, Pages, Newsletter) — [liquid/general.md](liquid/general.md). |
+| **liquid** | Liquid rule or HR custom filter that applies to every template type (Search, Recoms, Pages, Newsletter) — [liquid/general.md](liquid/general.md); every price rule (forms, sale pair, discount %, ranges, the email exception) — [liquid/price-formatting.md](liquid/price-formatting.md). |
 | **search** | Snippet is specific to Hello Retail Search (overlay, grid, list, full). |
 | **recoms** | Snippet renders inside a recommendation box / slider. |
 | **pages** | Snippet is for Pages (category / brand). Includes Pages REST API examples. |
@@ -76,3 +76,4 @@ If a new platform shows up (e.g. WooCommerce, PrestaShop, Centra), create `cheat
 ## Timeline
 - 2026-05-19: Cheat-sheets section created from the team's Notion exports.
 - 2026-10-02: Added the `liquid/` category — HR custom Liquid filters and the attribute quote rule.
+- 2026-11-12: Added `liquid/price-formatting.md` — the one page for price rules in every template type.
