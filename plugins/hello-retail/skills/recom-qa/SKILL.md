@@ -1101,6 +1101,11 @@ drawer → *then* enable Show). Judge it against the drawer, not the category gr
       with the test browser's clock moved forward
       (`../qa-checklists/references/product-tile.md` → Time-dependent elements); when not
       requested, one line "not requested (optional)" in the report
+- [ ] **Cart tracking (only when part of the onboarding)** — when a sold feature needs cart
+      data or the card names cart tracking, test the code, both add-to-cart buttons and the
+      `/serve/collect/cart` request once per domain
+      (`../qa-checklists/references/setup-and-data.md` → Tracking); otherwise one line
+      "N/A — not part of this onboarding", never a FAIL
 
 ### Dashboard — OPERATOR (manual)
 

@@ -175,7 +175,24 @@ Background — which changes need a re-index at all, and which are live on save:
 > tracking requests fire on add-to-cart?) can *support* the finding but doesn't replace the
 > dashboard verification — conversion tracking needs a real order to confirm.
 
-- [ ] Cart tracking missing
+- [ ] **Cart tracking — only when it is part of the onboarding.** Cart tracking is optional
+      (unlike click tracking, many shops never implement it), so first decide whether it is in
+      scope: the card's sold `Features` include something that needs cart data (for example
+      abandoned-cart Triggered Emails), or the card, its comments or the operator name cart
+      tracking. **Not in scope** → one line "N/A — not part of this onboarding", never a FAIL.
+      **In scope** → test it once per domain (a report for the same domain that already graded
+      it is cited, not repeated):
+      1. **Code** — the storefront calls HR's `setCart()` through `hrq`, or POSTs to
+         `/serve/collect/cart` itself; search the page source and the loaded scripts.
+      2. **Add to cart** — accept the shop's cookie consent first, then add a product with the
+         shop's own button and with the HR tile's button, and remove it again.
+      3. **Network** — a `POST /serve/collect/cart` fires after each cart change and carries the
+         product that was added (and a cart without it after the removal).
+
+      Request fires on every path → PASS (add "only after consent" when that applies). No
+      request on a path → FAIL, naming the path and the sold feature that loses its data. Code
+      present but no request → FAIL: the code alone is not evidence. The dashboard status stays
+      on the operator list either way.
 - [ ] Conversion tracking missing
 - [ ] SPA route-change tracking missing — *SPA storefronts only (see `../SKILL.md` Step 2.2).* On
       client-side routing the script boots once, so the frontend must call `hrq.push(["reload"])`
