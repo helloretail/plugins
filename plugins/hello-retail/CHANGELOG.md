@@ -8,6 +8,14 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.64.3 — 2026-11-16
+
+### Removed
+
+- `search-qa` no longer requires the desktop search grid (1440 and 1024 px) to match the
+  category page's tiles per row or breakpoints; a difference there is not reported. Tablet and
+  mobile are still compared, and a broken desktop grid is still reported.
+
 ## 1.64.2 — 2026-11-16
 
 ### Changed
