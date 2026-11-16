@@ -51,7 +51,8 @@ Fill every field below without asking. Write `unknown` rather than guessing.
 | What was tried | Retries, workarounds, the dashboard step the operator did by hand. |
 | Impact | `blocked` · `workaround used` · `slowed down`. |
 | Suggested fix | What to add: an MCP tool (name, inputs, what it returns or writes), a skill step, or a wiki page. One to three lines. |
-| Plugin version | `version` in `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. |
+| Where it ran | `Claude Code`, `Claude chat` or `Cowork` — where this session is running. |
+| Plugin version | `version` in `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Claude chat and Cowork have no plugin root: leave the whole line out rather than writing `unknown`. |
 
 Never put in the report: passwords, tokens, cookies, API keys, shopper personal data (emails,
 names, orders), or whole design files. A selector, a field name or 20 lines of code is fine.
@@ -64,6 +65,7 @@ TOPIC: <skill name, or "no-skill"> - <the gap in at most 10 words>
 Reporter: <name / email>
 Customer: <domain> (<website UUID>)
 Skill: <skill>
+Where it ran: <Claude Code | Claude chat | Cowork>
 Plugin version: <version>
 Date: <YYYY-MM-DD>
 Impact: <blocked | workaround used | slowed down>
@@ -76,6 +78,9 @@ SUGGESTED FIX: <MCP tool to add or change: name, inputs, output — or the skill
 The `TOPIC` line is the form's title field and follows the form's own `Skill-Name - Title`
 format, e.g. `recom-developer - no tool to set a box's algorithm`. Everything below it is the
 body. The form drops blank lines, so each section starts on its own labelled line.
+
+`Where it ran` tells the plugin team which reports could not be sent automatically, and explains a
+missing `Plugin version` line: outside Claude Code there is no plugin root to read it from.
 
 ## Step 2 — Ask once
 
