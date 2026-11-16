@@ -53,17 +53,13 @@ and there is no write path for Triggered Emails at all. It reports; the develope
 
 If the `website-uuid` or the lane is missing, ask before proceeding.
 
-**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of
-sensible options — pick a page, a design, yes / no, 8 / 10 / 12 — is asked with Claude Code's
-`AskUserQuestion` tool: a header (12 characters at most), two to four options with a one-line
-description each, the recommended one first and marked "(Recommended)", `multiSelect: true`
-when several may apply; *Other* is added automatically for free text. Up to four independent
-questions per call; a question whose options depend on an earlier answer waits for the next
-call. Options come from what you already read, never from guesswork, and nothing the prompt,
-the card or an earlier answer already settled is asked again. Free text with nothing to
-suggest (a URL, a UUID) stays a prose question. No `AskUserQuestion` tool in the session → the
-same questions in prose, the options as a numbered list; no operator to answer at all → take
-the recommended option and record the question under Manual checks for the operator.
+**Ask with the `AskUserQuestion` tool.** Every question whose answer has a finite set of sensible
+options is asked with the `AskUserQuestion` picker, never in prose and never guessed; free text
+with nothing to suggest (a URL, a UUID) stays a prose question, and nothing already answered is
+asked again. The format, the batching rule and the fallback when the tool is missing are in
+`${CLAUDE_PLUGIN_ROOT}/docs/asking-the-operator.md` — read it before the first question. No
+operator to answer at all → take the recommended option and record the question under Manual
+checks for the operator.
 
 The *Lane* question goes in the first call; *Design* (lane N) and *Triggers* (lane T) depend on
 its answer and share the next call.

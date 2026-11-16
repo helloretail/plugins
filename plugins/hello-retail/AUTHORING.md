@@ -78,19 +78,14 @@ header (12 characters at most), the options (a label of one to five words, the r
 first and marked "(Recommended)", `multiSelect: true` when several may apply), and which questions
 share a call.
 
-- **One call holds up to four questions, and only questions that don't depend on each other.** A
-  question whose options come from an earlier answer (which section on *that* page, which
-  algorithm for *that* page type) goes in the next call, after the answer has been used.
-- **Options come from what the skill already found** — the live page's sections, the MCP's
-  best-practice list, the shop's own slider count — never invented; *Other* covers the rest.
-- **Ask nothing twice.** An answer already in the prompt, the ClickUp card's text or an earlier
-  reply is taken, and the skill says what it took.
-- **Free text with no sensible options** (a URL, a UUID, a heading with nothing to suggest) stays
-  a prose question. An approval gate ("write these as drafts?") uses the tool but marks no option
-  as recommended — the choice is the operator's.
-- **Fallback.** No `AskUserQuestion` tool in the session (a subagent, the SDK) → the same question
-  in prose, one per message, the options as a numbered list. No operator to answer at all → don't
-  ask: take the recommended option and record the question under OPEN QUESTIONS.
+The rules the model follows when it asks — when the picker applies, how a question is written, how
+questions are batched, and what happens when the tool or the operator is missing — live in one
+file, [`docs/asking-the-operator.md`](./docs/asking-the-operator.md). A skill does not restate
+them. It carries the short paragraph the existing skills use — the core rule, the pointer
+`${CLAUDE_PLUGIN_ROOT}/docs/asking-the-operator.md`, and the section of its own output where an
+unanswered question is recorded (OPEN QUESTIONS, MISSING DATA, *Manual checks for the operator*) —
+and then its own questions with their headers and options. Change a rule in that file, never in
+one skill.
 
 The worked example is `recom-developer` → `references/box-setup.md` → *How to ask*. Adopted so far by
 `search-developer`, `recom-developer` and `pages-developer`, and by the QA skills — `search-qa`,
