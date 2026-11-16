@@ -8,6 +8,13 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.64.2 — 2026-11-16
+
+### Changed
+
+- `customer-analytics-report` shows conversion rate instead of open rate on the Product Agents page, matching
+  the Product Agents Analytics page, which no longer reports open rate.
+
 ## 1.64.1 — 2026-11-16
 
 Maintenance release — no user-visible changes.
