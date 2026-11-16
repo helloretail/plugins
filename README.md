@@ -10,6 +10,9 @@ model:
   public REST APIs, so a customer's own frontend calls them correctly. It builds no Hello Retail
   design and writes no configuration.
 
+Both are for Hello Retail customers — and the developers or agencies working on their shop — as
+well as Hello Retail's own team.
+
 Merging to `main` is publishing: Claude Code installs straight from this repository over git.
 
 ## Layout

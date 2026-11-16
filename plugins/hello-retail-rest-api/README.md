@@ -19,7 +19,7 @@ integration models. Install whichever matches the work; they do not overlap.
 | Where the code runs | Hello Retail's servers and the managed widget on the storefront | The customer's application, calling `core.helloretail.com/serve/…` over HTTP |
 | How it talks to Hello Retail | The `hello-retail` MCP — designs and feeds are read and written as REVIEW drafts | Public REST endpoints; the MCP is used only to read config and diagnose |
 | What the skills produce | A draft design a person publishes from My Hello Retail | Guidance so the AI client's own HTTP calls and response handling are correct |
-| Who it is for | Hello Retail's D&TS delivery team running an onboarding | A customer's developers (or their AI client) building against the APIs |
+| Who it is for | Customers, and the developers or agencies working on their shop, who want designs Hello Retail hosts — and Hello Retail's own team running an onboarding | A customer's developers (or their AI client) building against the APIs |
 
 Nothing in this plugin builds, QAs or publishes a managed design, and nothing in
 it writes to a customer's configuration. Conversely, none of the managed
