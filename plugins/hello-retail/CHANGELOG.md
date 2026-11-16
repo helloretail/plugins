@@ -8,6 +8,12 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.65.1 — 2026-11-16
+
+### Changed
+
+- `search-developer` and `recom-developer` now treat the person running them as either a Hello Retail engineer or the customer's own developer or agency. The plugin's README says the same: it is for customers and the people working on their shop, as well as Hello Retail's own team.
+
 ## 1.65.0 — 2026-11-16
 
 ### Added
