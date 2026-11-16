@@ -1007,7 +1007,8 @@ LATENT, not in Code-only, not in Issues Found (team decision). Report a translat
 when the rendered pass shows it on the storefront.
 
 **Severity discipline — not every mismatch is a defect.** Cosmetic/structural divergences that
-don't break function (breakpoint counts that differ from the native grid, tile-height deltas from
+don't break function (breakpoint counts that differ from the native grid — except the desktop
+search grid, which is not compared at all, see `../search-qa/SKILL.md` — tile-height deltas from
 deliberate additions, non-semantic heading elements) belong in a clearly-headed **"Notes for the
 developer"** section: prominent enough to be read and acted on, but not logged as ❌ and not
 presented as gating handoff. Reserve ❌ for things that are broken, wrong, or leak into the
@@ -1184,7 +1185,9 @@ start of the rendered pass, in a short **Native baseline** block in the report (
 coverage manifest): the image source variant + oversize factor + `loading`/`srcset` from the
 image-weight probe's native pass; wishlist / compare / quick-view presence **per breakpoint**
 (query the native DOM at 1440 / 820 / 375 — themes genuinely drop elements at some widths, not
-just hide them); tiles-per-row per breakpoint; price format; badge vocabulary. Two rules
+just hide them); tiles-per-row per breakpoint (for Search, tablet and mobile only — the desktop
+search grid is not compared with the category page, see `../search-qa/SKILL.md`); price format;
+badge vocabulary. Two rules
 follow:
 
 - **Missing-element findings are scoped per breakpoint from this baseline** — "wishlist icon

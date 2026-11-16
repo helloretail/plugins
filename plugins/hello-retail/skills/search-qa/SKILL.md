@@ -392,11 +392,15 @@ window size. **Standard QA devices (match the QA team's physical devices): mobil
 (375×667), tablet = iPad Air (820×1180).** The deliberately small 375px phone width is the
 point — overlap and cut-off defects that hide at 390–430px surface there. Run the tablet pass
 at 820px too (some setups should serve the *mobile* search on tablet — verify which design is
-intended). **Layout and grid checks (tile proportions, tiles-per-row, overlay/embedded
-placement) run at all four Step 2.5 widths — 1440, 1024, 820, 375**
+intended). **Layout and grid checks (tile proportions, overlay/embedded placement) run at all
+four Step 2.5 widths — 1440, 1024, 820, 375**
 (`../qa-checklists/SKILL.md` Step 2.5): the device pair above drives the mobile/tablet design
-passes, and 1024 is the laptop band where the desktop config squeezes — record tiles-per-row
-plus container width for HR **and** native at each width, never by eye. When the code pass
+passes, and 1024 is the laptop band where the desktop config squeezes. **Tiles per row are
+compared with native at 820 and 375 only** — record tiles-per-row plus container width for HR
+**and** native there, never by eye. **On desktop (1440 and 1024) the search grid does not have
+to match the category page's tiles per row or breakpoints (team decision, 2026-11):** do not
+report a difference there as a finding, a note or a developer note. A broken desktop grid is
+still reported (horizontal overflow, unequal or squeezed columns, tiles cut off). When the code pass
 shows the mobile config's width gate (e.g. `if (width > 992)
 return`), report every mobile-config finding as affecting that **whole range** — "≤992px,
 mobile AND tablet" — never "mobile-only"; the affected population is materially larger. On the default
