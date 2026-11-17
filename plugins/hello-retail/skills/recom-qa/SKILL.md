@@ -99,38 +99,11 @@ checks for the operator.
 
 ## Multi-domain mode
 
-If the user provides **more than one URL/domain** — separate TLDs (`example.dk` + `example.se`)
-or locale storefronts under one hostname (`example.com/en-be/` + `example.com/en-at/`) — run a
-**full, independent QA per domain**, each ending in **its own report file**. Each
-locale/domain is usually a separate HR website with its own `website-uuid`, boxes, feed, and
-possibly its own designs — never assume the designs are shared.
-
-- **Collect inputs per domain up front.** Each domain needs its own `website-uuid` for the code
-  pass and box inventory. Ask for anything missing before starting so the run isn't interrupted
-  mid-QA.
-- **Run sequentially, not interleaved.** The rendered pass drives a real browser — complete the
-  full workflow (steps 0–9, ending with that domain's report) for domain A before starting
-  domain B. Keep per-domain findings and box inventories separate; nothing carries over between
-  domains except the design diff (next bullet).
-- **Diff the designs before repeating the code pass.** After loading domain B's designs via
-  `recoms_getDesign`, diff each design's `templateCode`/`templateStyles` against the
-  corresponding design on domain A (match them by title/purpose):
-  - **Identical** → run the code pass once; repeat each code finding in every affected domain's
-    report, and record "design identical to [domain A]" there.
-  - **Different** → run the full code pass for that domain's design too (this is the expected
-    case).
-  The **rendered pass is never skipped** per domain regardless — placements, locale strings,
-  currency/price formatting, and feed data differ even when templates match, and each domain
-  has its own box inventory.
-- **One report file per domain, one folder per customer.** Each domain gets
-  `QA/[customer]/[domain]-recom-qa-[YYYY-MM-DD].md`; for locale storefronts under one hostname,
-  add the locale slug, e.g. `QA/example.com/example.com-en-be-recom-qa-[YYYY-MM-DD].md` and
-  `QA/example.com/example.com-en-at-recom-qa-[YYYY-MM-DD].md` — screenshots for all domains
-  share `QA/[customer]/screenshots/`.
-  Every report is **self-contained** (its own Recom Box Inventory, findings, operator list) —
-  a finding shared across domains is repeated in each affected report, tagged
-  "shared — also affects [domains]", never replaced by a pointer to another report file.
-  Close the run with a chat summary: a one-line verdict per domain plus the list of report files.
+If the user provides **more than one URL/domain** — separate TLDs or locale storefronts under one
+hostname — read `../qa-checklists/references/multi-domain.md` before starting and follow it: a
+full, independent QA per domain, run one domain after another, the design diff that decides whether the code pass runs once, and
+**one self-contained report per domain**, named `QA/[customer]/[domain]-recom-qa-[YYYY-MM-DD].md`
+(locale storefronts add the locale slug). A single-domain run skips that file.
 
 ## Workflow
 

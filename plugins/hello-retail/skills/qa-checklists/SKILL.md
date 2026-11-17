@@ -56,6 +56,8 @@ checks for the operator.
 | Retail Media | `references/retail-media.md` | isBanner code, `hr-b-image` class, image sizing/naming, banner rendering; runner: `retailmedia-qa` |
 | Newsletter Content tile & Triggered Emails | `references/newsletter.md` | **v1, authored (no QA-workbook sheet exists)** — foundation diff vs the shared default, markers/dynamic-ness, translation, renderer (N) or email-client (T) compatibility, data binding, Liquid gotchas, rendered checks, "similar to the customer's tile" table; runner: `newsletter-qa` |
 | Known template issues (every run) | `references/known-template-issues.md` | Standing template-level defects walked on **every** QA run regardless of feature — typed price input, custom-filter chips, facet ordering, label z-index, separator/suffix, scroll-lock, back-nav popup, OOS-in-recoms, single-filter removal — plus the **accepted template defaults** (mobile filter panel quirks that are never reported) |
+| Multi-domain runs (only when there is more than one domain) | `references/multi-domain.md` | Inputs per domain, one domain after another, artefacts from each domain's own sources, design diff before the code pass, one self-contained report per domain |
+| Copy of another domain (only when the build is a copy) | `references/copy-source.md` | Finding the source's context, asking the operator, what carries over, what is re-verified, what is never inherited |
 
 ## Execution flow
 
@@ -123,35 +125,9 @@ own card wins wherever the two disagree.
   operator says so, or the code shows another domain's leftovers (selectors, hardcoded labels,
   currency, locale strings) while the card is silent — in that last case ask the operator whether
   this is a copy and of which domain, before grading the leftovers as defects.
-- **Find the source's context.** The source's own Onboarding card — search ClickUp for the
-  source's domain and name and keep the card whose `list.name` is Onboarding — and any brief,
-  hand-off document or report for it in the operator's local `QA/` folder. The source may belong
-  to the same customer or to another one.
-- **Ask the operator first, never adopt it silently.** `AskUserQuestion`, header *Copy source*,
-  *"This build is a copy of `<source domain>` (<card title>, list <list name>) — read its
-  onboarding to see why the design is as it is?"* — *Yes, read it (Recommended)* / *No, QA this
-  domain on its own*.
-- **On yes:** run the full two-lane fetch below on the source's card, read the local brief or
-  hand-off, and distil it into the brief under **Copy source: `<source>`**: the design decisions
-  this build inherited, what the source had published and what it still had open at the copy,
-  and the reasons behind its choices. Then:
-  - **Carry over** the source's customer decisions, declined requests, waived / shelved items,
-    platform and theme notes and reference site — **only when the source is the same customer**.
-    When the source belongs to **another customer**, those are *that customer's* and do not
-    carry over; only the build facts do (what the design does and why, known template defects).
-  - **Re-verify, never trust:** the source's known-open items and earlier findings are claims to
-    check on this domain — a fix the source got may not exist here.
-  - **Never inherit:** the QA surface and staging URL, logins, feed URLs and tokens, website
-    UUID, placement divs, currency, locale and translated strings. Resolve each from this
-    domain's own card, or ask — the same value-by-value rule as the QA surface below.
-  - A behaviour this domain shares with the source is graded against **this domain's own
-    card** — if the card is silent, the source's reason explains it, but it stays a WARN +
-    operator question, never a PASS (by spec).
-- **Feed Copy lineage (below):** the source's context is what answers its check (a), whether
-  the source's own fixes were published before the copy, instead of guessing from the card.
-
-On **no**, record "copy source declined" in the brief and run the Copy lineage checks from the
-card's wording alone.
+- **It is a copy → read `references/copy-source.md` now and follow it**: find the source's
+  context, ask the operator before reading it, and what carries over, what is re-verified and
+  what is never inherited. A build that is not a copy skips that file.
 
 **Match the card type to the work under QA — an onboarding QA uses the Onboarding card.** The
 fetched task says which list it lives in (`list.name` — e.g. `Onboarding`), so check it

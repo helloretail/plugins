@@ -99,47 +99,11 @@ checks for the operator.
 
 ## Multi-domain mode
 
-If the user provides **more than one URL/domain** — separate TLDs (`example.dk` + `example.se`)
-or locale storefronts under one hostname (`example.com/en-be/` + `example.com/en-at/`) — run a
-**full, independent QA per domain**, each ending in **its own report file**. Each
-locale/domain is usually a separate HR website with its own feed, config, and possibly its own
-design — never assume the designs are shared.
-
-- **Collect inputs per domain up front.** Each domain needs its own `website-uuid` (search
-  keys are then discovered per domain via `search_listConfigs`), and may have its own trigger
-  selector. Ask for anything missing before starting so the run isn't interrupted mid-QA.
-- **Run sequentially, not interleaved.** The rendered pass drives a real browser — complete the
-  full workflow (steps 0–8, ending with that domain's report) for domain A before starting
-  domain B. Keep per-domain findings separate; nothing carries over between domains except the
-  design diff (next bullet).
-- **Build every domain's artefacts from that domain's own sources — never from a sibling's
-  files.** Each domain's config inventory comes from its own `search_listConfigs(website-uuid)`
-  call, and every config key written into its report, manifest or fix plan is copied from that
-  call's output — not from another domain's report, even when the designs are copies of each
-  other. Each domain's coverage manifest is extracted fresh from the checklist sources
-  (`../qa-checklists/SKILL.md` Step 3), never by duplicating another domain's manifest and
-  editing it, and every verdict line cites evidence observed on *this* domain. Before saving a
-  report, check that each config key in it appears in that domain's `search_listConfigs`
-  output. (Real 2026-10 case, 15-storefront run: one domain's mobile key was written into
-  another domain's report, and a "mobile product tab translated — PASS" line was carried from
-  the French storefront's manifest into the Spanish one, whose tab label was actually empty.)
-- **Diff the designs before repeating the code pass.** After loading domain B's design via
-  `search_getDesign`, diff its three fields (`resultTemplate`, `resultStyles`,
-  `initializationCode`) against domain A's:
-  - **Identical** → run the code pass once; repeat each code finding in every affected domain's
-    report, and record "design identical to [domain A]" there.
-  - **Different** → run the full code pass for that domain too (this is the expected case).
-  The **rendered pass is never skipped** per domain regardless — locale strings, currency/price
-  formatting, trigger selectors, and feed data differ even when templates match.
-- **One report file per domain, one folder per customer.** Each domain gets
-  `QA/[customer]/[domain]-search-qa-[YYYY-MM-DD].md`; for locale storefronts under one
-  hostname, add the locale slug, e.g. `QA/example.com/example.com-en-be-search-qa-[YYYY-MM-DD].md`
-  and `QA/example.com/example.com-en-at-search-qa-[YYYY-MM-DD].md` — screenshots for all
-  domains share `QA/[customer]/screenshots/`.
-  Every report is **self-contained** (its own findings and operator list) — a finding shared
-  across domains is repeated in each affected report, tagged "shared — also affects [domains]",
-  never replaced by a pointer to another report file. Close the run with a chat summary: a
-  one-line verdict per domain plus the list of report files.
+If the user provides **more than one URL/domain** — separate TLDs or locale storefronts under one
+hostname — read `../qa-checklists/references/multi-domain.md` before starting and follow it: a
+full, independent QA per domain, run one domain after another, the design diff that decides whether the code pass runs once, and
+**one self-contained report per domain**, named `QA/[customer]/[domain]-search-qa-[YYYY-MM-DD].md`
+(locale storefronts add the locale slug). A single-domain run skips that file.
 
 ## Workflow
 
