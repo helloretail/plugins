@@ -43,6 +43,12 @@ helper missing only on the account pages gave 50 warnings and an inert heart.
   of thumbnail images, hidden below a breakpoint, and capped at a few swatches plus a "+N" counter
   (`survey-snippets.md` → *Swatch / variant strip probe* → *Overflow cap*).
 - **Why baked-in badges are recorded.** So QA does not report the label as missing.
+- **Why a badge with no text is not automatically part of the image.** Shops draw ribbons with the
+  stylesheet on an empty element, and the class decides which ribbon. Field case 2026-11: the
+  badge slot carried a sale class on some products and an outlet class on others, both empty
+  elements; the tile was built with the sale branch only, so every outlet product showed the sale
+  ribbon in the overlay. The feed had a separate outlet flag in `extraData`. Two QA runs read the
+  mismatch as a feed difference before a third compared the badge type.
 
 ## Step 4g — page-type CSS
 
