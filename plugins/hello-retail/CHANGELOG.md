@@ -8,6 +8,16 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.65.2 — 2026-11-17
+
+### Fixed
+
+- `tile-extractor` now finds badges the shop draws with its stylesheet on an empty element, such
+  as an outlet ribbon, and gives each badge class its own branch and feed flag. These were
+  treated as part of the product image before, so outlet products got the sale badge.
+- `search-developer` now compares which badge each product shows in the overlay with the shop's
+  own tile after the first push, so a wrong badge type is caught in the build instead of in QA.
+
 ## 1.65.1 — 2026-11-16
 
 ### Changed
