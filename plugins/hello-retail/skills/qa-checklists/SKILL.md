@@ -1213,9 +1213,13 @@ code files measure checks that otherwise depend on looking at a few tiles, so tw
 site give the same numbers. Copy the file to `QA/[customer]/` (the Playwright MCP reads code files
 only from its allowed roots), fill in its CONFIG block, and run it with `browser_run_code_unsafe
 { filename }` while the HR tiles are on screen. Paste each result into the report as the evidence of
-the items it covers; a difference it lists is a finding to check, never a verdict on its own. They
-need the Playwright backend (they open a second tab); on Claude in Chrome, do the same checks by
-hand on more tiles than usual and say so in Session notes.
+the items it covers; a difference it lists is a finding to check, never a verdict on its own. A
+run that read no HR tiles or matched no products (`hrTiles` / `overlayTiles` 0, `matched` /
+`compared` 0, or a line in `warnings`) measured nothing: fix CONFIG and run it again, never paste it
+as a pass. HR tiles the price script lists as not compared are not covered either — add the
+category pages that hold them, or check those tiles by hand. They need the Playwright backend (its
+`page` object; two of them open a second tab); on Claude in Chrome, do the same checks by hand on
+more tiles than usual and say so in Session notes.
 
 | Script | Covers | Run it |
 |---|---|---|
