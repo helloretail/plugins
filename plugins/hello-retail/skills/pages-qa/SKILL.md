@@ -40,23 +40,12 @@ checks for the operator.
 
 ## Multi-domain mode
 
-If the user provides **more than one URL/domain** — separate TLDs (`example.dk` + `example.se`)
-or locale storefronts under one hostname (`example.com/en-be/` + `example.com/en-at/`) — run a
-**full, independent QA per domain**, each ending in **its own report file**:
-
-- **Run sequentially, not interleaved** — complete steps 1–5 (including that domain's report)
-  for domain A before starting domain B. Keep findings separate per domain.
-- **No design diff to share.** This skill runs no code pass yet (the `pages_*` design-read
-  tools are new), so there is no "identical design → run once" shortcut like search-qa/recom-qa have — every domain gets the full
-  rendered walk (locale strings, currency, feed data, and category structures differ even when
-  the design looks the same).
-- **One report file per domain, one folder per customer:**
-  `QA/[customer]/[domain]-pages-qa-[YYYY-MM-DD].md`; locale storefronts add the slug, e.g.
-  `QA/example.com/example.com-en-be-pages-qa-[YYYY-MM-DD].md` — screenshots for all domains
-  share `QA/[customer]/screenshots/`. Every report is
-  self-contained (its own findings and operator list) — repeat a finding shared across domains
-  in each affected report, tagged "shared — also affects [domains]". Close the run with a chat
-  summary: a one-line verdict per domain plus the list of report files.
+If the user provides **more than one URL/domain** — separate TLDs or locale storefronts under one
+hostname — read `../qa-checklists/references/multi-domain.md` before starting and follow it: a
+full, independent QA per domain, run one domain after another, the full rendered walk on every
+domain, and **one self-contained report per domain**, named
+`QA/[customer]/[domain]-pages-qa-[YYYY-MM-DD].md` (locale storefronts add the locale slug). A
+single-domain run skips that file.
 
 ## Execution flow
 
