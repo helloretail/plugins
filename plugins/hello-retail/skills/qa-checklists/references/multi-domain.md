@@ -8,23 +8,26 @@ Run a **full, independent QA per domain**, each ending in **its own report file*
 locale/domain is usually a separate HR website with its own `website-uuid`, feed, configs or
 boxes, and possibly its own designs — never assume the designs are shared.
 
-- **Collect inputs per domain up front.** Each domain needs its own `website-uuid`: search-qa
-  discovers that domain's configs via `search_listConfigs` (and each domain may have its own
-  trigger selector); recom-qa loads that domain's box inventory via `recoms_list`. Ask for
-  anything missing before starting so the run isn't interrupted mid-QA.
+- **Collect inputs per domain up front.** search-qa and recom-qa need each domain's own
+  `website-uuid`: search-qa discovers that domain's configs via `search_listConfigs` (and each
+  domain may have its own trigger selector); recom-qa loads that domain's box inventory via
+  `recoms_list`. For pages-qa the `website-uuid` stays optional (feed-data checks only) — don't
+  ask for it just because the run covers several domains. Ask for anything missing before
+  starting so the run isn't interrupted mid-QA.
 - **Run sequentially, not interleaved.** The rendered pass drives a real browser — complete the
   full workflow for domain A, ending with that domain's report (search-qa steps 0–8, recom-qa
   steps 0–9, pages-qa steps 1–5), before starting domain B. Keep per-domain findings and box
   inventories separate; nothing carries over between domains except the design diff (below).
 - **Build every domain's artefacts from that domain's own sources — never from a sibling's
   files.** Each domain's config or box inventory comes from its own MCP call
-  (`search_listConfigs` / `recoms_list` with that domain's `website-uuid`), and every config or
-  design key written into its report, manifest or fix plan is copied from that call's output —
-  not from another domain's report, even when the designs are copies of each other. Each
-  domain's coverage manifest is extracted fresh from the checklist sources (`../SKILL.md`
+  (`search_listConfigs` / `recoms_list` with that domain's `website-uuid`), and every config,
+  box or design key written into its report, manifest or fix plan is copied from that call's
+  output — not from another domain's report, even when the designs are copies of each other.
+  Each domain's coverage manifest is extracted fresh from the checklist sources (`../SKILL.md`
   Step 3), never by duplicating another domain's manifest and editing it, and every verdict line
-  cites evidence observed on *this* domain. Before saving a report, check that each key in it
-  appears in that domain's own MCP output. (Real 2026-10 case, 15-storefront run: one domain's
+  cites evidence observed on *this* domain — this part holds for pages-qa too, which has no
+  keys to copy. Before saving a report, check that each key in it appears in that domain's own
+  MCP output. (Real 2026-10 case, 15-storefront run: one domain's
   mobile key was written into another domain's report, and a "mobile product tab translated —
   PASS" line was carried from the French storefront's manifest into the Spanish one, whose tab
   label was actually empty.)
@@ -53,3 +56,7 @@ boxes, and possibly its own designs — never assume the designs are shared.
   domains is repeated in each affected report, tagged "shared — also affects [domains]", never
   replaced by a pointer to another report file. Close the run with a chat summary: a one-line
   verdict per domain plus the list of report files.
+- **Before closing the runs, compare the domains.** Two cross-cutting checks in `../SKILL.md`
+  Step 3 apply only to multi-domain runs: *Cross-domain diff* (a domain that differs from its
+  siblings is a finding, or a question for the CSM) and *Same method on every domain* (an item
+  tested the stronger way on one domain is redone that way on the others).

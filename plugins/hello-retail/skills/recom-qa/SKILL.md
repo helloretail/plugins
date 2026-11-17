@@ -101,9 +101,10 @@ checks for the operator.
 
 If the user provides **more than one URL/domain** — separate TLDs or locale storefronts under one
 hostname — read `../qa-checklists/references/multi-domain.md` before starting and follow it: a
-full, independent QA per domain, run one domain after another, the design diff that decides whether the code pass runs once, and
-**one self-contained report per domain**, named `QA/[customer]/[domain]-recom-qa-[YYYY-MM-DD].md`
-(locale storefronts add the locale slug). A single-domain run skips that file.
+full, independent QA per domain, run one domain after another, the design diff that decides
+whether the code pass runs once, and **one self-contained report per domain**, named
+`QA/[customer]/[domain]-recom-qa-[YYYY-MM-DD].md` (locale storefronts add the locale slug). A
+single-domain run skips that file.
 
 ## Workflow
 
