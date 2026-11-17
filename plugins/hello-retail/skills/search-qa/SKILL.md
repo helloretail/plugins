@@ -477,7 +477,9 @@ These are the most important checks — get these right.
 
 - [ ] **Tile design origin** — tile layout and styling copied from the customer's own category page
 - [ ] **Long titles** — handled with `...` truncation or line wrapping (no overflow)
-- [ ] **Price format** — correct currency symbol, decimal separator, thousands separator
+- [ ] **Price format** — correct currency symbol, decimal separator, thousands separator;
+  measure it on every overlay tile with `../qa-checklists/scripts/price-text.js`
+  (`../qa-checklists/SKILL.md` Step 3 → Measurement scripts), which also covers Price accuracy below
   - Danish/Dutch: period as thousands separator (`1.234`), comma as decimal (`12,50`) — never use
     `| remove: '.'` in Liquid as it breaks thousands separators; use targeted replace e.g.
     `| replace: 'kr.', 'kr'`
@@ -613,7 +615,9 @@ These are the most important checks — get these right.
       alignment (centred vs left-aligned)**, hover state, ATC button width, tile heights across a
       row. This is the single biggest bucket of eyes-on-the-page defects skill runs missed
       (~35 items across 12 of 14 properties, 2026-08-24 comparison) — the paired capture is
-      what makes each of them visible; save it as evidence even when everything matches.
+      what makes each of them visible; save it as evidence even when everything matches. Then
+      run `../search-developer/scripts/parity-sweep.js` (Step 3 → Measurement scripts) for the
+      same comparison by computed style across every matched product, not only the pair.
 - [ ] **Variants vs the native category tile** — compare at least 5 variant products tile by
       tile against the same products on the native category page (never the PDP): the same
       sizes/variants in the same order, the same sold-out marking, a "+ N" count that matches
@@ -940,7 +944,7 @@ browser to check them (off-limits to browser automation). They go on the operato
 
 Checks against `resultTemplate` / `resultStyles` / `initializationCode` that the rendered pass can't see.
 
-- [ ] **Click tracking** — product links/buttons preserve HR click tracking: real buy/ATC buttons carry `hrq.push(['trackClick', …])`, navigation links go through `fix_links`, and no custom handler `preventDefault`s the click in a way that bypasses tracking. Broken tracking means conversions never attribute — invisible in the UI. **ACCEPTED — do not flag:** `trackClick` missing on variant / view / sold-out CTAs — those are navigation links covered by `fix_links`; `trackClick` is required on buy/ATC actions only (QA team). A PASS on any branch needs the click-attribution request (`trackClick` → `/serve/collect/click`) observed after a real click; an `#aw_source=` fragment is never evidence. **Grade this per branch, and say which branch each verdict covers** — enumerate every CTA the template emits (ATC · navigation/"read more" · variant · sold-out) and give each its own line. "Navigation links are correctly covered by `fix_links`" is a verdict about the navigation branch **only**; recording it as the item's verdict is how a missing `trackClick` on the ATC button passed as ✅ on one config while two other runs graded the same code ❌ (2026-08-04). Also check both configs separately — desktop and mobile are separate designs and one commonly has an abandoned tracking attempt (e.g. a `{% assign trackingCode = product.url | split: 'aw_source=' | last %}` computed and never used) that reads as tracking present at a glance.
+- [ ] **Click tracking** — product links/buttons preserve HR click tracking: real buy/ATC buttons carry `hrq.push(['trackClick', …])`, navigation links go through `fix_links`, and no custom handler `preventDefault`s the click in a way that bypasses tracking. Broken tracking means conversions never attribute — invisible in the UI. **ACCEPTED — do not flag:** `trackClick` missing on variant / view / sold-out CTAs — those are navigation links covered by `fix_links`; `trackClick` is required on buy/ATC actions only (QA team). A PASS on any branch needs the click-attribution request (`trackClick` → `/serve/collect/click`) observed after a real click; an `#aw_source=` fragment is never evidence. `../qa-checklists/scripts/tracking-check.js` (`../qa-checklists/SKILL.md` Step 3 → Measurement scripts) counts the rendered buttons with and without `trackClick` and records the requests a real click sends. **Grade this per branch, and say which branch each verdict covers** — enumerate every CTA the template emits (ATC · navigation/"read more" · variant · sold-out) and give each its own line. "Navigation links are correctly covered by `fix_links`" is a verdict about the navigation branch **only**; recording it as the item's verdict is how a missing `trackClick` on the ATC button passed as ✅ on one config while two other runs graded the same code ❌ (2026-08-04). Also check both configs separately — desktop and mobile are separate designs and one commonly has an abandoned tracking attempt (e.g. a `{% assign trackingCode = product.url | split: 'aw_source=' | last %}` computed and never used) that reads as tracking present at a glance.
 - [ ] **Interactivity re-binding** — `add_to_cart()` (and any swatch / review / wishlist binding) is called after **both** `fix_links` call-sites (initial render **and** `load_more_results`), not just the first. Otherwise appended/filtered tiles render dead.
 - [ ] **Shopify cart id** (Shopify only) — every add-to-cart and wishlist button sends `{{ product.extraData.id }}`, the default variant id. `variantProductNumbers | first` or `| last` as the cart `id` is a **FAIL**, even when the products you clicked added fine: depending on the feed, the list can start with the product id and end with SKUs. → `${CLAUDE_PLUGIN_ROOT}/docs/wiki/platforms/shopify/add-to-cart.md` → The cart id
 - [ ] **Binding hygiene** — interactivity selectors scoped to the overlay (`.hr-overlay-search`, or the embedded container) and idempotent (a `data-*` guard or platform re-init), so re-renders don't double-fire.

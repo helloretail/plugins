@@ -1208,6 +1208,28 @@ follow:
   lazy-loads a resized variant, the other says native ships the full-size original) means one
   measurement is wrong — re-measure, fix both reports, never ship contradicting baselines.
 
+**Measurement scripts — run them, don't eyeball what a script can count.** Three Playwright MCP
+code files measure checks that otherwise depend on looking at a few tiles, so two runs on the same
+site give the same numbers. Copy the file to `QA/[customer]/` (the Playwright MCP reads code files
+only from its allowed roots), fill in its CONFIG block, and run it with `browser_run_code_unsafe
+{ filename }` while the HR tiles are on screen. Paste each result into the report as the evidence of
+the items it covers; a difference it lists is a finding to check, never a verdict on its own. A
+run that read no HR tiles or matched no products (`hrTiles` / `overlayTiles` 0, `matched` /
+`compared` 0, or a line in `warnings`) measured nothing: fix CONFIG and run it again, never paste it
+as a pass. HR tiles the price script lists as not compared are not covered either — add the
+category pages that hold them, or check those tiles by hand. They need the Playwright backend (its
+`page` object; two of them open a second tab); on Claude in Chrome, do the same checks by hand on
+more tiles than usual and say so in Session notes.
+
+| Script | Covers | Run it |
+|---|---|---|
+| `scripts/price-text.js` | Price format and price accuracy on every HR tile: the price text character for character against the same product's native tile (separators, decimals, currency position, "from" prefix, sale + original), plus HR tiles with no price or a zero price | Once per HR surface (search overlay, each recom page type) per domain |
+| `../search-developer/scripts/parity-sweep.js` | Tile parity by computed style (font weight and size, alignment, colours, spacing, shadows, borders) on every matched product, plus missing or extra elements and tiles wider than their cell | Once per HR surface per domain; `CONFIG.hrTile` points at the overlay (default) or a recom box |
+| `scripts/tracking-check.js` | The code and network layers of the tracking checks: `hrq` and HR's script present, buy buttons with and without `trackClick`, `setCart` in the shop's code, and the `/serve/collect/click` and `/serve/collect/cart` requests a real click sends | Code layer once per domain; network layer once per add-to-cart path (HR tile and native tile), after accepting cookie consent |
+
+The side-by-side screenshot pair stays mandatory: the scripts see computed styles and text, not
+clipped icons, overlapping layers or hover states.
+
 **Image-weight probe — measure oversized tile images, don't eyeball "images feel slow".** This
 is the canonical procedure behind the image-optimisation items in the tile catalogue; the
 per-feature QA skills (`search-qa`, `recom-qa`, `pages-qa`) reference it. HR tiles are usually

@@ -189,6 +189,10 @@ Background — which changes need a re-index at all, and which are live on save:
       3. **Network** — a `POST /serve/collect/cart` fires after each cart change and carries the
          product that was added (and a cart without it after the removal).
 
+      `../scripts/tracking-check.js` runs steps 1 and 3 (`../SKILL.md` Step 3 → Measurement
+      scripts). On some platforms HR's own script sends the cart, so no `setCart` in the shop's
+      code with a working request is a PASS.
+
       Request fires on every path → PASS (add "only after consent" when that applies). No
       request on a path → FAIL, naming the path and the sold feature that loses its data. Code
       present but no request → FAIL: the code alone is not evidence. The dashboard status stays

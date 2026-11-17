@@ -2,7 +2,8 @@
 // on the shop's own category pages, by computed style, and check that every tile fits its grid cell.
 //
 // A Playwright MCP code file: run it with browser_run_code_unsafe { filename } while the overlay is open
-// with results (several broad queries, scrolled to load more). The Playwright MCP loads code files only
+// with results (several broad queries, scrolled to load more) — or, with CONFIG.hrTile pointed at a recom
+// box, on a page where that box has rendered (recom-qa). The Playwright MCP loads code files only
 // from its allowed roots (the working directory and its QA/screenshots), so copy this file there first
 // and fill in CONFIG. It opens the category pages in a second tab, so the overlay stays as it is.
 //
@@ -16,6 +17,8 @@ async (page) => {
 		origin: "https://www.example-shop.com",
 		categoryPaths: ["/category-a/", "/category-a/page/2/", "/sale/"],   // plain, sale, variable and range products
 		nativeTile: "ul.products li.product",                              // the shop's own grid tile
+		hrTile: ".hr-overlay-search .hr-search-overlay-product > *",       // HR tiles on the current page: the search overlay
+		                                                                   // (default) or a recom box, e.g. "[id^=hr-recom-] .hr-product > *"
 		title: ".woocommerce-loop-product__title",                         // the element that names the product
 		props: ["display", "position", "marginTop", "marginRight", "marginBottom", "marginLeft", "paddingTop", "paddingRight",
 			"paddingBottom", "paddingLeft", "color", "backgroundColor", "fontSize", "fontWeight", "fontFamily", "lineHeight",
@@ -25,7 +28,7 @@ async (page) => {
 		top: 40,
 	};
 
-	const collect = ({ nativeTile, title, props }) => {
+	const collect = ({ nativeTile, hrTile, title, props, side }) => {
 		const signature = (root) => [root, ...root.querySelectorAll("*")].map((el) => {
 			const cs = getComputedStyle(el);
 			const row = { el: el.tagName.toLowerCase() + "." + (el.className + "").split(" ")[0] };
@@ -33,10 +36,12 @@ async (page) => {
 			return row;
 		});
 		const out = { tiles: {}, tooWide: [] };
-		const overlayTiles = [...document.querySelectorAll(".hr-overlay-search .hr-search-overlay-product > *")]
-			.filter((t) => !t.closest("#addwish-panel-root"));
-		const tiles = overlayTiles.length ? overlayTiles : [...document.querySelectorAll(nativeTile)]
-			.filter((t) => !t.closest("#addwish-panel-root, .hr-overlay-search, .aw-item, [id^=hello-retail]"));
+		// The HR side reads hrTile on the current page; the native side reads nativeTile on the category pages and
+		// skips anything HR renders there (recom boxes on a category page are not native tiles).
+		const overlayTiles = side === "hr" ? [...document.querySelectorAll(hrTile)]
+			.filter((t) => !t.closest("#addwish-panel-root")) : [];
+		const tiles = side === "hr" ? overlayTiles : [...document.querySelectorAll(nativeTile)]
+			.filter((t) => !t.closest("#addwish-panel-root, .hr-overlay-search, .aw-item, [id^=hello-retail], [id^=hr-recom-]"));
 		tiles.forEach((t) => {
 			const name = t.querySelector(title);
 			if (!name) return;
@@ -50,14 +55,14 @@ async (page) => {
 		return out;
 	};
 
-	const overlay = await page.evaluate(collect, CONFIG);
+	const overlay = await page.evaluate(collect, { ...CONFIG, side: "hr" });
 	const native = {};
 	const tab = await page.context().newPage();
 	for (const path of CONFIG.categoryPaths) {
 		try {
 			await tab.goto(CONFIG.origin + path, { waitUntil: "load", timeout: 45000 });
 			await tab.waitForTimeout(1500);
-			const got = await tab.evaluate(collect, CONFIG);
+			const got = await tab.evaluate(collect, { ...CONFIG, side: "native" });
 			for (const [k, v] of Object.entries(got.tiles)) if (!native[k]) native[k] = v;
 		} catch (e) {
 			native["__error " + path] = String(e).slice(0, 80);

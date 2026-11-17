@@ -762,7 +762,9 @@ call `browser_close` on every `playwright*` server the run used, subagent worker
       (centred vs left-aligned)**, hover state, ATC button width, tile heights across the row.
       This was the single biggest bucket of missed eyes-on-the-page defects (~35 items across
       12 of 14 properties, 2026-08-24 comparison) — save the paired capture as evidence even
-      when everything matches.
+      when everything matches. Then run `../search-developer/scripts/parity-sweep.js` with
+      `CONFIG.hrTile` on the box's tiles (`../qa-checklists/SKILL.md` Step 3 → Measurement
+      scripts) for the same comparison by computed style across every matched product.
 - [ ] **Variants vs the native category tile** — compare at least 5 variant products tile by
       tile against the same products on the native category page (never the PDP): the same
       sizes/variants in the same order, the same sold-out marking, a "+ N" count that matches
@@ -798,6 +800,10 @@ call `browser_close` on every `playwright*` server the run used, subagent worker
       isn't unexpectedly high (3–4 → tiny unreadable tiles at ~320px)
 
 ### Price
+
+Measure the first three items on every tile of each box with
+`../qa-checklists/scripts/price-text.js` (`../qa-checklists/SKILL.md` Step 3 → Measurement
+scripts), then judge the differences it lists.
 
 - [ ] **Currency symbol and format** — correct symbol in the correct position
 - [ ] **Decimal / thousands separators** — match native (DK/NL: `1.234,50`; SE: `1 234`; EN: `1,234.50`)
@@ -1147,7 +1153,9 @@ Checks against `templateCode` / `templateStyles` that the rendered pass can't se
       **ACCEPTED — do not flag:** no `trackClick` on variant / view / sold-out CTA branches —
       those are navigation links covered by `fix_links`; only buy/ATC actions need it (QA
       team). An `#aw_source=` fragment is never tracking evidence — the rendered verdict needs
-      the `/serve/collect/click` request.
+      the `/serve/collect/click` request. `../qa-checklists/scripts/tracking-check.js`
+      (`../qa-checklists/SKILL.md` Step 3 → Measurement scripts) counts the rendered buttons with
+      and without `trackClick` and records the requests a real click sends.
 - [ ] **ATC re-binding is clone-safe** — the add-to-cart hook runs from the swiper
       `on: { afterInit }` (or uses delegated handlers), so loop-mode clone slides and re-renders
       don't produce dead or double-firing buttons.
