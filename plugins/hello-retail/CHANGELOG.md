@@ -8,6 +8,17 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.67.0 — 2026-11-17
+
+### Changed
+
+- `search-qa`, `recom-qa` and `pages-qa` now keep the multi-domain rules in one shared file that
+  is read only when a run covers more than one domain, so single-domain runs read less. The rule
+  to build each domain's report from its own sources now applies to `recom-qa` and `pages-qa`
+  too.
+- `qa-checklists` reads the "copy of another domain" procedure only when the build is a copy,
+  instead of on every run.
+
 ## 1.66.0 — 2026-11-17
 
 ### Added
