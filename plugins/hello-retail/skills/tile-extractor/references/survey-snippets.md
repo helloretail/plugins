@@ -235,6 +235,40 @@ Array.from(tiles)
   }));
 ```
 
+### Painted badges — elements with no text
+
+The snippet above finds badges by class-name fragments and reads their text. A badge the
+stylesheet paints has neither: an empty `<div class="offer-outlet"></div>` whose ribbon is a
+`background-image`, or an element whose label is `::before` content. Run this on every surveyed
+page, the label pages included. It lists each childless, textless element inside a tile that the
+stylesheet paints, grouped by class, with how many tiles carry it.
+
+```javascript
+const tiles = [...document.querySelectorAll(".product-tile-selector")];
+const found = {};
+
+tiles.forEach((t) => {
+  t.querySelectorAll("*").forEach((el) => {
+    if (el.children.length || el.textContent.trim() || /^(IMG|SOURCE|INPUT|BR|HR|SVG|PATH)$/i.test(el.tagName)) return;
+    const box = el.getBoundingClientRect();
+    if (box.width < 8 || box.height < 8) return;
+    const s = getComputedStyle(el);
+    const pseudo = ["::before", "::after"].map((p) => getComputedStyle(el, p).content).find((c) => c && c !== "none" && c !== "normal" && c !== '""');
+    if (s.backgroundImage === "none" && !pseudo) return;
+    const key = el.tagName.toLowerCase() + "." + (el.className || "(no class)");
+    found[key] ??= { tiles: 0, paint: pseudo ? "pseudo " + pseudo.slice(0, 20) : s.backgroundImage.slice(0, 60), parent: el.parentElement.tagName.toLowerCase() + "." + el.parentElement.className, carrier: t.querySelector(".title-selector")?.textContent.trim().slice(0, 40) };
+    found[key].tiles++;
+  });
+});
+
+({ tiles: tiles.length, found });
+```
+
+Read the result by **slot**: entries that share a `parent` are the class variants of one badge
+slot. Two or more variants mean two or more badge types — one branch each in the template, and
+one feed condition each (SKILL.md step 7 → *A feed flag per badge class*). An element every tile
+carries is decoration, not a badge. A variant seen on one page only is still a variant.
+
 ### Feed probe before recording a state absent
 
 The page sweep sees the shop at one moment; the feed sees every product. A state goes into the
