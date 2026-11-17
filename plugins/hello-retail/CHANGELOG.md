@@ -8,6 +8,19 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.66.0 — 2026-11-17
+
+### Added
+
+- `search-qa` and `recom-qa` measure price text on every HR tile against the shop's own tiles
+  with a new price script, and check tracking code and the click and cart requests with a new
+  tracking script, so the same site gives the same verdicts on every run.
+
+### Changed
+
+- `recom-qa` now runs the tile style comparison script on recom tiles too, not only `search-qa`
+  on the search overlay.
+
 ## 1.65.2 — 2026-11-17
 
 ### Fixed
