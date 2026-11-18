@@ -16,6 +16,7 @@ This is the structural shell the tile body slots into. The product card itself c
    - **Page-dependent restatements** — the category-page values of rules keyed on a page-type body class, and of stylesheets the category page loads but other page types do not, copied and scoped under `.hr-overlay-search` (the tile skill's `page-dependent:` lines; checked in Step 17b).
    - **The copy of the customer's own rules** — only on a proven non-global-CSS shop, after the operator said the customer cannot make the CSS global: appended verbatim, never a reconstruction.
    - **Open-state header rule (embedded, Step 7b)** — `body.hr-search-disable-scroll > <header wrapper> { z-index: <overlay_z_index + 1>; }`, `position: relative` only if the wrapper is static, `filter: none` only if blur is on.
+   - **Inert page behind the panel (embedded, Step 7b)** — the one `initializationCode` addition listed here: `set_page_inert()`, called on open and on close, so the content the panel covers leaves the keyboard and screen-reader order while the header and the shop's message region stay active.
    - **Layout-option recipes** — `references/layout-options.md`: filters in the left column, sticky filter bar / column, separate column scroll, filter-chip widths, result count in the headline, "show more" for filter groups / options with inline option search, mobile buttons in the input row. Each **only when the operator asked for it**, appended additively (L1 and ML5b are the Liquid moves, approved first; L7/L8 JS is called from the single render hook after `sortFilters();`).
    - **Overlay z-index** — set `overlay_z_index` below the site header's stacking context so the header/menus stay on top.
    - **Initial-content grid override** — when the native tile is wide and initial content is set to 8 products, force 4 per row (`.hr-products.initialcontent .hr-products-container { grid-template-columns: repeat(4, minmax(0, 1fr)) }`). Details: `references/search-data-config.md` (Step 13d).
@@ -534,6 +535,49 @@ The base JS adds a "Skip to products" link (`.hr-skip-content`, the `label_skip_
 ```
 
 The focused state is untouched, so keyboard users still get the link. List it under **Base defects** in the report: a hidden position that depends on the ancestors is the base design's bug, and Hello Retail should fix it upstream.
+
+### Embedded — the page behind the panel stays in the keyboard order
+
+The embedded panel covers the page content, but covering is visual only: every link, checkbox and button under it still takes Tab focus and is still read by screen readers. A keyboard user presses Tab dozens of times with nothing visibly happening before reaching the panel; a screen-reader user hears a page they cannot see. No screenshot shows it (field case 2026-11, Magento 2 embedded: 92 Tab presses from the search input to the panel's close button, 84 of them on product links, filter checkboxes and footer links under the panel; the build's rendered checks all passed and QA found it).
+
+**The fix — mark the covered content `inert` while the panel is open.** `inert` takes an element and everything in it out of the Tab order, the accessibility tree and pointer events. Add this inside `activate()`, next to `close_overlay()`:
+
+```js
+	// The page content the panel covers leaves the keyboard and screen-reader order while search is open
+	function set_page_inert(state) {
+		if (!state) {
+			document.querySelectorAll("[data-hr-inert]").forEach(function(element) {
+				element.removeAttribute("inert");
+				element.removeAttribute("data-hr-inert");
+			});
+			return;
+		}
+		// The shop's own message region (add-to-cart confirmation, role=alert) stays outside the inert part
+		document.querySelectorAll("<COVERED_CONTAINERS>").forEach(function(element) {
+			var messages = element.querySelector(":scope > <MESSAGE_REGION>");
+			var targets = messages ? Array.from(element.children).filter(function(child) { return child !== messages; }) : [element];
+			targets.forEach(function(target) {
+				target.setAttribute("inert", "");
+				target.setAttribute("data-hr-inert", "");
+			});
+		});
+	}
+```
+
+Call `set_page_inert(true);` in `open_overlay()` right after the `hr-search-disable-scroll` class is added, and `set_page_inert(false);` in `close_overlay()` right after it is removed. Two calls and one function — the base functions are otherwise untouched.
+
+- **`<COVERED_CONTAINERS>` names the content the panel covers, never "everything except the panel".** Header nested in a page wrapper together with the content (Magento Luma: `.page-wrapper > header + main + footer`) → `.page-wrapper > *:not(.page-header)`. Header a direct child of `<body>` → name the content containers themselves (`main`, `footer`, a breadcrumb bar); **derived, not yet rendered on a build** — a `body > *:not(header)` selector would also switch off the things that must stay usable.
+- **Never inert:** the header (it holds the trigger input, the nav and the cart link), the panel itself, the theme's cart / quick-add drawers, modals, the consent banner and chat widgets — the same layers *Overlay z-index* keeps above the panel.
+- **`<MESSAGE_REGION>` is the shop's own announcement region** (Magento: `.page.messages`, the `role="alert"` container the add-to-cart confirmation is written into). Left inert, the confirmation is no longer announced after an add-to-cart from an HR tile — the first version of this fix did exactly that and QA found it one run later. Find it by adding to cart on a native tile and reading which `[role=alert]` / `[aria-live]` element receives the text. No such region inside the covered containers → the `messages` branch never matches and the container goes inert as a whole.
+- **Only its own attributes come off.** The `data-hr-inert` marker is what `set_page_inert(false)` removes, so an `inert` the theme set itself survives the close.
+- **Re-applied on every open.** `open_overlay()` runs each time the panel opens (including the reopen after a close and the restore after Back from a product page), so the call sits there, not in the one-time init.
+
+**Check (Step 17b) — `scripts/keyboard-pass.js`:** with results showing, Tab from the search input: no stop on an element the panel covers, the close button reached within a handful of presses (the header's own links and the panel's skip link are legitimate stops), and after closing `document.querySelectorAll("[inert]").length` is back to what it was before opening. Then add to cart from an HR tile: the shop's message element has no `inert` ancestor. Run it on a category page and a product page — templates differ in what sits between the header and the content (breadcrumbs, upsell boxes). The on-site Hello Retail widget adds Tab stops of its own in a logged-in session; the script leaves them out of the count.
+
+List it under **Base defects** in the report: the default embedded design ships without this, so every new config starts with it.
+
+<!-- capture-back: embedded-inert status=verified-live-one-platform -->
+> 🧪 **Capture-back:** verified live on Magento 2 (Luma-based theme, header nested in `.page-wrapper`), desktop embedded, 2026-11: 92 → 3 shopper Tab presses to the close button, add-to-cart confirmation announced, nothing inert after close. Not yet rendered: a header that is a direct `<body>` child, and the overlay variants (their panel covers the header too, so the set of containers differs). The first build on either adds its selector and result here.
 
 ## Native search suppression — hide competing autocomplete/search when HR is active
 
