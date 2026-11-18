@@ -16,6 +16,7 @@ This is the structural shell the tile body slots into. The product card itself c
    - **Page-dependent restatements** — the category-page values of rules keyed on a page-type body class, and of stylesheets the category page loads but other page types do not, copied and scoped under `.hr-overlay-search` (the tile skill's `page-dependent:` lines; checked in Step 17b).
    - **The copy of the customer's own rules** — only on a proven non-global-CSS shop, after the operator said the customer cannot make the CSS global: appended verbatim, never a reconstruction.
    - **Open-state header rule (embedded, Step 7b)** — `body.hr-search-disable-scroll > <header wrapper> { z-index: <overlay_z_index + 1>; }`, `position: relative` only if the wrapper is static, `filter: none` only if blur is on.
+   - **Inert page behind the panel (embedded, Step 7b)** — the one `initializationCode` addition listed here: `set_page_inert()`, called on open and on close, so the content the panel covers leaves the keyboard and screen-reader order while the header and the shop's message region stay active.
    - **Layout-option recipes** — `references/layout-options.md`: filters in the left column, sticky filter bar / column, separate column scroll, filter-chip widths, result count in the headline, "show more" for filter groups / options with inline option search, mobile buttons in the input row. Each **only when the operator asked for it**, appended additively (L1 and ML5b are the Liquid moves, approved first; L7/L8 JS is called from the single render hook after `sortFilters();`).
    - **Overlay z-index** — set `overlay_z_index` below the site header's stacking context so the header/menus stay on top.
    - **Initial-content grid override** — when the native tile is wide and initial content is set to 8 products, force 4 per row (`.hr-products.initialcontent .hr-products-container { grid-template-columns: repeat(4, minmax(0, 1fr)) }`). Details: `references/search-data-config.md` (Step 13d).
@@ -535,11 +536,54 @@ The base JS adds a "Skip to products" link (`.hr-skip-content`, the `label_skip_
 
 The focused state is untouched, so keyboard users still get the link. List it under **Base defects** in the report: a hidden position that depends on the ancestors is the base design's bug, and Hello Retail should fix it upstream.
 
+### Embedded — the page behind the panel stays in the keyboard order
+
+The embedded panel covers the page content, but covering is visual only: every link, checkbox and button under it still takes Tab focus and is still read by screen readers. A keyboard user presses Tab dozens of times with nothing visibly happening before reaching the panel; a screen-reader user hears a page they cannot see. No screenshot shows it (field case 2026-11, Magento 2 embedded: 92 Tab presses from the search input to the panel's close button, 84 of them on product links, filter checkboxes and footer links under the panel; the build's rendered checks all passed and QA found it).
+
+**The fix — mark the covered content `inert` while the panel is open.** `inert` takes an element and everything in it out of the Tab order, the accessibility tree and pointer events. Add this inside `activate()`, next to `close_overlay()`:
+
+```js
+	// The page content the panel covers leaves the keyboard and screen-reader order while search is open
+	function set_page_inert(state) {
+		if (!state) {
+			document.querySelectorAll("[data-hr-inert]").forEach(function(element) {
+				element.removeAttribute("inert");
+				element.removeAttribute("data-hr-inert");
+			});
+			return;
+		}
+		// The shop's own message region (add-to-cart confirmation, role=alert) stays outside the inert part
+		document.querySelectorAll("<COVERED_CONTAINERS>").forEach(function(element) {
+			var messages = element.querySelector(":scope > <MESSAGE_REGION>");
+			var targets = messages ? Array.from(element.children).filter(function(child) { return child !== messages; }) : [element];
+			targets.forEach(function(target) {
+				target.setAttribute("inert", "");
+				target.setAttribute("data-hr-inert", "");
+			});
+		});
+	}
+```
+
+Call `set_page_inert(true);` in `open_overlay()` right after the `hr-search-disable-scroll` class is added, and `set_page_inert(false);` in `close_overlay()` right after it is removed. Two calls and one function — the base functions are otherwise untouched.
+
+- **`<COVERED_CONTAINERS>` names the content the panel covers, never "everything except the panel".** Header nested in a page wrapper together with the content (Magento Luma: `.page-wrapper > header + main + footer`) → `.page-wrapper > *:not(.page-header)`. Header a direct child of `<body>` → name the content containers themselves (`main`, `footer`, a breadcrumb bar); **derived, not yet rendered on a build** — a `body > *:not(header)` selector would also switch off the things that must stay usable.
+- **Never inert:** the header (it holds the trigger input, the nav and the cart link), the panel itself, the theme's cart / quick-add drawers, modals, the consent banner and chat widgets — the same layers *Overlay z-index* keeps above the panel.
+- **`<MESSAGE_REGION>` is the shop's own announcement region** (Magento: `.page.messages`, the `role="alert"` container the add-to-cart confirmation is written into). Left inert, the confirmation is no longer announced after an add-to-cart from an HR tile — the first version of this fix did exactly that and QA found it one run later. Find it by adding to cart on a native tile and reading which `[role=alert]` / `[aria-live]` element receives the text. No such region inside the covered containers → the `messages` branch never matches and the container goes inert as a whole.
+- **Only its own attributes come off.** The `data-hr-inert` marker is what `set_page_inert(false)` removes, so an `inert` the theme set itself survives the close.
+- **Re-applied on every open.** `open_overlay()` runs each time the panel opens (including the reopen after a close and the restore after Back from a product page), so the call sits there, not in the one-time init.
+
+**Check (Step 17b) — `scripts/keyboard-pass.js`:** with results showing, Tab from the search input: no stop on an element the panel covers, the close button reached within a handful of presses (the header's own links and the panel's skip link are legitimate stops), and after closing `document.querySelectorAll("[inert]").length` is back to what it was before opening. Then add to cart from an HR tile: the shop's message element has no `inert` ancestor. Run it on a category page and a product page — templates differ in what sits between the header and the content (breadcrumbs, upsell boxes). The on-site Hello Retail widget adds Tab stops of its own in a logged-in session; the script leaves them out of the count.
+
+List it under **Base defects** in the report: the default embedded design ships without this, so every new config starts with it.
+
+<!-- capture-back: embedded-inert status=verified-live-one-platform -->
+> 🧪 **Capture-back:** verified live on Magento 2 (Luma-based theme, header nested in `.page-wrapper`), desktop embedded, 2026-11: 92 → 3 shopper Tab presses to the close button, add-to-cart confirmation announced, nothing inert after close. Not yet rendered: a header that is a direct `<body>` child, and the overlay variants (their panel covers the header too, so the set of containers differs). The first build on either adds its selector and result here.
+
 ## Native search suppression — hide competing autocomplete/search when HR is active
 
 Most storefronts fire their own autocomplete or instant-search dropdown when the user types in the search input — the same input HR Search binds to. The result is two UIs overlapping: HR's results **and** the site's native dropdown stacked on top of each other. Always check for this and suppress the native UI.
 
-**How to detect it:** During the survey, focus the trigger input and type a few characters. Inspect the DOM for any newly visible element that is not `.hr-overlay-search` — a dropdown, a results panel, a live-search widget (common class names: `.l-autocomplete`, `.autocomplete-results`, `.search-suggestions`, `.predictive-search`, `.tt-menu`, `.search-dropdown`). If one appears, note its selector.
+**How to detect it:** During the survey — with **every** Hello Retail search hidden in the on-site widget, LIVE ones included, because a LIVE config on the same input hides the shop's dropdown itself — focus the trigger input and type a few characters. Inspect the DOM for any newly visible element that is not `.hr-overlay-search` — a dropdown, a results panel, a live-search widget (common class names: `.l-autocomplete`, `.autocomplete-results`, `.search-suggestions`, `.predictive-search`, `.tt-menu`, `.search-dropdown`). If one appears, note its selector. Then query the platform's selector from the table below directly: a dropdown that is in the DOM and filled with suggestions counts, visible or not.
 
 **The fix — one CSS rule in `resultStyles`:**
 
@@ -553,6 +597,8 @@ body.hr-search-disable-scroll .<native-selector> {
 
 `body.hr-search-disable-scroll` is the class HR adds to `<body>` while the overlay is open (`open_overlay()` adds it, `close_overlay()` removes it). Scoping the rule to that class means the native dropdown is hidden only while HR Search is active — it comes back as soon as HR closes.
 
+**On `desktop-embedded`, drop the body-class scope for the dropdown.** There the trigger is the shop's own input and focus returns to it on close, so "comes back as soon as HR closes" is the defect: the dropdown reappears with the suggestions of the query just closed. Write the rule on the bare selector (`<native-selector> { display: none !important; visibility: hidden !important; }`); a shared backdrop stays scoped. Why, the trade-off to hand off, and the after-close check: `references/selectors.md` → *Step 3d*.
+
 Add this rule to `resultStyles` immediately before the TILE FILL block. Replace `<native-selector>` with the actual selector you observed (e.g. `.l-autocomplete` on DanDomain, `.predictive-search__results` on Shopify Dawn, `.tt-menu` on Typeahead-based setups).
 
 **Per-platform common selectors (check live — themes vary):**
@@ -562,7 +608,7 @@ Add this rule to `resultStyles` immediately before the TILE FILL block. Replace 
 | DanDomain | `.l-autocomplete` |
 | Shopify Dawn | `predictive-search` (custom element) or `.predictive-search__results` |
 | Shopify (older) | `.search-form__results`, `.live-search-results` |
-| Magento Luma | `.search-autocomplete` |
+| Magento 2 (Luma and Luma-based themes) | `#search_autocomplete` (`.search-autocomplete`) |
 | WooCommerce | `.dgwt-wcas-suggestions-wrapp` |
 
 If the site uses a third-party search app (Algolia, Klevu, Clerk.io, Searchanise, etc.) as autocomplete only while HR handles full-search, suppress the third-party dropdown the same way.
@@ -570,4 +616,5 @@ If the site uses a third-party search app (Algolia, Klevu, Clerk.io, Searchanise
 **Self-check:**
 
 - [ ] Trigger input focused + characters typed → no native dropdown visible while HR Search overlay is open.
-- [ ] Native dropdown reappears normally after HR Search is closed.
+- [ ] Overlay variants: native dropdown reappears normally after HR Search is closed. Embedded: it stays hidden after the panel is closed with ✕ and with Escape — no stale suggestions under the search box.
+- [ ] The typing check ran with every Hello Retail search hidden in the widget, and the platform's known selector was queried directly.
