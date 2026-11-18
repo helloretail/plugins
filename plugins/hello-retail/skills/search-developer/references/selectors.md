@@ -181,11 +181,33 @@ body.hr-search-disable-scroll .js-search-overlay {   /* search-specific variant 
 
 Adjust the class list to what the survey actually finds — these four are the commonly-seen names, not an exhaustive list.
 
+**Embedded: hide the native dropdown unscoped.** On `desktop-embedded` the trigger is the shop's own input, and the base returns focus to it when the panel closes. The shop's autocomplete has been filling its dropdown the whole time, the scoped rule stops applying the moment `hr-search-disable-scroll` leaves the body, and the dropdown appears: stale suggestions for the query just closed, under an empty search box, over the page (field case 2026-11, Magento 2 embedded: 8 suggestions, 255px high, after ✕; the scoped rule had been pushed and verified with the panel open only). So on embedded the dropdown rule carries no body-class scope:
+
+```css
+/* The shop's own search autocomplete is bound to the same input; it would show under the panel and again, with stale suggestions, after the panel closes */
+<native-dropdown-selector> {
+	display: none !important;
+	visibility: hidden !important;
+}
+```
+
+- **Only the dropdown, never a shared backdrop.** A `.js-overlay`-style backdrop the theme also uses for its cart drawer and menu stays scoped to `body.hr-search-disable-scroll`; unscoped it would break those.
+- **It does not reach visitors the design does not serve.** The design's CSS is inserted by its own JS after the device-width guard, so below the guard (≤992px on the default desktop designs) the rule is not on the page and the shop's autocomplete works as before — verify that once at a phone width instead of assuming it.
+- **The trade-off goes in the hand-off:** on desktop the shop's own autocomplete is hidden for as long as this design is active, also if Hello Retail fails to load its results. Say so; the customer decides whether that is acceptable.
+- **Overlay variants keep the scoped rule** — this failure has only been seen on embedded. If the after-close check below shows the same thing on an overlay build, apply the unscoped rule there too and record it.
+
 **Find the real selectors during Step 1's survey, not after a bug report.** Right after locating the trigger candidate, **type a character into it** (a real keypress, not a synthetic one) and inspect the DOM for anything that newly appears: a dropdown positioned under the input, a full-screen backdrop, a body class toggle. Note the exact class names before moving on — this is the same survey pass that finds the trigger itself, not a separate step.
+
+**Two things make this check lie — rule both out:**
+
+- **A Hello Retail search still active on the input.** Hide **every** search config in the on-site widget first, the LIVE ones and the draft under work (rule 19). A LIVE config bound to the same input opens its own panel on the first keystroke and usually hides the shop's dropdown with its own CSS, so nothing native "appears" (field case 2026-11: the survey typed with the LIVE sibling on, saw only Hello Retail's panel, and the shop's dropdown was first seen after the push).
+- **Looking only for what became visible.** Query the platform's known selector directly (`references/shell-structure.md` → *Native search suppression*, the per-platform table) and read its content after typing: a dropdown that exists and has been filled with suggestions is a find, whatever its computed `display`.
 
 **Real case:** store-D (2026-08) — `trigger_selector` was correctly set to the customer's actual `#header-search` input (3b/3c both genuinely didn't apply: no icon toggle, no adjacent submit-button issue at the typing stage), yet typing simultaneously opened Shopify's own `.predictive-search` dropdown and a shared `.js-search-overlay`/`.js-overlay` backdrop — both bound via `input`/`keyup`, invisible to a click-based check. Caught only when the operator reported "an overlay appearing over the header when typing."
 
 **Verify:** type a real character into the trigger (not a synthetic dispatch) with HR Search active, and confirm no native dropdown or backdrop becomes visible anywhere on the page — not just that HR's own results render correctly. Rendering correctly and *also* leaving a native artifact visible both pass a shallow "does search work" check; only an explicit look at the rest of the page catches the leak.
+
+**Then verify the closed state — the open state passing says nothing about it.** With a query typed, close the panel with its ✕, and in a second run with Escape; after each, read the native dropdown: not visible, height 0, on every page type the panel was opened from. Type again afterwards: Hello Retail opens, the native dropdown stays away.
 
 ## Step 3e — "The customer's search must NEVER open": full-event capture-phase suppression (escalation of 3b–3d)
 
@@ -392,6 +414,6 @@ Rules:
 - [ ] If the trigger toggles the customer's own native UI (drawer/modal/menu), a capture-phase click interceptor (`preventDefault` + `stopImmediatePropagation`) is added and verified with a real click — not just a selector change, and not only after a reported bug.
 - [ ] Every clickable control in the search widget — not just the input — was clicked with a real click during this build (Step 3c); if any sits inside a native submitting `<form>`, both click and `submit` are `preventDefault`-ed, verified with a real click and a real Enter keypress.
 - [ ] The theme's loaded scripts were grepped for a shop-side Enter handler on the trigger (`keydown` / `keypress` / `keyCode == 13` / `location =`); on a hit the capture-phase `keydown` / `keypress` / `keyup` Enter interceptor (Step 3c′) is in place, and Enter was verified three ways — paced typing + Enter, instant `fill()` + Enter, the magnifier click — with the URL read after each.
-- [ ] A real character was typed into the trigger during the survey (Step 3d) and the rest of the page was checked, not just HR's own results — no native predictive-search dropdown or backdrop became visible; if one did, its selector is CSS-suppressed scoped to `body.hr-search-disable-scroll` (or the base's equivalent active-state class).
+- [ ] A real character was typed into the trigger during the survey (Step 3d) and the rest of the page was checked, not just HR's own results — no native predictive-search dropdown or backdrop became visible; if one did, its selector is CSS-suppressed scoped to `body.hr-search-disable-scroll` (or the base's equivalent active-state class), and on embedded the dropdown rule is unscoped. The check ran with every Hello Retail search hidden in the widget (LIVE ones included), the platform's known dropdown selector was queried directly, and after the push the dropdown stayed hidden after closing the panel with ✕ and with Escape.
 - [ ] If the operator requires the native search to **never open in any case**, or the theme binds live-search to the trigger input itself (Step 3e): the full-event capture-phase interceptor is in place (`click`/`focus`/`input`/`keyup`/`keydown`/`submit`/`reset`), the base per-trigger bindings are routed through `on_trigger_input`/`on_trigger_enter` hooks (never left as dead bubble listeners), the `reset` ✕ resync is included, and any media-query-hidden trigger form is force-revealed in the toggle branch.
 - [ ] The Step 3e five-interaction matrix (type / Enter / icon click / focus / clear ✕) was run with real interactions **before the push**, at ≥1440px AND at every width where the trigger renders differently (compact-header ranges found in the survey) — native never activated in any cell.

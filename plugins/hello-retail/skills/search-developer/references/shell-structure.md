@@ -583,7 +583,7 @@ List it under **Base defects** in the report: the default embedded design ships 
 
 Most storefronts fire their own autocomplete or instant-search dropdown when the user types in the search input — the same input HR Search binds to. The result is two UIs overlapping: HR's results **and** the site's native dropdown stacked on top of each other. Always check for this and suppress the native UI.
 
-**How to detect it:** During the survey, focus the trigger input and type a few characters. Inspect the DOM for any newly visible element that is not `.hr-overlay-search` — a dropdown, a results panel, a live-search widget (common class names: `.l-autocomplete`, `.autocomplete-results`, `.search-suggestions`, `.predictive-search`, `.tt-menu`, `.search-dropdown`). If one appears, note its selector.
+**How to detect it:** During the survey — with **every** Hello Retail search hidden in the on-site widget, LIVE ones included, because a LIVE config on the same input hides the shop's dropdown itself — focus the trigger input and type a few characters. Inspect the DOM for any newly visible element that is not `.hr-overlay-search` — a dropdown, a results panel, a live-search widget (common class names: `.l-autocomplete`, `.autocomplete-results`, `.search-suggestions`, `.predictive-search`, `.tt-menu`, `.search-dropdown`). If one appears, note its selector. Then query the platform's selector from the table below directly: a dropdown that is in the DOM and filled with suggestions counts, visible or not.
 
 **The fix — one CSS rule in `resultStyles`:**
 
@@ -597,6 +597,8 @@ body.hr-search-disable-scroll .<native-selector> {
 
 `body.hr-search-disable-scroll` is the class HR adds to `<body>` while the overlay is open (`open_overlay()` adds it, `close_overlay()` removes it). Scoping the rule to that class means the native dropdown is hidden only while HR Search is active — it comes back as soon as HR closes.
 
+**On `desktop-embedded`, drop the body-class scope for the dropdown.** There the trigger is the shop's own input and focus returns to it on close, so "comes back as soon as HR closes" is the defect: the dropdown reappears with the suggestions of the query just closed. Write the rule on the bare selector (`<native-selector> { display: none !important; visibility: hidden !important; }`); a shared backdrop stays scoped. Why, the trade-off to hand off, and the after-close check: `references/selectors.md` → *Step 3d*.
+
 Add this rule to `resultStyles` immediately before the TILE FILL block. Replace `<native-selector>` with the actual selector you observed (e.g. `.l-autocomplete` on DanDomain, `.predictive-search__results` on Shopify Dawn, `.tt-menu` on Typeahead-based setups).
 
 **Per-platform common selectors (check live — themes vary):**
@@ -606,7 +608,7 @@ Add this rule to `resultStyles` immediately before the TILE FILL block. Replace 
 | DanDomain | `.l-autocomplete` |
 | Shopify Dawn | `predictive-search` (custom element) or `.predictive-search__results` |
 | Shopify (older) | `.search-form__results`, `.live-search-results` |
-| Magento Luma | `.search-autocomplete` |
+| Magento 2 (Luma and Luma-based themes) | `#search_autocomplete` (`.search-autocomplete`) |
 | WooCommerce | `.dgwt-wcas-suggestions-wrapp` |
 
 If the site uses a third-party search app (Algolia, Klevu, Clerk.io, Searchanise, etc.) as autocomplete only while HR handles full-search, suppress the third-party dropdown the same way.
@@ -614,4 +616,5 @@ If the site uses a third-party search app (Algolia, Klevu, Clerk.io, Searchanise
 **Self-check:**
 
 - [ ] Trigger input focused + characters typed → no native dropdown visible while HR Search overlay is open.
-- [ ] Native dropdown reappears normally after HR Search is closed.
+- [ ] Overlay variants: native dropdown reappears normally after HR Search is closed. Embedded: it stays hidden after the panel is closed with ✕ and with Escape — no stale suggestions under the search box.
+- [ ] The typing check ran with every Hello Retail search hidden in the widget, and the platform's known selector was queried directly.
