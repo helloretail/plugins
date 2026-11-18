@@ -263,7 +263,7 @@ two look identical from `recoms_list`/`recoms_getDesign` alone (see the
 `../qa-checklists/SKILL.md` Step 1.5 checklist-reading rule).
 
 **Placement selectors:** confirm each box mounts on a **unique ID div** the customer inserted for
-HR (e.g. `#hr-recom-8236458237463248729384`) rather than a fragile theme selector. If placements
+HR (e.g. `#hr-recom-k0123456789abcdef01234567`) rather than a fragile theme selector. If placements
 hook onto theme classes or positional selectors instead, flag it — the fix is to ask the customer
 to insert dedicated divs.
 
@@ -613,7 +613,7 @@ call `browser_close` on every `playwright*` server the run used, subagent worker
 - [ ] **All published boxes render** — `visible: true` and slide count > 0 on every placement of
       every LIVE box
 - [ ] **Unique placement divs** — each box mounts on a dedicated unique-ID div
-      (e.g. `#hr-recom-8236458237463248729384`), not a fragile theme selector; if not, the fix is
+      (e.g. `#hr-recom-k0123456789abcdef01234567`), not a fragile theme selector; if not, the fix is
       to ask the customer to insert divs for the recoms
 - [ ] **Homepage / Category / PDP / Cart / 404** — box(es) visible and populated on each expected
       page type (note if intentionally absent)
