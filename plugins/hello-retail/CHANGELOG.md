@@ -8,6 +8,10 @@ makes the change, as a new file under `changelog.d/` — see the README there fo
 and `CLAUDE.md` → "Release notes" for the house style. On merge the workflow folds those
 fragments into the version it publishes.
 
+## 1.67.1 — 2026-11-18
+
+Maintenance release — no user-visible changes.
+
 ## 1.67.0 — 2026-11-17
 
 ### Changed
