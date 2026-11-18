@@ -569,8 +569,8 @@ not published" rule here as a `return null` — never as a blanked field further
 function transform(item) {
   if (item && item.helloRetailMetaDataType) return item;
   if (!item) return null;
-  // The Capisco Puls 8010 Express listing is not published.
-  if (/Kontorsstol HÅG Capisco Puls 8010 - Express/.test(item.title)) return null;
+  // The Example Office Chair 100 Express listing is not published.
+  if (/Example Office Chair 100 - Express/.test(item.title)) return null;
 ```
 
 Never let the transform throw — one exception aborts the whole run and writes nothing.
@@ -937,8 +937,8 @@ code cannot speak, a `return null` for the one listing the shop does not publish
 function transform(item) {
   if (item && item.helloRetailMetaDataType) return item;
   if (!item) return null;
-  // The Capisco Puls 8010 Express listing is not published.
-  if (/Kontorsstol HÅG Capisco Puls 8010 - Express/.test(item.title)) return null;
+  // The Example Office Chair 100 Express listing is not published.
+  if (/Example Office Chair 100 - Express/.test(item.title)) return null;
 
   // Helpers
   // A repeated element arrives as an array, a single one as a plain value.
@@ -1004,7 +1004,7 @@ function transform(item) {
 
 Worth noticing in the config this came from. `hasVariants` was `matches(/^[2-9]/)` — a
 regex doing the work of `> 1`, wrong for ten variants and more; the summary says so. The
-Capisco listing was kept out by blanking its title; V2 has `return null` for that. `instock`,
+Example Office Chair listing was kept out by blanking its title; V2 has `return null` for that. `instock`,
 `topseller_ribbon` and `pricematched` were all `.matches("true")` — in V2 they arrive as
 booleans and are used as they are. And `feature(id)` is a helper because five fields read
 the numbered features; the category walk is one because two fields read it and it is three
